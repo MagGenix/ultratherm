@@ -1,5 +1,7 @@
 from nupack import *
 from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio import SeqIO
 from math import log10
 #from ViennaRNA import RNA
 
@@ -27,6 +29,9 @@ class nucl_acid():
         self.score_entire_seq = score_region.count(1) == 0
         self.score = self.fitness_score(scoring_parameters)
     
+    def __len__(self):
+        return len(self.sequence)
+
     def fitness_score(self, scoring_parameters: scoring_parameters):
         if scoring_parameters.blacklist.is_blacklisted(self):
             return 4
@@ -98,3 +103,39 @@ class nucl_acid():
         if hot:
             score_nucl = 1-score_nucl
         return [dimer_monomer_factor, score_nucl]
+
+class nucl_set():
+    def __init__(self, nucls: list):
+        self.nucls = nucls
+        self.scores = []
+        for nucl in self.nucls:
+            if type(nucl) != nucl_acid:
+                #Raise an error if an object in the list was not a nucl_acid
+                raise TypeError
+            self.scores = nucl.score
+    def __len__(self):
+        return len(self.nucls)
+
+    def replace(self, index:int, new_nucl_acid:nucl_acid):
+        if index < 0:
+            raise IndexError
+        
+        #nucl_set is zero-indexed!
+        if index > len(self) - 1:
+            raise IndexError
+        self.nucls[index] = new_nucl_acid
+        self.scores[index] = new_nucl_acid.score
+
+    def append(self, new_nucl_acid:nucl_acid):
+        self.nucls.append(new_nucl_acid)
+        self.scores.append(new_nucl_acid.score)
+
+    def remove(self, index:int):
+        del self.nucls[index]
+        del self.scores[index]
+
+    def save(self, path:str):
+        #raises IOError if path is invalid
+        with open(path) as handle:
+            for i in range(0, len(self)):
+                SeqIO.write(SeqRecord(seq=self.nucls(i), name=str(i),description="score=" + self.nucls(i).score), handle=handle, format='fasta')
