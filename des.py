@@ -1,5 +1,4 @@
 from blist import blacklist
-from nucl import nucl_set
 
 class design_parameters():
     def __init__(self, pool_size:int, blacklist: blacklist, target: float, offset: float, program: str, weights:list):
@@ -23,5 +22,7 @@ class design_parameters():
         else:
             raise ValueError
         
-def design(design_parameters: design_parameters, max_cycles: int, current_cycle:int, factor:float, old_nucl_set: nucl_set):
-    pass
+#def design(design_parameters: design_parameters, max_cycles: int, current_cycle:int, factor:float, old_nucl_set: nucl_set):
+#    pass
+    #Only increase current_cycle if no score improvement happened since the last iteration!
+    #Stop when a certain number of cycles with no improvement has been reached, or if the offset cannot be decremented anymore
