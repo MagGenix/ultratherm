@@ -5,17 +5,10 @@ from Bio import SeqIO
 from math import log10
 #from ViennaRNA import RNA
 
-from blist import blacklist
-
-class scoring_parameters():
-    def __init__(self, blacklist: blacklist, target: float, offset: float, program: str):
-        self.blacklist = blacklist
-        self.target = target
-        self.offset = offset
-        self.program = program
+from des import design_parameters
 
 class nucl_acid():
-    def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, scoring_parameters: scoring_parameters):
+    def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters):
         if len(no_mod) != len(sequence):
             raise Exception("no_mod length is not equal to seq length")
         if len(no_indel) != len(sequence):
@@ -27,15 +20,15 @@ class nucl_acid():
         self.no_indel = no_indel
         self.score_region = score_region
         self.score_entire_seq = score_region.count(1) == 0
-        self.score = self.fitness_score(scoring_parameters)
+        self.score = self.fitness_score(design_parameters)
     
     def __len__(self):
         return len(self.sequence)
 
-    def fitness_score(self, scoring_parameters: scoring_parameters):
-        if scoring_parameters.blacklist.is_blacklisted(self):
+    def fitness_score(self, design_parameters: design_parameters):
+        if design_parameters.blacklist.is_blacklisted(self):
             return 4
-        if scoring_parameters.program == "NUPACK":
+        if design_parameters.program == "NUPACK":
             #Create NUPACK strand using sequence of nucl
             strand_nucl = Strand(name='A', string=str(self.sequence))
 
@@ -48,7 +41,7 @@ class nucl_acid():
                include=[complex_nucl_single, complex_nucl_double]), name='tube_nucl')
             
             #Calculate cold temp for scoring
-            cold_temp = scoring_parameters.target-scoring_parameters.offset
+            cold_temp = design_parameters.target-design_parameters.offset
             if cold_temp < 0:
                 cold_temp = 0
             if cold_temp >= 100:
@@ -56,7 +49,7 @@ class nucl_acid():
             scores_cold = self.nupack_score_temp(temp=cold_temp, tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot=False)
 
             #Calculate hot temp for scoring
-            hot_temp = scoring_parameters.target+scoring_parameters.offset
+            hot_temp = design_parameters.target+design_parameters.offset
             if hot_temp < 0:
                 raise Exception("illegal hot temperature")
             if hot_temp > 100:
@@ -64,7 +57,7 @@ class nucl_acid():
             scores_hot = self.nupack_score_temp(temp=hot_temp, tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot = True)
 
             return sum(scores_cold) + sum(scores_hot)
-        if scoring_parameters.program == "VIENNA":
+        if design_parameters.program == "VIENNA":
             return 4
         raise Exception("no program specified for scoring")
 
