@@ -3,12 +3,13 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
 from math import log10
+import random
 #from ViennaRNA import RNA
 
 from des import design_parameters
 
 class nucl_acid():
-    def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters):
+    def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters, is_rna: bool):
         if len(no_mod) != len(sequence):
             raise Exception("no_mod length is not equal to seq length")
         if len(no_indel) != len(sequence):
@@ -19,8 +20,18 @@ class nucl_acid():
         self.no_mod = no_mod
         self.no_indel = no_indel
         self.score_region = score_region
+
+        #Since it is faster for other functions, I'm converting a list of all 1s to a list of 0s.
+        #Note that doing this BEFORE assessing score_entire_seq means score_entire_seq is still unambiguous.
+        #Don't alter this behavior or its position relative to self.score_entire_seq!
+        if score_region.count(1) == len(score_region):
+            score_region = [0] * len(score_region)
+        #Score the entire thing if everything was set to 0. Have to score something at minimum
+        #DON'T change this behavior! mutate depends on this unambiguously referring to the
+        #entire sequence being filled with 0s.
         self.score_entire_seq = score_region.count(1) == 0
         self.score = self.fitness_score(design_parameters)
+        self.is_rna = is_rna
     
     def __len__(self):
         return len(self.sequence)
@@ -29,6 +40,7 @@ class nucl_acid():
         if design_parameters.blacklist.is_blacklisted(self):
             return 4
         if design_parameters.program == "NUPACK":
+            #TODO: specify whether sequence to be analyzed is DNA or RNA
             #Create NUPACK strand using sequence of nucl
             strand_nucl = Strand(name='A', string=str(self.sequence))
 
@@ -132,3 +144,149 @@ class nucl_set():
         with open(path) as handle:
             for i in range(0, len(self)):
                 SeqIO.write(SeqRecord(seq=self.nucls(i), name=str(i),description="score=" + self.nucls(i).score), handle=handle, format='fasta')
+
+def mutate(nucl:nucl_acid, params:design_parameters):
+    #I'm trying to make this function as fast as possible since it will be called once per every single
+    #nucleotide in a sequence to generate one variant.
+    #For larger pool sizes this can really stack up.
+    
+    #As of writing the design parameters function forces the weights to be whole numbers between 0 and 16.
+    #This could be made a touch faster explicitly using ints.
+    weights = params.weights
+    weights_total = sum(weights)
+
+    #Make the weights array into an array of increasing values which can be compared to a random int
+    for i in range(1, len(weights) - 1):
+        weights[i] = weights[i - 1] + weights[i]
+
+    sequence = list(nucl.sequence)
+    no_mod = nucl.no_mod
+    no_indel = nucl.no_indel
+    score_region = nucl.score_region
+    score_entire_seq = nucl.score_entire_seq
+
+    #Define nucleotide set
+    #Really don't want to be repeatedly checking if RNA or DNA inside loop
+    if nucl.is_rna:
+        nucleotides = ['A', 'U', 'G', 'C']
+    else:
+        nucleotides = ['A', 'T', 'G', 'C']
+
+    #mod_range = list(range(0, len(sequence)))
+
+    i = 0
+    while i < len(sequence):
+        if no_mod[i]:
+            i = i+1
+            continue
+        choice = random.randint(0, weights_total)
+
+        #Comparing the generated int with values in the array of increasing ints.
+        for j in range(0, len(weights)):
+            if choice > weights(j):
+                continue
+            selection = j
+            break
+        
+        #If no change selected, move on
+        if selection == 7:
+            i = i+1
+            continue
+        
+        #If indels not allowed for this position, continue
+        if (selection == 4 or selection == 5) and no_indel:
+            i = i+1
+            continue
+        
+        #Index the nucleotide array instead of checking several times. Hope it's faster
+        #It is fewer lines, anyway
+        if selection > 0 or selection < 5:
+            sequence[i] = nucleotides[i]
+            i = i+1
+            continue
+
+        # Deletion is faster than insertion so I've moved it here for now
+        if selection == 6:
+            del sequence[i]
+
+            #The other arrays need to be the same size!
+            del no_mod[i]
+            del no_indel[i]
+            del score_region[i]
+            #If this was the last nucleotide, the while loop will see that anyway
+            #Repeat this nucleotide for the next mod so no incrementing i
+            continue
+
+        # If an insertion was selected
+        #Unnecessary check (selection == 5) but I'll leave it here in case the order changes
+        #TODO: remove unnecessary check
+        if selection == 5:
+            #Generate a random nucleotide from nucleotide list (getrandbits (2) will generate an int 0-4)
+            new_nt = nucleotides[random.getrandbits(2)]
+            
+
+            #I'm pretty worried about the score region changing code. It could be slow and could have bug(s)
+            
+            #Randomly generate bit to determine whether to insert to the left or right
+            #If bit was 1, insert to the left
+            if random.getrandbits(1):
+                sequence.insert(i, new_nt)
+                no_mod.insert(i, 0)
+                no_indel.insert(i, 0)
+
+                if score_entire_seq:
+                    score_region.insert(i, 0)
+                    i = i+2
+                    continue
+
+                #If at position 0, there is nothing to the left!
+                elif i == 0 and score_region[0]:
+                    score_region.insert(i, 1)
+                    i = i+2
+                    continue
+                #At any other position besides 0, check to the left and right
+                elif score_region[i - 1] and score_region[i]:
+                    score_region.insert(i, 1)
+                    i = i+2
+                    continue
+                
+                #default behavior is to insert a 0
+                score_region.insert(i, 0)
+                i = i+2
+                continue
+            #Else, insert to the right
+
+            #Check if we are at the end - use append instead
+            if i == len(sequence) - 1:
+                sequence.append(new_nt)
+                no_mod.append(0)
+                no_indel.append(0)
+
+                #If we are at the end and it's scored, extend the score region
+                if score_region[i]:
+                    score_region.append(1)
+                
+                #Exit the loop because that's it
+                break
+            
+            #Otherwise, we insert
+            sequence.insert(i+1, new_nt)
+            no_mod.insert(i+1, 0)
+            no_indel.insert(i+1, 0)
+
+            if score_entire_seq:
+                score_region.insert(i+1, 0)
+                i = i+2
+                continue
+            
+            elif score_region[i] and score_region[i+1]:
+                score_region.insert(i+1, 1)
+                i = i+2
+                continue
+            
+            #default behavior is to insert a 0
+            score_region.insert(i+1, 0)
+            i = i+2
+            #Unnecessary but I'll leave it here in case the order changes
+            #TODO: remove unnecessary continue
+            continue
