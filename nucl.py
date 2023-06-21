@@ -143,10 +143,10 @@ class nucl_set():
         del self.scores[index]
 
     def save(self, path:str):
-        #raises IOError if path is invalid
-        with open(path) as handle:
+        #raises IOError if path is invalid, overwrites existing files
+        with open(path, 'w') as handle:
             for i in range(0, len(self)):
-                SeqIO.write(SeqRecord(seq=self.nucls(i), name=str(i),description="score=" + self.nucls(i).score), handle=handle, format='fasta')
+                SeqIO.write(SeqRecord(seq=self.nucls[i].sequence, id=str(i), description="score=" + str(self.nucls[i].score)), handle=handle, format='fasta')
 
 def mutate(nucl:nucl_acid, design_parameters:design_parameters):
     #I'm trying to make this function as fast as possible since it will be called once per every single
@@ -162,7 +162,7 @@ def mutate(nucl:nucl_acid, design_parameters:design_parameters):
     weights_total = sum(weights)
 
     #Make the weights array into an array of increasing values which can be compared to a random int
-    for i in range(0, len(weights) - 1):
+    for i in range(0, len(weights)):
         weights[i] = weights[i - 1] + weights[i]
 
     sequence = list(copy.copy(nucl.sequence))
@@ -187,7 +187,7 @@ def mutate(nucl:nucl_acid, design_parameters:design_parameters):
         choice = random.randint(0, weights_total)
 
         #Comparing the generated int with values in the array of increasing ints.
-        for j in range(0, len(weights) - 1):
+        for j in range(0, len(weights)):
             if choice > weights[j]:
                 continue
             selection = j
