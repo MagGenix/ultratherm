@@ -275,7 +275,9 @@ def mutate(nucl:nucl_acid, design_parameters:design_parameters):
                 #If we are at the end and it's scored, extend the score region
                 if score_region[i]:
                     score_region.append(1)
-                
+                #Othwerise, if we are at the end and it isn't scored, don't extend the score region
+                else:
+                    score_region.append(0)
                 #Exit the loop because that's it
                 break
             

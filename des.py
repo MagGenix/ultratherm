@@ -9,7 +9,7 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
             design_parameters.decrement_offset()
             current_rep = 0
         else:
-            pool.save(time.asctime() + "_" + str(iter_count) + '.fasta')
+            pool.save("END_" +time.asctime() + "_" + str(iter_count) + '.fasta')
             return
     for nucl in pool.nucls:
         for i in range(0, design_parameters.num_mutants):
