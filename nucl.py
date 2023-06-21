@@ -1,5 +1,5 @@
 from nupack import *
-from Bio.Seq import Seq
+from Bio.Seq import Seq, MutableSeq
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
 from math import log10
@@ -7,7 +7,7 @@ import random
 import copy
 #from ViennaRNA import RNA
 
-from des import design_parameters
+from params import design_parameters
 
 class nucl_acid():
     def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters, is_rna: bool):
@@ -21,14 +21,22 @@ class nucl_acid():
         self.no_mod = no_mod
         self.no_indel = no_indel
         self.score_region = score_region
-
-
+        self.is_rna = is_rna
+        if self.sequence.find('N') != -1:
+            self.sequence = MutableSeq(self.sequence)
+            if self.is_rna:
+                nucleotides = ['A', 'U', 'G', 'C']
+            else:
+                nucleotides = ['A', 'T', 'G', 'C']
+            while self.sequence.find('N') != -1:
+                self.sequence[self.sequence.find('N')] = nucleotides[random.getrandbits(2)]
+            self.sequence = Seq(self.sequence)
         #Score the entire thing if everything was set to 0. Have to score something at minimum
         if score_region.count(0) == len(score_region):
             self.score_region = [1] * len(score_region)
 
         self.score = self.fitness_score(design_parameters)
-        self.is_rna = is_rna
+
     
     def __len__(self):
         return len(self.sequence)

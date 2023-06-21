@@ -1,3 +1,4 @@
 nupack-*
 .DS_STORE
 __pycache*
+*.fasta
