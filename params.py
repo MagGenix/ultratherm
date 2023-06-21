@@ -1,13 +1,15 @@
 from blist import blacklist
 
 class design_parameters():
-    def __init__(self, blacklist: blacklist, target: float, offset: float, temp_factor: float, weight_factor: int, program: str, weights:list):
+    def __init__(self, blacklist: blacklist, target: int, offset: int, temp_factor: int, weight_factor: int, num_mutants: int, program: str, weights:list):
         self.blacklist = blacklist
         self.target = target
         self.offset = offset
         self.temp_factor = temp_factor
         self.weight_factor = weight_factor
         self.program = program
+        self.num_mutants = num_mutants
+
         if len(weights) != 7:
             raise TypeError
         for weight in weights:
@@ -27,7 +29,7 @@ class design_parameters():
             raise ValueError
     
     def can_decrement_weights(self):
-        return min(self.weights[0:7]) > self.weight_factor + 1
+        return min(self.weights[0:7]) > self.weight_factor
 
     def decrement_weights(self):
         if min(self.weights[0:7]) > self.weight_factor:

@@ -1,4 +1,4 @@
-from nupack import *
+from nupack import Tube, Complex, complex_analysis, complex_concentrations, Strand, SetSpec, Model
 from Bio.Seq import Seq, MutableSeq
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
@@ -8,6 +8,7 @@ import copy
 #from ViennaRNA import RNA
 
 from params import design_parameters
+from blist import blacklist
 
 class nucl_acid():
     def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters, is_rna: bool):
@@ -42,7 +43,7 @@ class nucl_acid():
         return len(self.sequence)
 
     def fitness_score(self, design_parameters: design_parameters):
-        if design_parameters.blacklist.is_blacklisted(self):
+        if self.is_blacklisted(blacklist=design_parameters.blacklist):
             return 4
         if design_parameters.program == "NUPACK":
             #TODO: specify whether sequence to be analyzed is DNA or RNA
@@ -55,7 +56,7 @@ class nucl_acid():
 
             #Create NUPACK Tube and track both the monomer and homodimer complexes
             tube_nucl = Tube(strands={strand_nucl:1e-6}, complexes=SetSpec(max_size=2,
-               include=[complex_nucl_single, complex_nucl_double]), name='tube_nucl')
+               include=(complex_nucl_single, complex_nucl_double)), name='tube_nucl')
             
             #Calculate cold temp for scoring
             cold_temp = design_parameters.target-design_parameters.offset
@@ -78,7 +79,7 @@ class nucl_acid():
             return 4
         raise Exception("no program specified for scoring")
 
-    def nupack_score_temp(self, temp: float, tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex, hot:bool):
+    def nupack_score_temp(self, temp: int, tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex, hot:bool):
         #Make NUPACK model
         model_nucl=Model(celsius=temp)
 
@@ -112,15 +113,22 @@ class nucl_acid():
             score_nucl = 1-score_nucl
         return [dimer_monomer_factor, score_nucl]
 
+    def is_blacklisted(self, blacklist: blacklist):
+        if blacklist.is_empty:
+            return False
+        if self.sequence in blacklist.blacklist_sequences:
+            return True
+        return False
+
 class nucl_set():
     def __init__(self, nucls: list):
         self.nucls = nucls
         self.scores = []
-        for nucl in self.nucls:
-            if type(nucl) != nucl_acid:
+        for i in range (0, len(self.nucls)):
+            if type(self.nucls[i]) != nucl_acid:
                 #Raise an error if an object in the list was not a nucl_acid
                 raise TypeError
-            self.scores = nucl.score
+            self.scores[i] = self.nucls[i].score
     def __len__(self):
         return len(self.nucls)
 
@@ -165,7 +173,7 @@ def mutate(nucl:nucl_acid, design_parameters:design_parameters):
     for i in range(0, len(weights)):
         weights[i] = weights[i - 1] + weights[i]
 
-    sequence = list(copy.copy(nucl.sequence))
+    sequence = list(copy.copy(str(nucl.sequence)))
     no_mod = copy.copy(nucl.no_mod)
     no_indel = copy.copy(nucl.no_indel)
     score_region = copy.copy(nucl.score_region)
@@ -187,6 +195,7 @@ def mutate(nucl:nucl_acid, design_parameters:design_parameters):
         choice = random.randint(0, weights_total)
 
         #Comparing the generated int with values in the array of increasing ints.
+        selection = 6
         for j in range(0, len(weights)):
             if choice > weights[j]:
                 continue
