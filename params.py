@@ -20,7 +20,7 @@ class design_parameters():
         self.weights = weights
     
     def can_decrement_offset(self):
-        return self.offset > self.temp_factor
+        return self.offset > self.temp_factor and self.temp_factor != 0
 
     def decrement_offset(self):
         if self.offset > self.temp_factor:
@@ -29,7 +29,7 @@ class design_parameters():
             raise ValueError
     
     def can_decrement_weights(self):
-        return min(self.weights[0:7]) > self.weight_factor
+        return min(self.weights[0:7]) > self.weight_factor and self.weight_factor != 0
 
     def decrement_weights(self):
         if min(self.weights[0:7]) > self.weight_factor:
