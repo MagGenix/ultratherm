@@ -4,9 +4,11 @@ import time
 
 def design(design_parameters:design_parameters, max_reps:int, current_rep:int, pool:nucl_set, prev_min:float, iter_count:int):
     if current_rep == max_reps:
-        if design_parameters.can_decrement_weights() and design_parameters.can_decrement_offset:
-            design_parameters.decrement_weights()
-            design_parameters.decrement_offset()
+        if design_parameters.can_decrement_weights() or design_parameters.can_decrement_offset():
+            if design_parameters.can_decrement_weights():
+                design_parameters.decrement_weights()
+            if design_parameters.can_decrement_offset():
+                design_parameters.decrement_offset()
             current_rep = 0
         else:
             pool.save("END_" +time.asctime() + "_" + str(iter_count) + '.fasta')
@@ -26,12 +28,12 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
     #pool.save(time.asctime() + "_" + str(iter_count) + '.fasta')
     if current_min >= prev_min:
         current_rep+=1
-    elif (not design_parameters.can_decrement_weights()) or (not design_parameters.can_decrement_offset):
-        current_rep+=1
     else:
         current_rep = 0
-        design_parameters.decrement_weights()
-        design_parameters.decrement_offset()
+        if design_parameters.can_decrement_weights():
+            design_parameters.decrement_weights()
+        if design_parameters.can_decrement_offset():
+            design_parameters.decrement_offset()
 
     iter_count+=1
     print("iter_count:\t" + str(iter_count))
