@@ -11,7 +11,7 @@ des_params = design_parameters(blacklist=blist, target=50, offset=5, program="NU
 #TODO: raise an exception if sequence contains RNA bases if not supposed to, vice versa
 
 pool = nucl_set(nucls = [])
-for i in range(0, 16):
+for i in range(0, 32):
     pool.append(nucl_acid(sequence=Seq('NNNNNNNNNNNNNNUAAGGAGGNNNNNNAUGNNNNNNNNNNNNNN'),
         no_indel =      [0]*14+[1]*17+[0]*14,
         no_mod =        [0]*14+[1]*8+[0]*6+[1]*3+[0]*14,
@@ -20,4 +20,4 @@ for i in range(0, 16):
 
 pool.save("START_" + time.asctime() + '.fasta')
 
-design(design_parameters=des_params, max_reps=64, current_rep=0, pool=pool, prev_min=4, iter_count=0)
+design(design_parameters=des_params, max_reps=128, current_rep=0, pool=pool, prev_min=4, iter_count=0)

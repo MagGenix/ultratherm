@@ -18,7 +18,7 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
             pool.append(mutate(nucl=nucl, design_parameters=design_parameters))
 
         if current_rep == 0:
-            nucl.score = nucl.fitness_score(design_parameters=design_parameters)
+            nucl.fitness_score(design_parameters=design_parameters)
         
         for i in range(0, design_parameters.num_mutants):
             pool.remove(pool.scores.index(max(pool.scores)))

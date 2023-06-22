@@ -36,7 +36,7 @@ class nucl_acid():
         if score_region.count(0) == len(score_region):
             self.score_region = [1] * len(score_region)
 
-        self.score = self.fitness_score(design_parameters)
+        self.fitness_score(design_parameters)
 
     
     def __len__(self):
@@ -74,9 +74,11 @@ class nucl_acid():
                 hot_temp = 100
             scores_hot = self.nupack_score_temp(temp=hot_temp, tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot = True)
 
-            return sum(scores_cold) + sum(scores_hot)
+            self.score = sum(scores_cold) + sum(scores_hot)
+            return self.score
         if design_parameters.program == "VIENNA":
-            return 4
+            self.score = 4
+            return self.score
         raise Exception("no program specified for scoring")
 
     def nupack_score_temp(self, temp: int, tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex, hot:bool):
