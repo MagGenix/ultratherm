@@ -1,7 +1,7 @@
 from blist import blacklist
 
 class design_parameters():
-    def __init__(self, blacklist: blacklist, target: int, offset: int, temp_factor: int, weight_factor: int, num_mutants: int, program: str, weights:list, strucutre_bonus: float=0.0):
+    def __init__(self, blacklist: blacklist, target: int, offset: int, temp_factor: int, weight_factor: int, num_mutants: int, program: str, weights:list, structure_bonus: float=0.0):
         self.blacklist = blacklist
         self.target = target
         self.offset = offset
@@ -9,7 +9,7 @@ class design_parameters():
         self.weight_factor = weight_factor
         self.program = program
         self.num_mutants = num_mutants
-        self.structure_bonus = strucutre_bonus
+        self.structure_bonus = structure_bonus
 
         if len(weights) != 7:
             raise TypeError
