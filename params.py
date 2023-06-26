@@ -1,7 +1,7 @@
 from blist import blacklist
 
 class design_parameters():
-    def __init__(self, blacklist: blacklist, target: int, offset: int, temp_factor: int, weight_factor: int, num_mutants: int, program: str, weights:list):
+    def __init__(self, blacklist: blacklist, target: int, offset: int, temp_factor: int, weight_factor: int, num_mutants: int, program: str, weights:list, strucutre_bonus: float=0.0):
         self.blacklist = blacklist
         self.target = target
         self.offset = offset
@@ -9,6 +9,7 @@ class design_parameters():
         self.weight_factor = weight_factor
         self.program = program
         self.num_mutants = num_mutants
+        self.structure_bonus = strucutre_bonus
 
         if len(weights) != 7:
             raise TypeError
@@ -37,3 +38,20 @@ class design_parameters():
                 self.weights[i] -= self.weight_factor
         else:
             raise ValueError
+        
+    def save(self, path:str):
+        try:
+            with open(path, 'w') as handle:
+                handle.write('blacklist: ' + self.blacklist.blacklist_path + '\n')
+                handle.write('target: ' + str(self.target) + '\n')
+                handle.write('offset: ' + str(self.offset) + '\n')
+                handle.write('temp_factor: ' + str(self.temp_factor) + '\n')
+                handle.write('weight_factor: ' + str(self.weight_factor) + '\n')
+                handle.write('program: ' + self.program + '\n')
+                handle.write('num_mutants: ' + str(self.num_mutants) + '\n')
+                handle.write('structure_bonus: ' + str(self.structure_bonus) + '\n')
+                handle.write('weights:\n')
+                for weight in self.weights:
+                    handle.write(' - ' + str(weight)+"\n")
+        except IOError:
+            print("Warning: could not save parameters")

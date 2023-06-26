@@ -1,5 +1,9 @@
 nupack-*
 .DS_STORE
 __pycache*
-*.fasta
 .vscode
+START_*
+END_*
+PARAMS_*
+*.fasta
+*.yml
