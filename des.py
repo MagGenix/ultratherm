@@ -7,8 +7,7 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
     #If for some reason that becomes necessary in the future (I doubt it), it will have to be added back.
     if current_rep == max_reps:
         if design_parameters.can_decrement_weights():
-            if design_parameters.can_decrement_weights():
-                design_parameters.decrement_weights()
+            design_parameters.decrement_weights()
             current_rep = 0
         else:
             pool.save("END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fasta')
