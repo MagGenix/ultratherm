@@ -44,7 +44,7 @@ class nucl_acid():
 
     def fitness_score(self, design_parameters: design_parameters):
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
-            return 4
+            return 6
         if design_parameters.program == "NUPACK":
             #TODO: specify whether sequence to be analyzed is DNA or RNA
             #Create NUPACK strand using sequence of nucl
@@ -59,29 +59,29 @@ class nucl_acid():
                include=(complex_nucl_single, complex_nucl_double)), name='tube_nucl')
             
             #Calculate cold temp for scoring
-            cold_temp = design_parameters.target-design_parameters.offset
+            cold_temp = design_parameters.target_temp-design_parameters.temp_offset
             if cold_temp < 0:
                 cold_temp = 0
             if cold_temp >= 100:
                 raise Exception("illegal cold temperature")
-            scores_cold = self.nupack_score_temp(temp=cold_temp, tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot=False)
+            scores_cold = self.nupack_score_temp(temp=cold_temp, energy=design_parameters.target_energy, tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot=False)
 
             #Calculate hot temp for scoring
-            hot_temp = design_parameters.target+design_parameters.offset
+            hot_temp = design_parameters.target_temp+design_parameters.temp_offset
             if hot_temp < 0:
                 raise Exception("illegal hot temperature")
             if hot_temp > 100:
                 hot_temp = 100
-            scores_hot = self.nupack_score_temp(temp=hot_temp, tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot = True)
+            scores_hot = self.nupack_score_temp(temp=hot_temp, energy=design_parameters.target_energy, tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot = True)
 
             self.score = sum(scores_cold) + sum(scores_hot)
             return self.score
         if design_parameters.program == "VIENNA":
-            self.score = 4
+            self.score = 6
             return self.score
         raise Exception("no program specified for scoring")
 
-    def nupack_score_temp(self, temp: int, tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex, hot:bool):
+    def nupack_score_temp(self, temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex, hot:bool):
         #Make NUPACK model
         model_nucl=Model(celsius=temp)
 
@@ -103,6 +103,12 @@ class nucl_acid():
                 dimer_monomer_factor = 1 #cap cost of having a poor monomer formation
         
 
+        score_free_energy = (energy - results_nucl.complexes[complex_nucl_single].free_energy) / energy
+        if score_free_energy < 0:
+            score_free_energy = 0
+        if score_free_energy > 1:
+            score_free_energy = 1
+
         score_nucl = 0
         count_scored_nuc = 0
         for i, x in enumerate(self.score_region):
@@ -113,7 +119,8 @@ class nucl_acid():
 
         if hot:
             score_nucl = 1-score_nucl
-        return [dimer_monomer_factor, score_nucl]
+            score_free_energy = 1-score_free_energy
+        return [dimer_monomer_factor, score_nucl, score_free_energy]
 
     def is_blacklisted(self, blacklist: blacklist):
         if blacklist.is_empty:

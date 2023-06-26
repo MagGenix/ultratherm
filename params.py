@@ -1,14 +1,17 @@
 from blist import blacklist
 
 class design_parameters():
-    def __init__(self, blacklist: blacklist, target: int, offset: int, temp_factor: int, weight_factor: int, num_mutants: int, program: str, weights:list):
+    def __init__(self, blacklist: blacklist, target_temp: int, temp_offset: int, weight_factor: int, num_mutants: int, program: str, weights:list, target_energy:float=-10.0):
         self.blacklist = blacklist
-        self.target = target
-        self.offset = offset
-        self.temp_factor = temp_factor
+        self.target_temp = target_temp
+        self.temp_offset = temp_offset
         self.weight_factor = weight_factor
         self.program = program
         self.num_mutants = num_mutants
+        self.target_energy = target_energy
+
+        if target_energy >= 0:
+            raise ValueError
 
         if len(weights) != 7:
             raise TypeError
@@ -18,15 +21,6 @@ class design_parameters():
             if weight > 16 or weight < 0:
                 raise TypeError
         self.weights = weights
-    
-    def can_decrement_offset(self):
-        return self.offset > self.temp_factor and self.temp_factor != 0
-
-    def decrement_offset(self):
-        if self.offset > self.temp_factor:
-            self.offset -= self.temp_factor
-        else:
-            raise ValueError
     
     def can_decrement_weights(self):
         return min(self.weights[0:7]) > self.weight_factor and self.weight_factor != 0
@@ -42,9 +36,8 @@ class design_parameters():
         try:
             with open(path, 'w') as handle:
                 handle.write('blacklist: ' + self.blacklist.blacklist_path + '\n')
-                handle.write('target: ' + str(self.target) + '\n')
-                handle.write('offset: ' + str(self.offset) + '\n')
-                handle.write('temp_factor: ' + str(self.temp_factor) + '\n')
+                handle.write('target_temp: ' + str(self.target_temp) + '\n')
+                handle.write('temp_offset: ' + str(self.temp_offset) + '\n')
                 handle.write('weight_factor: ' + str(self.weight_factor) + '\n')
                 handle.write('program: ' + self.program + '\n')
                 handle.write('num_mutants: ' + str(self.num_mutants) + '\n')
