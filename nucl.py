@@ -5,7 +5,7 @@ from Bio import SeqIO
 from math import log10
 import random
 import copy
-#from ViennaRNA import RNA
+from ViennaRNA import RNA
 
 from params import design_parameters
 from blist import blacklist

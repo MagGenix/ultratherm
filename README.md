@@ -12,10 +12,17 @@ Use the environment.yml to make an appropriately-named conda env (prefer mamba).
 
 ```
 mamba env create -f environment.yml
+conda activate ultratherm
 ```
 
 Install nupack from local using pip3 with the env active. It should appear in the env list.
 
 ```
 pip3 install -U nupack -f ./nupack-4.0.1.8/package
+```
+
+Install vienna using pip3 with the env active. Note that bioconda vienna does not work.
+
+```
+pip3 install viennarna
 ```
