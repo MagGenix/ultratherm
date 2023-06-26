@@ -6,7 +6,7 @@ import time
 
 blist = blacklist(path="blacklist.fasta")
 des_params = design_parameters(blacklist=blist, target=50, offset=5, program="NUPACK",
-    weights=[8, 8, 8, 8, 8, 8, 16], temp_factor=0, weight_factor=1, num_mutants=8, structure_bonus=0)
+    weights=[8, 8, 8, 8, 8, 8, 16], temp_factor=0, weight_factor=1, num_mutants=8)
 des_params.save('PARAMS_' + time.asctime() + '.yml')
 #TODO: raise an exception if sequence contains RNA bases if not supposed to, vice versa
 

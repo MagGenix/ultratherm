@@ -51,8 +51,8 @@ class nucl_acid():
             strand_nucl = Strand(name='A', string=str(self.sequence))
 
             #Create NUPACK complexes for monomer and homodimer
-            complex_nucl_single = Complex(strands=[strand_nucl], name='A', bonus=design_parameters.structure_bonus)
-            complex_nucl_double = Complex(strands=[strand_nucl, strand_nucl], name='AA', bonus=design_parameters.structure_bonus)
+            complex_nucl_single = Complex(strands=[strand_nucl], name='A')
+            complex_nucl_double = Complex(strands=[strand_nucl, strand_nucl], name='AA')
 
             #Create NUPACK Tube and track both the monomer and homodimer complexes
             tube_nucl = Tube(strands={strand_nucl:1e-6}, complexes=SetSpec(max_size=2,
