@@ -1,7 +1,8 @@
 from blist import blacklist
+from Bio.Seq import Seq
 
 class design_parameters():
-    def __init__(self, blacklist: blacklist, target_temp: int, temp_offset: int, weight_factor: int, num_mutants: int, program: str, weights:list, target_energy:float=-10.0):
+    def __init__(self, blacklist: blacklist, target_temp: int, temp_offset: int, weight_factor: int, num_mutants: int, program: str, weights:list, target_energy:float=-10.0, competitor:Seq=Seq(""), free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0):
         self.blacklist = blacklist
         self.target_temp = target_temp
         self.temp_offset = temp_offset
@@ -9,6 +10,18 @@ class design_parameters():
         self.program = program
         self.num_mutants = num_mutants
         self.target_energy = target_energy
+        self.competitor = competitor
+
+        self.free_energy_max_score = free_energy_max_score
+        self.nucl_max_score = nucl_max_score
+        self.max_dimer_monomer_factor = max_dimer_monomer_factor
+
+        if free_energy_max_score < 0 or free_energy_max_score > 1:
+            raise ValueError
+        if nucl_max_score < 0 or nucl_max_score > 1:
+            raise ValueError
+        if max_dimer_monomer_factor < 0 or max_dimer_monomer_factor > 1:
+            raise ValueError
 
         if target_energy >= 0:
             raise ValueError

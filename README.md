@@ -21,8 +21,15 @@ Install nupack from local using pip3 with the env active. It should appear in th
 pip3 install -U nupack -f ./nupack-4.0.1.8/package
 ```
 
-Install vienna using pip3 with the env active. Note that bioconda vienna does not work.
+Install the ViennaRNA package using instructions provided by ViennaRNA to get RNAlib2.6.2 (or newer).
+Note that this requires Python 3.9, so the environment has been updated to use Python3.9.
+
+In my case (Darwin x86), I downloaded and installed precompiled binaries provided at:
+https://www.tbi.univie.ac.at/RNA/
+
+This completed with the following note:
+>In case you have installed the Perl or Python bindings for RNAlib, you might want to adjust your PERL5LIB and/or PYTHONPATH, respectively. You can do this by adding the following lines to your ~/.bash_profile, or ~/.bashrc: 
 
 ```
-pip3 install viennarna
+export PYTHONPATH=/usr/local/lib/python3.9/site-packages:${PYTHONPATH}
 ```
