@@ -52,6 +52,7 @@ class design_parameters():
                 handle.write('target_temp: ' + str(self.target_temp) + '\n')
                 handle.write('temp_offset: ' + str(self.temp_offset) + '\n')
                 handle.write('weight_factor: ' + str(self.weight_factor) + '\n')
+                handle.write('target_energy: ' + str(self.target_energy) + '\n')
                 handle.write('program: ' + self.program + '\n')
                 handle.write('num_mutants: ' + str(self.num_mutants) + '\n')
                 handle.write('weights:\n')
