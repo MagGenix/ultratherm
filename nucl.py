@@ -41,6 +41,8 @@ class nucl_acid():
     def __len__(self):
         return len(self.sequence)
 
+    #TODO consider unencapsulating function such that it takes nucl_acid as argument instead
+    #The mutate function isn't even encapsulated (then again, mutate accepts nucl_acid and returns nucl_acid, while the score is stored as a variable within nucl_acid)
     def fitness_score(self, design_parameters: design_parameters):
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
             return 6
@@ -72,6 +74,7 @@ class nucl_acid():
             tube_nucl = Tube(strands={strand_nucl:1e-6}, complexes=SetSpec(max_size=2,
                include=(complex_nucl_single, complex_nucl_double)), name='tube_nucl')
             
+            #TODO likely requires refactoring. Consider unencapsulating NUPACK score functions
             scores_cold = self.nupack_score_temp(temp=cold_temp, energy=design_parameters.target_energy, tube_nucl=tube_nucl,
                 complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot=False,
                 max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
@@ -92,6 +95,8 @@ class nucl_acid():
             return self.score
         raise Exception("no program specified for scoring")
 
+    #TODO consider unencapsulating
+    #TODO consider unspecifying default value. Should be specified in design_parameters!
     def nupack_score_energy(self, temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float=1.0):
         model_nucl=Model(celsius=temp)
         results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs'])
@@ -106,6 +111,9 @@ class nucl_acid():
 
         return score_free_energy
 
+    #TODO consider unencapsulating
+    #TODO remove unused vars
+    #TODO consider unspecifying default values. Should be specified in design_parameters!
     def nupack_score_temp(self, temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex, hot:bool, max_dimer_monomer_factor:float=1.0, free_energy_max_score:float=1.0, nucl_max_score:float=1.0):
         #Make NUPACK model
         model_nucl=Model(celsius=temp)
