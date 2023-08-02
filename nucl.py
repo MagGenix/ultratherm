@@ -1,13 +1,12 @@
-from nupack import Tube, Complex, complex_analysis, complex_concentrations, Strand, SetSpec, Model
 from Bio.Seq import Seq, MutableSeq
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
-from math import log10
 import random
 import copy
 
 from params import design_parameters
 from blist import blacklist
+from nupack_score import nupack_score
 
 class nucl_acid():
     def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters, is_rna: bool):
@@ -47,118 +46,19 @@ class nucl_acid():
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
             return 6
         
-        #Calculate cold temp for scoring
-        cold_temp = design_parameters.target_temp-design_parameters.temp_offset
-        if cold_temp < 0:
-            cold_temp = 0
-        if cold_temp >= 100:
-            raise Exception("illegal cold temperature")
-        
-        #Calculate hot temp for scoring
-        hot_temp = design_parameters.target_temp+design_parameters.temp_offset
-        if hot_temp < 0:
-            raise Exception("illegal hot temperature")
-        if hot_temp > 100:
-            hot_temp = 100
-
-        if design_parameters.program == "NUPACK":
-            #TODO: specify whether sequence to be analyzed is DNA or RNA
-            #Create NUPACK strand using sequence of nucl
-            strand_nucl = Strand(name='A', string=str(self.sequence))
-
-            #Create NUPACK complexes for monomer and homodimer
-            complex_nucl_single = Complex(strands=[strand_nucl], name='A')
-            complex_nucl_double = Complex(strands=[strand_nucl, strand_nucl], name='AA')
-
-            #Create NUPACK Tube and track both the monomer and homodimer complexes
-            tube_nucl = Tube(strands={strand_nucl:1e-6}, complexes=SetSpec(max_size=2,
-               include=(complex_nucl_single, complex_nucl_double)), name='tube_nucl')
-            
-            #TODO likely requires refactoring. Consider unencapsulating NUPACK score functions
-            scores_cold = self.nupack_score_temp(temp=cold_temp, energy=design_parameters.target_energy, tube_nucl=tube_nucl,
-                complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot=False,
-                max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
-                free_energy_max_score=design_parameters.free_energy_max_score,
-                nucl_max_score=design_parameters.nucl_max_score)
-            
-            scores_hot = self.nupack_score_temp(temp=hot_temp, energy=design_parameters.target_energy, tube_nucl=tube_nucl,
-                complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot = True,
-                max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
-                free_energy_max_score=design_parameters.free_energy_max_score,
-                nucl_max_score=design_parameters.nucl_max_score)
-
-            score_energy = self.nupack_score_energy(temp=design_parameters.thermo_score_temp, energy=design_parameters.target_energy, tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single, free_energy_max_score=design_parameters.free_energy_max_score)
-            self.score = sum(scores_cold) + sum(scores_hot) + score_energy
+        if design_parameters.program == "NUPACK":  
+            self.score = nupack_score(nucl_acid=self, design_parameters=design_parameters)
             return self.score
         if design_parameters.program == "VIENNA":
             self.score = 6
             return self.score
         raise Exception("no program specified for scoring")
 
-    #TODO consider unencapsulating
-    #TODO consider unspecifying default value. Should be specified in design_parameters!
-    def nupack_score_energy(self, temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float=1.0):
-        model_nucl=Model(celsius=temp)
-        results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs'])
-        #concentrations_nucl = complex_concentrations(tube=tube_nucl, data = results_nucl)
-
-        #Changing max value for free energy score since it can make the resulting RNATs terrible at RBS occlusion
-        score_free_energy = (energy - results_nucl.complexes[complex_nucl_single].free_energy) / energy
-        if score_free_energy < 0:
-            score_free_energy = 0
-        if score_free_energy > free_energy_max_score:
-            score_free_energy = free_energy_max_score
-
-        return score_free_energy
-
-    #TODO consider unencapsulating
-    #TODO remove unused vars
-    #TODO consider unspecifying default values. Should be specified in design_parameters!
-    def nupack_score_temp(self, temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex, hot:bool, max_dimer_monomer_factor:float=1.0, free_energy_max_score:float=1.0, nucl_max_score:float=1.0):
-        #Make NUPACK model
-        model_nucl=Model(celsius=temp)
-
-        #Run NUPACK model for temp (Complex analysis)
-        results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pfunc', 'pairs'])
-        concentrations_nucl = complex_concentrations(tube=tube_nucl, data = results_nucl)
-
-        #Calculate ratio of AA to A and take log10. lower is better
-        if concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_double] == 0:
-            dimer_monomer_factor=0
-        elif concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_single] == 0:
-            dimer_monomer_factor=1
-        else:
-            dimer_monomer_factor = log10(concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_double] /
-                concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_single]) + 2 #+2 means dimer must be 2 factors of 10 less abundant to avoid score penalty
-            if dimer_monomer_factor < 0:
-                dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
-            if dimer_monomer_factor > max_dimer_monomer_factor:
-                dimer_monomer_factor = max_dimer_monomer_factor #cap cost of having a poor monomer formation
-        
-
-        #Changing max value for free energy score since it can make the resulting RNATs terrible at RBS occlusion
-        # score_free_energy = (energy - results_nucl.complexes[complex_nucl_single].free_energy) / energy
-        # if score_free_energy < 0:
-        #     score_free_energy = 0
-        # if score_free_energy > free_energy_max_score:
-        #     score_free_energy = free_energy_max_score
-
-        score_nucl = 0
-        count_scored_nuc = 0
-        for i, x in enumerate(self.score_region):
-            if x:
-                score_nucl += results_nucl.complexes[complex_nucl_single].pairs.diagonal[i]
-                count_scored_nuc+=1
-        score_nucl = score_nucl / count_scored_nuc
-
-        if score_nucl > nucl_max_score:
-            score_nucl = nucl_max_score
-
-        if hot:
-            score_nucl = nucl_max_score - score_nucl
-            #score_free_energy = free_energy_max_score - score_free_energy
-        #return [dimer_monomer_factor, score_nucl, score_free_energy]
-        return [dimer_monomer_factor, score_nucl]
+    #As of right now, this function is only accessed from within fitness_score, but could be useful to external processes.
+    #If used in external processes it would be more efficent to store it as a boolean member variable.
+    #However, since member variables are public in Python, this would make is_blacklisted modifiable and potentially inaccurate.
+    #For that reason, and since it should only be performed once but is also generally important,
+    #this stays a function for now.
     def is_blacklisted(self, blacklist: blacklist):
         if blacklist.is_empty:
             return False
