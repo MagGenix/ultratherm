@@ -7,13 +7,13 @@ import time
 #Configure design parameters
 blist = blacklist(path="blacklist.fasta")
 des_params = design_parameters(blacklist=blist, target_temp=70, temp_offset=5, program="NUPACK",
-    weights=[8, 8, 8, 8, 8, 8, 16], weight_factor=1, num_mutants=8, target_energy=-12.0, # based on FourU Hairpin 2
+    weights=[8, 8, 8, 8, 8, 8, 16], weight_factor=1, num_mutants=16, target_energy=-12.0, # based on FourU Hairpin 2
     free_energy_max_score=1.0 , nucl_max_score=1.0, max_dimer_monomer_factor=1.0)
 des_params.save('PARAMS_' + time.asctime() + '.yml')
 
 #Create nucleotide set
 pool = nucl_set(nucls = [])
-for i in range(0, 32):
+for i in range(0, 16):
     pool.append(nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
         no_indel =      [0]*20+[1]*17,
         no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,

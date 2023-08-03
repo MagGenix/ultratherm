@@ -52,7 +52,7 @@ class nucl_acid():
             return 6
         
         if design_parameters.program == "NUPACK":  
-            self.score = nupack_score(nucl_acid=self, design_parameters=design_parameters)
+            self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, design_parameters=design_parameters)
             return self.score
         if design_parameters.program == "VIENNA":
             self.score = 6

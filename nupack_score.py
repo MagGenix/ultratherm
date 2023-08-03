@@ -1,10 +1,12 @@
 from nupack import Tube, Complex, complex_analysis, complex_concentrations, Strand, SetSpec, Model
 from math import log10
 
-from nucl import nucl_acid
 from des import design_parameters
 
-def nupack_score(nucl_acid:nucl_acid, design_parameters:design_parameters):
+def nupack_score(sequence:str, score_region:list, design_parameters:design_parameters):
+    if len(sequence) != len(score_region):
+        raise ValueError
+    
         #Calculate cold temp for scoring
     cold_temp = design_parameters.target_temp-design_parameters.temp_offset
     if cold_temp < 0:
@@ -19,7 +21,7 @@ def nupack_score(nucl_acid:nucl_acid, design_parameters:design_parameters):
     if hot_temp > 100:
         hot_temp = 100
 
-    strand_nucl = Strand(name='A', string=str(nucl_acid.sequence))
+    strand_nucl = Strand(name='A', string=sequence)
 
     #Create NUPACK complexes for monomer and homodimer
     complex_nucl_single = Complex(strands=[strand_nucl], name='A')
@@ -29,12 +31,12 @@ def nupack_score(nucl_acid:nucl_acid, design_parameters:design_parameters):
     tube_nucl = Tube(strands={strand_nucl:1e-6}, complexes=SetSpec(max_size=2,
         include=(complex_nucl_single, complex_nucl_double)), name='tube_nucl')
     
-    scores_cold = nupack_score_temp(nucl_acid.score_region, temp=cold_temp, tube_nucl=tube_nucl,
+    scores_cold = nupack_score_temp(score_region, temp=cold_temp, tube_nucl=tube_nucl,
         complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot=False,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
         nucl_max_score=design_parameters.nucl_max_score)
     
-    scores_hot = nupack_score_temp(nucl_acid.score_region, temp=hot_temp, tube_nucl=tube_nucl,
+    scores_hot = nupack_score_temp(score_region, temp=hot_temp, tube_nucl=tube_nucl,
         complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot = True,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
         nucl_max_score=design_parameters.nucl_max_score)
