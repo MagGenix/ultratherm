@@ -25,7 +25,7 @@ class nucl_acid():
         #Check that definded RNAs do not contain DNA bases and vice versa
         if self.is_rna and self.sequence.find('T') != -1:
             raise ValueError
-        elif (~self.is_rna) and self.sequence.find('U') != -1:
+        elif (not self.is_rna) and self.sequence.find('U') != -1:
             raise ValueError
 
         if self.sequence.find('N') != -1:

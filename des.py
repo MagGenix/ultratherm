@@ -33,7 +33,6 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
     
     print("iter_count:\t" + str(iter_count))
     print("current_rep:\t" + str(current_rep))
-    print("offset:\t" + str(design_parameters.temp_offset))
     print("min weight:\t" + str(min(design_parameters.weights[0:7])))
     print('')
     design(design_parameters=design_parameters, max_reps=max_reps, current_rep=current_rep, pool=pool, prev_min=current_min, iter_count=iter_count)

@@ -37,12 +37,13 @@ class design_parameters():
                 raise TypeError
         self.weights = weights
     
+    #Only decrement the weights for mutations, not the no-mutation weight
     def can_decrement_weights(self):
-        return min(self.weights[0:7]) > self.weight_factor and self.weight_factor != 0
+        return min(self.weights[0:6]) > self.weight_factor and self.weight_factor != 0
 
     def decrement_weights(self):
-        if min(self.weights[0:7]) > self.weight_factor:
-            for i in range(0, 7):
+        if min(self.weights[0:6]) > self.weight_factor:
+            for i in range(0, 6):
                 self.weights[i] -= self.weight_factor
         else:
             raise ValueError

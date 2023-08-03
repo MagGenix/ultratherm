@@ -1,7 +1,7 @@
 from nupack import Tube, Complex, complex_analysis, complex_concentrations, Strand, SetSpec, Model
 from math import log10
 
-from des import design_parameters
+from params import design_parameters
 
 def nupack_score(sequence:str, score_region:list, design_parameters:design_parameters):
     if len(sequence) != len(score_region):
