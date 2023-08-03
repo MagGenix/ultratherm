@@ -10,7 +10,6 @@ des_params = design_parameters(blacklist=blist, target_temp=70, temp_offset=5, p
     weights=[8, 8, 8, 8, 8, 8, 16], weight_factor=1, num_mutants=8, target_energy=-12.0, # based on FourU Hairpin 2
     free_energy_max_score=1.0 , nucl_max_score=1.0, max_dimer_monomer_factor=1.0)
 des_params.save('PARAMS_' + time.asctime() + '.yml')
-#TODO: raise an exception if sequence contains RNA bases if not supposed to, vice versa
 
 #Create nucleotide set
 pool = nucl_set(nucls = [])

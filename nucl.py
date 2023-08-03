@@ -21,6 +21,13 @@ class nucl_acid():
         self.no_indel = no_indel
         self.score_region = score_region
         self.is_rna = is_rna
+
+        #Check that definded RNAs do not contain DNA bases and vice versa
+        if self.is_rna and self.sequence.find('T') != -1:
+            raise ValueError
+        elif (~self.is_rna) and self.sequence.find('U') != -1:
+            raise ValueError
+
         if self.sequence.find('N') != -1:
             self.sequence = MutableSeq(self.sequence)
             if self.is_rna:
@@ -40,8 +47,6 @@ class nucl_acid():
     def __len__(self):
         return len(self.sequence)
 
-    #TODO consider unencapsulating function such that it takes nucl_acid as argument instead
-    #The mutate function isn't even encapsulated (then again, mutate accepts nucl_acid and returns nucl_acid, while the score is stored as a variable within nucl_acid)
     def fitness_score(self, design_parameters: design_parameters):
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
             return 6
