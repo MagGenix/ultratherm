@@ -21,7 +21,7 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
 
     current_min = min(pool.scores)
     
-    if current_min >= prev_min:
+    if current_min >= prev_min: # type: ignore
         current_rep+=1
     else:
         current_rep = 0
@@ -35,4 +35,4 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
     print("current_rep:\t" + str(current_rep))
     print("min weight:\t" + str(min(design_parameters.weights[0:6])))
     print('')
-    design(design_parameters=design_parameters, max_reps=max_reps, current_rep=current_rep, pool=pool, prev_min=current_min, iter_count=iter_count)
+    design(design_parameters=design_parameters, max_reps=max_reps, current_rep=current_rep, pool=pool, prev_min=current_min, iter_count=iter_count) # type: ignore
