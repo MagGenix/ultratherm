@@ -25,7 +25,7 @@ def vienna_score(sequence:str, score_region:list, design_parameters:design_param
     vienna_score_functions = CDLL("vienna_score.so")
     # Compilation - gcc -pthread -I/usr/local/include -I/usr/local/include/ViennaRNA -L/usr/local/lib -lRNA -lpthread -lmpfr -lgmp -lstdc++ -fPIC -shared -o vienna_score.so vienna_score.c
     # For non-shared, gcc -pthread -I/usr/local/include -I/usr/local/include/ViennaRNA -L/usr/local/lib -lRNA -lpthread -lmpfr -lgmp -lstdc++ -o vienna_score.o vienna_score.c
-    print(vienna_score_functions.main(seq))
+    print(vienna_score_functions.score(seq))
 
 
 # THIS IS FOR TESTING!! TODO get rid of this lmao
