@@ -6,11 +6,7 @@
 #include <ViennaRNA/fold.h>
 #include <ViennaRNA/part_func.h>
 
- 
-int main() {
-  /* The RNA sequence */
-  char      *seq = "GAGUAGUGGAACCAGGCUAUGUUUGUGACUCGCAGACUAACA";
- 
+float score(char *seq) {
   /* allocate memory for pairing propensity string (length + 1) */
   char      *propensity = (char *)vrna_alloc(sizeof(char) * (strlen(seq) + 1));
  
@@ -31,4 +27,10 @@ int main() {
   free(pair_probabilities);
   free(propensity);
   return 0;
+
+} 
+
+int main() {
+  char *seq = "GAGUAGUGGAACCAGGCUAUGUUUGUGACUCGCAGACUAACA";
+  score(seq);
 }
