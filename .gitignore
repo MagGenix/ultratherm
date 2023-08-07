@@ -8,3 +8,4 @@ END_*
 PARAMS_*
 *.fasta
 *.yml
+*.o

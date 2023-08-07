@@ -30,6 +30,5 @@ int main() {
   /* cleanup memory */
   free(pair_probabilities);
   free(propensity);
-  free(ptr);
   return 0;
 }
