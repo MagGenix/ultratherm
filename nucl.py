@@ -7,6 +7,7 @@ import copy
 from params import design_parameters
 from blist import blacklist
 from nupack_score import nupack_score
+from vienna_score import vienna_score
 
 class nucl_acid():
     def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters, is_rna: bool):
@@ -55,7 +56,7 @@ class nucl_acid():
             self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, design_parameters=design_parameters)
             return self.score
         if design_parameters.program == "VIENNA":
-            self.score = 6
+            self.score = vienna_score(sequence=str(self.sequence), score_region=self.score_region, design_parameters=design_parameters)
             return self.score
         raise Exception("no program specified for scoring")
 
