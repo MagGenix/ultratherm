@@ -2,7 +2,7 @@ from blist import blacklist
 from Bio.Seq import Seq
 
 class design_parameters():
-    def __init__(self, blacklist: blacklist, target_temp: int, temp_offset: int, weight_factor: int, num_mutants: int, program: str, weights:list, target_energy:float=-10.0, competitor:Seq=Seq(""), free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0, thermo_score_temp:int=37):
+    def __init__(self, blacklist: blacklist, target_temp: float, temp_offset: float, weight_factor: int, num_mutants: int, program: str, weights:list, target_energy:float=-10.0, competitor:Seq=Seq(""), free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0, thermo_score_temp:int=37):
         self.blacklist = blacklist
         self.target_temp = target_temp
         self.temp_offset = temp_offset

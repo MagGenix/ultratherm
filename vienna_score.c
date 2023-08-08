@@ -5,6 +5,7 @@
 #include <ViennaRNA/utils/basic.h>
 #include <ViennaRNA/fold.h>
 #include <ViennaRNA/part_func.h>
+#include <ViennaRNA/model.h>
 
 float score(char *seq, unsigned char score_region[]) {
   /* allocate memory for pairing propensity string (length + 1) */
@@ -13,6 +14,16 @@ float score(char *seq, unsigned char score_region[]) {
   /* pointers for storing and navigating through base pair probabilities */
   vrna_ep_t *ptr, *pair_probabilities = NULL;
  
+  /* create a new model details structure to store the Model Settings */
+  vrna_md_t md;
+
+  /* ALWAYS set default model settings first! */
+  vrna_md_set_default(&md);
+
+  /* change temperature and activate G-Quadruplex prediction */
+  md.temperature  = 25.0; /* 25 Deg Celcius */
+  md.gquad        = 1;    /* Turn-on G-Quadruples support */
+  
   float     en = vrna_pf_fold(seq, propensity, &pair_probabilities);
  
   /* print sequence, pairing propensity string and ensemble free energy */

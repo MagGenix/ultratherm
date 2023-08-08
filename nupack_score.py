@@ -21,6 +21,10 @@ def nupack_score(sequence:str, score_region:list, design_parameters:design_param
     if hot_temp > 100:
         hot_temp = 100
 
+    # Does NUPACK tolerate float temperatures? TODO remove if not the case
+    cold_temp = int(cold_temp)
+    hot_temp = int(hot_temp)
+
     strand_nucl = Strand(name='A', string=sequence)
 
     #Create NUPACK complexes for monomer and homodimer
