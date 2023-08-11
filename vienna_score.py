@@ -1,6 +1,6 @@
 #from ctypes import *
 import RNA
-
+from math import exp, log10
 from params import design_parameters
 
 def vienna_score(sequence:str, score_region:list, design_parameters:design_parameters):
@@ -33,32 +33,39 @@ def vienna_score(sequence:str, score_region:list, design_parameters:design_param
     #score_region_bytes_as_str = ''.join(score_region_byte_list)
     #score_reg_c = c_char_p(bytes(score_region_bytes_as_str, 'ascii'))
 
-    vienna_score_temp(seq=sequence, score_region=score_region, temp=hot_temp)
-    vienna_score_temp(seq=sequence, score_region=score_region, temp=cold_temp)
+    vienna_score_temp(seq=sequence, score_region=score_region, temp=hot_temp,
+        max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
+        nucl_max_score=design_parameters.nucl_max_score)
+    vienna_score_temp(seq=sequence, score_region=score_region, temp=cold_temp,
+        max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
+        nucl_max_score=design_parameters.nucl_max_score)
 
-    vienna_score_dimer(seq=sequence, temp=hot_temp)
-    vienna_score_dimer(seq=sequence, temp=cold_temp)
+    vienna_dimer_energy(seq=sequence, temp=hot_temp)
+    vienna_dimer_energy(seq=sequence, temp=cold_temp)
 
-    vienna_score_energy(seq=sequence, temp=design_parameters.thermo_score_temp)
+    vienna_score_energy(seq=sequence, temp=design_parameters.thermo_score_temp, target_energy=design_parameters.target_energy)
     #vienna_score_functions = CDLL("vienna_score.so")
     # Compilation - gcc -pthread -I/usr/local/include -I/usr/local/include/ViennaRNA -L/usr/local/lib -lRNA -lpthread -lmpfr -lgmp -lstdc++ -fPIC -shared -o vienna_score.so vienna_score.c
     # For non-shared, gcc -pthread -I/usr/local/include -I/usr/local/include/ViennaRNA -L/usr/local/lib -lRNA -lpthread -lmpfr -lgmp -lstdc++ -o vienna_score.o vienna_score.c
     #vienna_score_functions.score(seq_c, score_reg_c)
 
-def vienna_score_temp(seq:str, score_region:list, temp: float):
+# Returns (float: score_nucl, float: ensemble_energy)
+def vienna_score_temp(seq:str, score_region:list, temp: float, max_dimer_monomer_factor: float, nucl_max_score: float) -> tuple[float, float]:
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 1
     fc = RNA.fold_compound(seq, model)
-    (ss, ensemble_energy) = fc.pf()
+    (ss, monomer_energy) = fc.pf()
     
+    #NOTE! Vienna bpp array reports pairs from and onto in different positions of array.
+    #TODO: verify that the NUPACK array doesn't differentiate this, or scoring may be off!
     basepair_probs = list()
     for i in range(1, len(seq) + 1):
         basepair_probs.append(0.0)
         for j in range(1, len(seq) + 1):
+            #Perhaps this can be sped up by copying fc.bpp() to another structure?
+            #May be unnecessary. TODO consider changing that
             basepair_probs[i - 1] += fc.bpp()[i][j] + fc.bpp()[j][i]
-
-    test = fc.bpp()
 
 
     if len(basepair_probs) != len(score_region):
@@ -72,22 +79,43 @@ def vienna_score_temp(seq:str, score_region:list, temp: float):
             count_scored_nuc+=1
     score_nucl = score_nucl / count_scored_nuc
 
-    print(score_nucl)
-    print(ensemble_energy)
+    if score_nucl > nucl_max_score:
+        score_nucl = nucl_max_score
+
+    dimer_energy = vienna_dimer_energy(seq=seq, temp=temp)
+
+    # Reaction: 2 Monomer <--> Dimer
+    # Energies are in kcal / mol
+    delta_g = dimer_energy - (2 * monomer_energy)
+
+    # 1 kcal = 4184 J
+    # R: 8.31446261815324 J / (mol * K)
+    # Temp: in C, to K is + 273.15
+    # delG = RT lnQ --> Q = e^(delG / RT)
+    # log10(Q) + 2 to produce dimer_monomer_factor
+    dimer_monomer_factor = log10(exp((delta_g * 4184) / (8.31446261815324 * (273.15 + temp)) )) + 2
+    if dimer_monomer_factor < 0:
+        dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
+    if dimer_monomer_factor > max_dimer_monomer_factor:
+        dimer_monomer_factor = max_dimer_monomer_factor #cap cost of having a poor monomer formation
+
+    return (dimer_monomer_factor, score_nucl)
     
-def vienna_score_dimer(seq:str, temp:float):
+def vienna_dimer_energy(seq:str, temp:float) -> float:
     model = RNA.md()
     model.temperature = temp
     fc = RNA.fold_compound(seq + "&" + seq, model)
-    (ss, complex_energy) = fc.pf()
-    print("COMPLEX:\t" + str(complex_energy))
+    (ss, dimer_energy) = fc.pf()
+    return dimer_energy
 
-def vienna_score_energy(seq:str, temp:float):
+def vienna_score_energy(seq:str, temp:float, target_energy: float) -> float:
     model = RNA.md()
     model.temperature = temp
     fc = RNA.fold_compound(seq, model)
     (ss, ensemble_energy) = fc.pf()
-    print(ensemble_energy)
+
+    #TODO finish
+    return 0.0
 
 # THIS IS FOR TESTING!! TODO get rid of this lmao
 from blist import blacklist

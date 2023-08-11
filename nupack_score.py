@@ -101,4 +101,4 @@ def nupack_score_temp(score_region: list, temp: int, tube_nucl: Tube, complex_nu
     if hot:
         score_nucl = nucl_max_score - score_nucl
 
-    return [dimer_monomer_factor, score_nucl]
+    return (dimer_monomer_factor, score_nucl)
