@@ -2,7 +2,7 @@ import RNA
 from math import exp, log10
 from params import design_parameters
 
-def vienna_score(sequence:str, score_region:list, design_parameters:design_parameters):
+def vienna_score(sequence:str, score_region:list, design_parameters:design_parameters) -> float:
     if len(sequence) != len(score_region):
         raise ValueError
     
@@ -20,13 +20,6 @@ def vienna_score(sequence:str, score_region:list, design_parameters:design_param
     if hot_temp > 100:
         hot_temp = 100
 
-    score_region_byte_list = score_region
-    for i in range(len(score_region_byte_list)):
-        if score_region_byte_list[i]:
-            score_region_byte_list[i] = '1'
-        else:
-            score_region_byte_list[i] = '0'
-    
     scores_hot = vienna_score_temp(seq=sequence, score_region=score_region, temp=hot_temp,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
         nucl_max_score=design_parameters.nucl_max_score)
@@ -46,7 +39,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, max_dimer_monomer
     model.temperature = temp
     model.compute_bpp = 1
     fc = RNA.fold_compound(seq, model)
-    (ss, monomer_energy) = fc.pf()
+    monomer_energy = fc.pf()[1]
     
     #NOTE! Vienna bpp array reports pairs from and onto in different positions of array.
     #TODO: verify that the NUPACK array doesn't differentiate this, or scoring may be off!
@@ -64,7 +57,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, max_dimer_monomer
     score_nucl = 0
     count_scored_nuc = 0
     for i, x in enumerate(score_region):
-        if x == '1':
+        if x:
             score_nucl += basepair_probs[i]
             count_scored_nuc+=1
     score_nucl = score_nucl / count_scored_nuc
@@ -95,14 +88,14 @@ def vienna_dimer_energy(seq:str, temp:float) -> float:
     model = RNA.md()
     model.temperature = temp
     fc = RNA.fold_compound(seq + "&" + seq, model)
-    (ss, dimer_energy) = fc.pf()
+    dimer_energy = fc.pf()[1]
     return dimer_energy
 
 def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_max_score: float) -> float:
     model = RNA.md()
     model.temperature = temp
     fc = RNA.fold_compound(seq, model)
-    (ss, ensemble_energy) = fc.pf()
+    ensemble_energy = fc.pf()[1]
 
     score_free_energy = (target_energy - ensemble_energy) / target_energy
     if score_free_energy < 0:

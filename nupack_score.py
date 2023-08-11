@@ -90,7 +90,7 @@ def nupack_score_temp(score_region: list, temp: int, tube_nucl: Tube, complex_nu
     score_nucl = 0
     count_scored_nuc = 0
     for i, x in enumerate(score_region):
-        if x == '1':
+        if x:
             score_nucl += results_nucl.complexes[complex_nucl_single].pairs.diagonal[i]
             count_scored_nuc+=1
     score_nucl = score_nucl / count_scored_nuc
