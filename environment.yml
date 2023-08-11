@@ -8,3 +8,7 @@ dependencies:
  - scipy
  - pandas
  - biopython
+ - pip
+ - pip:
+  # bioconda viennarna does not work! use PyPi
+  - viennarna
