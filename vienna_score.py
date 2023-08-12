@@ -38,6 +38,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, max_dimer_monomer
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 1
+    model.gquad = 1
     fc = RNA.fold_compound(seq, model)
     monomer_energy = fc.pf()[1]
     
@@ -87,6 +88,8 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, max_dimer_monomer
 def vienna_dimer_energy(seq:str, temp:float) -> float:
     model = RNA.md()
     model.temperature = temp
+    model.compute_bpp = 0
+    model.gquad = 1
     fc = RNA.fold_compound(seq + "&" + seq, model)
     dimer_energy = fc.pf()[1]
     return dimer_energy
@@ -94,6 +97,8 @@ def vienna_dimer_energy(seq:str, temp:float) -> float:
 def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_max_score: float) -> float:
     model = RNA.md()
     model.temperature = temp
+    model.compute_bpp = 0
+    model.gquad = 1
     fc = RNA.fold_compound(seq, model)
     ensemble_energy = fc.pf()[1]
 
