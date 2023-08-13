@@ -14,6 +14,8 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
             return
     for nucl in pool.nucls:
         for i in range(0, design_parameters.num_mutants):
+            #TODO consider changing this to bracket-indexed replacement
+            #Probably numpy array
             pool.append(mutate(nucl=nucl, design_parameters=design_parameters))
         
         for i in range(0, design_parameters.num_mutants):
