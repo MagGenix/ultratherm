@@ -30,7 +30,6 @@ def main():
     design(design_parameters=des_params, max_reps=16, current_rep=0, pool=pool, prev_min=4, iter_count=0)
 
 def test():
-    # THIS IS FOR TESTING!! TODO get rid of this lmao
     blist = blacklist(path="blacklist.fasta")
     # score = vienna_score(sequence="AAAGACUUCCUAAUAAGGAAAUCACAUUCGUGGCUUAAGGAGGUUCACCAUG",
     #     score_region=[0]*35+[1]*17, design_parameters=design_parameters(blacklist=blist, target_temp=70,

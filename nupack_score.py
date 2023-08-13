@@ -3,7 +3,6 @@ from math import log10
 
 from params import design_parameters
 
-#TODO consider making function more accessible to scoring user provided seq's by breaking out args?
 def nupack_score(sequence:str, score_region:list, design_parameters:design_parameters):
     if len(sequence) != len(score_region):
         raise ValueError

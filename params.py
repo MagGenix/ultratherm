@@ -63,3 +63,7 @@ class design_parameters():
                     handle.write(' - ' + str(weight)+"\n")
         except IOError:
             print("Warning: could not save parameters")
+
+    def read(self, path:str):
+        #TODO implement
+        pass

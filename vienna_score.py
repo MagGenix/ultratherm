@@ -2,7 +2,6 @@ import RNA
 from math import exp, log10
 from params import design_parameters
 
-#TODO consider making function more accessible to scoring user provided seq's by breaking out args?
 def vienna_score(sequence:str, score_region:list, design_parameters:design_parameters) -> float:
     if len(sequence) != len(score_region):
         raise ValueError
@@ -50,8 +49,6 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, max_dimer_monomer
     for i in range(1, len(seq) + 1):
         basepair_probs_diagonal.append(0.0)
         for j in range(1, len(seq) + 1):
-            #Perhaps this can be sped up by copying fc.bpp() to another structure?
-            #May be unnecessary. TODO consider changing that
             basepair_probs_diagonal[i - 1] += bpp[i][j] + bpp[j][i]
     # TODO delete unnecessary check
     if len(basepair_probs_diagonal) != len(score_region):

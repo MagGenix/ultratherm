@@ -108,6 +108,10 @@ class nucl_set():
             for i in range(0, len(self)):
                 SeqIO.write(SeqRecord(seq=self.nucls[i].sequence, id=str(i), description="score=" + str(self.nucls[i].score)), handle=handle, format='fasta')
 
+    def read(self, path:str):
+        #TODO implement
+        pass
+
 def mutate(nucl:nucl_acid, design_parameters:design_parameters):
     #I'm trying to make this function as fast as possible since it will be called once per every single
     #nucleotide in a sequence to generate one variant.
