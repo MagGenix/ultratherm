@@ -24,7 +24,7 @@ def main():
             score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
             design_parameters=des_params, is_rna=True))
 
-    pool.save("START_" + time.asctime() + '.fasta')
+    pool.save("START_" + time.asctime() + '.fastq')
 
     #Start design loop
     design(design_parameters=des_params, max_reps=16, current_rep=0, pool=pool, prev_min=4, iter_count=0)

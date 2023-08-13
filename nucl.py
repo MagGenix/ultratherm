@@ -104,13 +104,44 @@ class nucl_set():
 
     def save(self, path:str):
         #raises IOError if path is invalid, overwrites existing files
+        #TODO this needs to save to a .fastq, where the quality scores are used instead for bitwise indicating nomod, noindel, scoreregion
+        #This will be done with ASCII 0-7, p-w  [XXX011Y]
+        #These were chosen to avoid any extraneous ASCII characters.
+        #b1: no_mod
+        #b2: no_indel
+        #b3: score_region
+        #b7: DNA / RNA
+        # AS SANGER SCORES:
+        # 0: 15, 7: 22
+        # p: 75, w: 82
+        #TODO test this function it probably doesn't work!!!
         with open(path, 'w') as handle:
             for i in range(0, len(self)):
-                SeqIO.write(SeqRecord(seq=self.nucls[i].sequence, id=str(i), description="score=" + str(self.nucls[i].score)), handle=handle, format='fasta')
+                nucl = self.nucls[i]
+                if nucl.is_rna:
+                    offset = 75
+                else:
+                    offset = 15
+                quals = list()
+                for j in range (0, len(nucl)):
+                    bitString = str(nucl.no_mod[j]) + str(nucl.no_indel[j]) + str(nucl.score_region[j])
+                    bitsAsInt = int(bitString, 2)
+                    quals.append(bitsAsInt + offset)
+                record = SeqRecord(seq=self.nucls[i].sequence, id=str(i), description="score=" + str(self.nucls[i].score))
+                record.letter_annotations["phred_quality"] = quals
+                SeqIO.write(record, handle=handle, format='fastq')
+                del quals
+                del record
+                del nucl
 
-    def read(self, path:str):
-        #TODO implement
-        pass
+    def read(self, path:str, design_parameters:design_parameters):
+        #If any other characters are encountered, an error should be raised.
+        with open(path, 'w') as handle:
+            for record in SeqIO.parse(handle, "fastq"):
+                #TODO check if RNA or DNA
+                #self.append(nucl_acid(record.seq))
+                pass
+        
 
 def mutate(nucl:nucl_acid, design_parameters:design_parameters):
     #I'm trying to make this function as fast as possible since it will be called once per every single
