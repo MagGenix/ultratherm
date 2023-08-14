@@ -3,7 +3,7 @@ from math import log10
 
 from params import design_parameters
 
-def nupack_score(sequence:str, score_region:list, design_parameters:design_parameters):
+def nupack_score(sequence:str, score_region:list, design_parameters:design_parameters) -> float:
     if len(sequence) != len(score_region):
         raise ValueError
     
@@ -49,7 +49,7 @@ def nupack_score(sequence:str, score_region:list, design_parameters:design_param
 
     return score_energy + sum(scores_cold) + sum(scores_hot)
 
-def nupack_score_energy(temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float):
+def nupack_score_energy(temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float) -> float:
     model_nucl=Model(celsius=temp)
     results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs'])
     #concentrations_nucl = complex_concentrations(tube=tube_nucl, data = results_nucl)
@@ -63,7 +63,7 @@ def nupack_score_energy(temp: int, energy: float, tube_nucl: Tube, complex_nucl_
 
     return score_free_energy
 
-def nupack_score_temp(score_region: list, temp: int, tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex, hot:bool, max_dimer_monomer_factor:float, nucl_max_score:float):
+def nupack_score_temp(score_region: list, temp: int, tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex, hot:bool, max_dimer_monomer_factor:float, nucl_max_score:float) -> tuple[float, float]:
     #Make NUPACK model
     model_nucl=Model(celsius=temp)
 

@@ -45,8 +45,16 @@ class nucl_acid():
         self.fitness_score(design_parameters)
 
     
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.sequence)
+    
+    def __str__(self) -> str:
+        as_string = as_string + self.score + "\n"
+        as_string = as_string + self.sequence + "\n"
+        as_string = as_string + self.no_mod + "\n"
+        as_string = as_string + self.no_indel + "\n"
+        as_string = as_string + self.score_region + "\n"
+        return as_string
 
     def fitness_score(self, design_parameters: design_parameters):
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
@@ -81,8 +89,13 @@ class nucl_set():
                 #Raise an error if an object in the list was not a nucl_acid
                 raise TypeError
             self.scores[i] = self.nucls[i].score
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.nucls)
+
+    def __str__(self) -> str:
+        as_string = ""
+        for nucl in self.nucls:
+            as_string = as_string + str(nucl) + "\n"
 
     def replace(self, index:int, new_nucl_acid:nucl_acid):
         if index < 0:
@@ -113,13 +126,13 @@ class nucl_set():
         #b7: DNA / RNA
         # AS SANGER SCORES:
         # 0: 15, 7: 22
-        # p: 75, w: 82
+        # p: 79, w: 86
         #TODO test this function it probably doesn't work!!!
         with open(path, 'w') as handle:
             for i in range(0, len(self)):
                 nucl = self.nucls[i]
                 if nucl.is_rna:
-                    offset = 75
+                    offset = 79
                 else:
                     offset = 15
                 quals = list()
@@ -134,14 +147,33 @@ class nucl_set():
                 del record
                 del nucl
 
+    #TODO test this
     def read(self, path:str, design_parameters:design_parameters):
         #If any other characters are encountered, an error should be raised.
         with open(path, 'w') as handle:
             for record in SeqIO.parse(handle, "fastq"):
-                #TODO check if RNA or DNA
-                #self.append(nucl_acid(record.seq))
-                pass
-        
+                quals = record.letter_annotations["phred_quality"]
+                if max(quals) > 86 or min(quals) < 15:
+                    raise ValueError("NOT SPSS")
+                if max(quals) > 22: # Either RNA or invalid
+                    if max(quals) < 79:
+                        raise ValueError("NOT SPSS")
+                    offset = 79
+                    is_rna = True
+                if min(quals) <  79: # Either DNA or invalid
+                    if min(quals) > 22:
+                        raise ValueError("NOT SPSS")
+                    offset = 15
+                    is_rna = False
+                no_mod = list()
+                no_indel = list()
+                score_region = list()
+                for qual in quals:
+                    bitsList= str(bin(qual - offset))[2:].split()
+                    no_mod.append(int(bitsList[0] == '1'))
+                    no_indel.append(int(bitsList[1] == '1'))
+                    score_region.append(int(bitsList[2] == '1'))
+                self.append(new_nucl_acid=nucl_acid(sequence=record.seq, no_mod=no_mod, no_indel=no_indel, score_region=score_region, is_rna=is_rna))
 
 def mutate(nucl:nucl_acid, design_parameters:design_parameters):
     #I'm trying to make this function as fast as possible since it will be called once per every single
