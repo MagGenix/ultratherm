@@ -31,10 +31,6 @@ def main():
 
 def test():
     blist = blacklist(path="blacklist.fasta")
-    # score = vienna_score(sequence="AAAGACUUCCUAAUAAGGAAAUCACAUUCGUGGCUUAAGGAGGUUCACCAUG",
-    #     score_region=[0]*35+[1]*17, design_parameters=design_parameters(blacklist=blist, target_temp=70,
-    #     temp_offset=5, program="VIENNA", weights=[8, 8, 8, 8, 10, 10, 16], weight_factor=1, num_mutants=8,
-    #     target_energy=-12.0, free_energy_max_score=1.0 , nucl_max_score=1.0, max_dimer_monomer_factor=1.0))
     score = vienna_score(sequence="CGAAAUCCCAACAGUGAAAACUUCCUCCAUGUUACAUAAUAGUAAGGAGGAAACAAAUG",
         score_region=[0]*42+[1]*8+[0]*9, design_parameters=design_parameters(blacklist=blist, target_temp=70,
         temp_offset=5, program="VIENNA", weights=[8, 8, 8, 8, 10, 10, 16], weight_factor=1, num_mutants=8,

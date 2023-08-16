@@ -22,10 +22,6 @@ def nupack_score(sequence:str, score_region:list, design_parameters:design_param
     if hot_temp > 100:
         hot_temp = 100
 
-    # Does NUPACK tolerate float temperatures? TODO remove if not the case
-    cold_temp = int(cold_temp)
-    hot_temp = int(hot_temp)
-
     strand_nucl = Strand(name='A', string=sequence)
 
     #Create NUPACK complexes for monomer and homodimer
@@ -33,25 +29,31 @@ def nupack_score(sequence:str, score_region:list, design_parameters:design_param
     complex_nucl_double = Complex(strands=[strand_nucl, strand_nucl], name='AA')
 
     #Create NUPACK Tube and track both the monomer and homodimer complexes
-    tube_nucl = Tube(strands={strand_nucl:1e-6}, complexes=SetSpec(max_size=2,
+    tube_nucl = Tube(strands={strand_nucl:design_parameters.rna_concentration}, complexes=SetSpec(max_size=2,
         include=(complex_nucl_single, complex_nucl_double)), name='tube_nucl')
     
     scores_cold = nupack_score_temp(score_region, temp=cold_temp, tube_nucl=tube_nucl,
         complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot=False,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
+        dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
         nucl_max_score=design_parameters.nucl_max_score)
     
     scores_hot = nupack_score_temp(score_region, temp=hot_temp, tube_nucl=tube_nucl,
         complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot = True,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
+        dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
         nucl_max_score=design_parameters.nucl_max_score)
 
-    score_energy = nupack_score_energy(temp=design_parameters.thermo_score_temp, energy=design_parameters.target_energy, tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single, free_energy_max_score=design_parameters.free_energy_max_score)
+    score_energy = nupack_score_energy(temp=design_parameters.thermo_score_temp, energy=design_parameters.target_energy,
+        tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single,
+        free_energy_max_score=design_parameters.free_energy_max_score)
 
     return score_energy + sum(scores_cold) + sum(scores_hot)
 
-def nupack_score_energy(temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float) -> float:
-    model_nucl=Model(celsius=temp)
+def nupack_score_energy(
+        temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float
+    ) -> float:
+    model_nucl=Model(kelvin=temp + 273.15)
     results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs'])
     #concentrations_nucl = complex_concentrations(tube=tube_nucl, data = results_nucl)
 
@@ -64,9 +66,13 @@ def nupack_score_energy(temp: int, energy: float, tube_nucl: Tube, complex_nucl_
 
     return score_free_energy
 
-def nupack_score_temp(score_region: list, temp: int, tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex, hot:bool, max_dimer_monomer_factor:float, nucl_max_score:float) -> tuple[float, float]:
+def nupack_score_temp(
+        score_region: list, temp: int, dimer_max_order_magnitude:float,
+        tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex,
+        hot:bool, max_dimer_monomer_factor:float, nucl_max_score:float
+    ) -> tuple[float, float]:
     #Make NUPACK model
-    model_nucl=Model(celsius=temp)
+    model_nucl=Model(kelvin=temp + 273.15)
 
     #Run NUPACK model for temp (Complex analysis)
     results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pfunc', 'pairs'])
@@ -79,7 +85,7 @@ def nupack_score_temp(score_region: list, temp: int, tube_nucl: Tube, complex_nu
         dimer_monomer_factor=1
     else:
         dimer_monomer_factor = log10(concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_double] /
-            concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_single]) + 2 #+2 means dimer must be 2 factors of 10 less abundant to avoid score penalty
+            concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_single]) + dimer_max_order_magnitude #+2 means dimer must be 2 factors of 10 less abundant to avoid score penalty
         if dimer_monomer_factor < 0:
             dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
         if dimer_monomer_factor > max_dimer_monomer_factor:

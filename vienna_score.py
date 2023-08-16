@@ -21,9 +21,13 @@ def vienna_score(sequence:str, score_region:list, design_parameters:design_param
         hot_temp = 100
 
     scores_hot = vienna_score_temp(seq=sequence, score_region=score_region, temp=hot_temp,
+        rna_concentration=design_parameters.rna_concentration,
+        dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
         nucl_max_score=design_parameters.nucl_max_score, hot=True)
     scores_cold = vienna_score_temp(seq=sequence, score_region=score_region, temp=cold_temp,
+        rna_concentration=design_parameters.rna_concentration,
+        dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
         nucl_max_score=design_parameters.nucl_max_score, hot=False)
 
@@ -34,7 +38,7 @@ def vienna_score(sequence:str, score_region:list, design_parameters:design_param
     return score_energy + sum(scores_hot) + sum(scores_cold)
 
 # Returns (float: score_nucl, float: ensemble_energy)
-def vienna_score_temp(seq:str, score_region:list, temp: float, max_dimer_monomer_factor: float, nucl_max_score: float, hot: bool) -> tuple[float, float]:
+def vienna_score_temp(seq:str, score_region:list, temp: float, rna_concentration:float, dimer_max_order_magnitude:float, max_dimer_monomer_factor: float, nucl_max_score: float, hot: bool) -> tuple[float, float]:
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 1
@@ -86,7 +90,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, max_dimer_monomer
     # For now, [MONOMER] fixed at 1e-6 (this is a key assumption) TODO mark as final constant
     # TODO mark the 1e-2 threshold for dimerization as a final constant
 
-    dimer_monomer_factor = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * 1e-6) + 2
+    dimer_monomer_factor = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * rna_concentration) + dimer_max_order_magnitude
     if dimer_monomer_factor < 0:
         dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
     if dimer_monomer_factor > max_dimer_monomer_factor:

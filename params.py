@@ -1,27 +1,35 @@
 from blist import blacklist
 import yaml
 
-#TODO improve order of args
+#NOTE design_parameters() is the ONLY function that should have default values!!
+#Adding default values to other functions may conflict with the ones specified here.
+#Any and all arguments to other functions should be required, and if unspecified, that function should error.
 class design_parameters():
-    def __init__(self, target_temp: float, target_energy:float, blacklist: blacklist = blacklist(''), temp_offset: float = 5.0,
-            weight_factor: int = 1, num_mutants: int = 16, program: str = 'VIENNA', weights:list = [16, 16, 16, 16, 16, 16, 16],
+    def __init__(
+            self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
+            rna_concentration:float = 1e-6, dimer_max_order_magnitude:float = 2.0,
+            blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA',
+            weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1,
             free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0,
-            thermo_score_temp:int=37):
+        ):
         
-        self.blacklist = blacklist
+        self.target_energy = target_energy
         self.target_temp = target_temp
         self.temp_offset = temp_offset
-        self.weight_factor = weight_factor
+        self.thermo_score_temp = thermo_score_temp
+
+        self.rna_concentration = rna_concentration
+        self.dimer_max_order_magnitude = dimer_max_order_magnitude
+
+        self.blacklist = blacklist
         self.num_mutants = num_mutants
         self.program = program
         
-        self.target_energy = target_energy
+        self.weight_factor = weight_factor
 
         self.free_energy_max_score = free_energy_max_score
         self.nucl_max_score = nucl_max_score
         self.max_dimer_monomer_factor = max_dimer_monomer_factor
-
-        self.thermo_score_temp = thermo_score_temp
 
         if free_energy_max_score < 0 or free_energy_max_score > 1:
             raise ValueError
@@ -56,18 +64,24 @@ class design_parameters():
     #TODO improve order of args
     def save(self, path:str):
         yml_dict = {
-            'blacklist':                self.blacklist.blacklist_path,
+            'target_energy':            self.target_energy,
             'target_temp':              self.target_temp,
             'temp_offset':              self.temp_offset,
-            'weight_factor':            self.weight_factor,
+            'thermo_score_temp':        self.thermo_score_temp,
+
+            'rna_concentration':        self.rna_concentration,
+            'dimer_max_order_magnitude':self.dimer_max_order_magnitude,
+
+            'blacklist':                self.blacklist.blacklist_path,
             'num_mutants':              self.num_mutants,
             'program':                  self.program,
-            'target_energy':            self.target_energy,
+
+            'weights':                  self.weights,
+            'weight_factor':            self.weight_factor,
+
             'free_energy_max_score':    self.free_energy_max_score,
             'nucl_max_score':           self.nucl_max_score,
-            'max_dimer_monomer_factor': self.max_dimer_monomer_factor,
-            'thermo_score_temp':        self.thermo_score_temp,
-            'weights':                  self.weights
+            'max_dimer_monomer_factor': self.max_dimer_monomer_factor
         }
 
         stream = open(path, 'w')
