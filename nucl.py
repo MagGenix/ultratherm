@@ -49,11 +49,12 @@ class nucl_acid():
         return len(self.sequence)
     
     def __str__(self) -> str:
-        as_string = as_string + self.score + "\n"
-        as_string = as_string + self.sequence + "\n"
-        as_string = as_string + self.no_mod + "\n"
-        as_string = as_string + self.no_indel + "\n"
-        as_string = as_string + self.score_region + "\n"
+        as_string = ""
+        as_string += str(self.score) + "\n"
+        as_string += str(self.sequence) + "\n"
+        as_string += str(self.no_mod) + "\n"
+        as_string += str(self.no_indel) + "\n"
+        as_string += str(self.score_region) + "\n"
         return as_string
 
     def fitness_score(self, design_parameters: design_parameters):
@@ -96,6 +97,7 @@ class nucl_set():
         as_string = ""
         for nucl in self.nucls:
             as_string = as_string + str(nucl) + "\n"
+        return as_string
 
     def replace(self, index:int, new_nucl_acid:nucl_acid):
         if index < 0:
@@ -150,30 +152,30 @@ class nucl_set():
     #TODO test this
     def read(self, path:str, design_parameters:design_parameters):
         #If any other characters are encountered, an error should be raised.
-        with open(path, 'w') as handle:
-            for record in SeqIO.parse(handle, "fastq"):
-                quals = record.letter_annotations["phred_quality"]
-                if max(quals) > 86 or min(quals) < 15:
+        for record in SeqIO.parse(path, "fastq"):
+            quals = record.letter_annotations["phred_quality"]
+            if max(quals) > 86 or min(quals) < 15:
+                raise ValueError("NOT SPSS")
+            if max(quals) > 22: # Either RNA or invalid
+                if max(quals) < 79:
                     raise ValueError("NOT SPSS")
-                if max(quals) > 22: # Either RNA or invalid
-                    if max(quals) < 79:
-                        raise ValueError("NOT SPSS")
-                    offset = 79
-                    is_rna = True
-                if min(quals) <  79: # Either DNA or invalid
-                    if min(quals) > 22:
-                        raise ValueError("NOT SPSS")
-                    offset = 15
-                    is_rna = False
-                no_mod = list()
-                no_indel = list()
-                score_region = list()
-                for qual in quals:
-                    bitsList= str(bin(qual - offset))[2:].split()
-                    no_mod.append(int(bitsList[0] == '1'))
-                    no_indel.append(int(bitsList[1] == '1'))
-                    score_region.append(int(bitsList[2] == '1'))
-                self.append(new_nucl_acid=nucl_acid(sequence=record.seq, no_mod=no_mod, no_indel=no_indel, score_region=score_region, is_rna=is_rna))
+                offset = 79
+                is_rna = True
+            if min(quals) <  79: # Either DNA or invalid
+                if min(quals) > 22:
+                    raise ValueError("NOT SPSS")
+                offset = 15
+                is_rna = False
+            no_mod = list()
+            no_indel = list()
+            score_region = list()
+            for qual in quals:
+                #Convert qual score to int. Backfill 0s to make 3 bit int
+                bits_string = str(bin(qual - offset))[2:].zfill(3)
+                no_mod.append(int(bits_string[0] == '1'))
+                no_indel.append(int(bits_string[1] == '1'))
+                score_region.append(int(bits_string[2] == '1'))
+            self.append(new_nucl_acid=nucl_acid(sequence=record.seq, no_mod=no_mod, no_indel=no_indel, score_region=score_region, is_rna=is_rna, design_parameters=design_parameters))
 
 def mutate(nucl:nucl_acid, design_parameters:design_parameters):
     #I'm trying to make this function as fast as possible since it will be called once per every single

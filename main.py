@@ -41,6 +41,26 @@ def test():
         target_energy=-12.0, free_energy_max_score=1.0 , nucl_max_score=1.0, max_dimer_monomer_factor=1.0))
     print(score)
 
+    des_params = design_parameters(blacklist=blist, target_temp=55, temp_offset=5, program="VIENNA",
+        weights=[8, 8, 8, 8, 10, 10, 16], weight_factor=1, num_mutants=8, target_energy=-8.0, # based on FourU Hairpin 2
+        free_energy_max_score=1.0 , nucl_max_score=1.0, max_dimer_monomer_factor=1.0)
+    
+
+    pool = nucl_set(nucls = [])
+    for i in range(0, 16):
+        pool.append(nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
+            no_indel =      [0]*20+[1]*17,
+            no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
+            score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
+            design_parameters=des_params, is_rna=True))
+
+    pool.save("TEST" + '.fastq')
+    #del pool
+    
+    new_pool = nucl_set(nucls = [])
+    new_pool.read("TEST.fastq", design_parameters=des_params)
+    print(new_pool)
+
 #####
 
 ###   #   #  #  #
@@ -50,5 +70,5 @@ def test():
 
 #####
 
-main()
-#test()
+#main()
+test()
