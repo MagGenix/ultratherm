@@ -4,10 +4,15 @@ from math import log10
 
 from params import design_parameters
 
-def nupack_score(sequence:str, score_region:list, design_parameters:design_parameters) -> float:
+def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameters:design_parameters) -> float:
     if len(sequence) != len(score_region):
         raise ValueError
     
+    if is_rna:
+        material = 'rna'
+    else:
+        material = 'dna'
+
         #Calculate cold temp for scoring
     cold_temp = design_parameters.target_temp-design_parameters.temp_offset
     if cold_temp < 0:
@@ -36,24 +41,24 @@ def nupack_score(sequence:str, score_region:list, design_parameters:design_param
         complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot=False,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
         dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
-        nucl_max_score=design_parameters.nucl_max_score)
+        nucl_max_score=design_parameters.nucl_max_score, material=material)
     
     scores_hot = nupack_score_temp(score_region, temp=hot_temp, tube_nucl=tube_nucl,
         complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot = True,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
         dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
-        nucl_max_score=design_parameters.nucl_max_score)
+        nucl_max_score=design_parameters.nucl_max_score, material=material)
 
     score_energy = nupack_score_energy(temp=design_parameters.thermo_score_temp, energy=design_parameters.target_energy,
         tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single,
-        free_energy_max_score=design_parameters.free_energy_max_score)
+        free_energy_max_score=design_parameters.free_energy_max_score, material=material)
 
     return score_energy + sum(scores_cold) + sum(scores_hot)
 
 def nupack_score_energy(
-        temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float
+        temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float, material: str
     ) -> float:
-    model_nucl=Model(kelvin=temp + 273.15)
+    model_nucl=Model(kelvin=temp + 273.15, material=material)
     results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs'])
     #concentrations_nucl = complex_concentrations(tube=tube_nucl, data = results_nucl)
 
@@ -69,10 +74,10 @@ def nupack_score_energy(
 def nupack_score_temp(
         score_region: list, temp: int, dimer_max_order_magnitude:float,
         tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex,
-        hot:bool, max_dimer_monomer_factor:float, nucl_max_score:float
+        hot:bool, max_dimer_monomer_factor:float, nucl_max_score:float, material: str
     ) -> tuple[float, float]:
     #Make NUPACK model
-    model_nucl=Model(kelvin=temp + 273.15)
+    model_nucl=Model(kelvin=temp + 273.15, material=material)
 
     #Run NUPACK model for temp (Complex analysis)
     results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pfunc', 'pairs'])

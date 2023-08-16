@@ -2,7 +2,7 @@ import RNA
 from math import exp, log10
 from params import design_parameters
 
-def vienna_score(sequence:str, score_region:list, design_parameters:design_parameters) -> float:
+def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters:design_parameters) -> float:
     if len(sequence) != len(score_region):
         raise ValueError
     
@@ -24,21 +24,26 @@ def vienna_score(sequence:str, score_region:list, design_parameters:design_param
         rna_concentration=design_parameters.rna_concentration,
         dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
-        nucl_max_score=design_parameters.nucl_max_score, hot=True)
+        nucl_max_score=design_parameters.nucl_max_score, hot=True, is_rna=is_rna)
     scores_cold = vienna_score_temp(seq=sequence, score_region=score_region, temp=cold_temp,
         rna_concentration=design_parameters.rna_concentration,
         dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
-        nucl_max_score=design_parameters.nucl_max_score, hot=False)
+        nucl_max_score=design_parameters.nucl_max_score, hot=False, is_rna=is_rna)
 
     score_energy = vienna_score_energy(seq=sequence, temp=design_parameters.thermo_score_temp,
         target_energy=design_parameters.target_energy,
-        free_energy_max_score=design_parameters.free_energy_max_score)
+        free_energy_max_score=design_parameters.free_energy_max_score, is_rna=is_rna)
 
     return score_energy + sum(scores_hot) + sum(scores_cold)
 
 # Returns (float: score_nucl, float: ensemble_energy)
-def vienna_score_temp(seq:str, score_region:list, temp: float, rna_concentration:float, dimer_max_order_magnitude:float, max_dimer_monomer_factor: float, nucl_max_score: float, hot: bool) -> tuple[float, float]:
+def vienna_score_temp(seq:str, score_region:list, temp: float, rna_concentration:float, dimer_max_order_magnitude:float, max_dimer_monomer_factor: float, nucl_max_score: float, hot: bool, is_rna: bool) -> tuple[float, float]:
+    # If DNA needed, needs to be selected before RNA.md() called!
+    if not is_rna:
+        RNA.params_load_DNA_Mathews2004()
+    else:
+        RNA.params_load_defaults()
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 1
@@ -101,7 +106,11 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, rna_concentration
     
     return (dimer_monomer_factor, score_nucl)
     
-def vienna_dimer_energy(seq:str, temp:float) -> float:
+def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float:
+    if not is_rna:
+        RNA.params_load_DNA_Mathews2004()
+    else:
+        RNA.params_load_defaults()
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 0
@@ -110,7 +119,11 @@ def vienna_dimer_energy(seq:str, temp:float) -> float:
     dimer_energy = fc.pf()[1]
     return dimer_energy
 
-def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_max_score: float) -> float:
+def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_max_score: float, is_rna: bool) -> float:
+    if not is_rna:
+        RNA.params_load_DNA_Mathews2004()
+    else:
+        RNA.params_load_defaults()
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 0

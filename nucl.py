@@ -62,10 +62,10 @@ class nucl_acid():
             return 6
         
         if design_parameters.program == "NUPACK":  
-            self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, design_parameters=design_parameters)
+            self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
             return self.score
         if design_parameters.program == "VIENNA":
-            self.score = vienna_score(sequence=str(self.sequence), score_region=self.score_region, design_parameters=design_parameters)
+            self.score = vienna_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
             return self.score
         raise Exception("no program specified for scoring")
 
