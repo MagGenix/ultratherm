@@ -119,7 +119,7 @@ class nucl_set():
 
     def save(self, path:str):
         #raises IOError if path is invalid, overwrites existing files
-        #TODO this needs to save to a .fastq, where the quality scores are used instead for bitwise indicating nomod, noindel, scoreregion
+        #This saves to a .fastq, where the quality scores are used instead for bitwise indicating nomod, noindel, scoreregion
         #This will be done with ASCII 0-7, p-w  [XXX011Y]
         #These were chosen to avoid any extraneous ASCII characters.
         #b1: no_mod
@@ -129,7 +129,6 @@ class nucl_set():
         # AS SANGER SCORES:
         # 0: 15, 7: 22
         # p: 79, w: 86
-        #TODO test this function it probably doesn't work!!!
         with open(path, 'w') as handle:
             for i in range(0, len(self)):
                 nucl = self.nucls[i]
@@ -149,7 +148,6 @@ class nucl_set():
                 del record
                 del nucl
 
-    #TODO test this
     def read(self, path:str, design_parameters:design_parameters):
         #If any other characters are encountered, an error should be raised.
         for record in SeqIO.parse(path, "fastq"):
