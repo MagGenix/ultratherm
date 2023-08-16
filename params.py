@@ -1,9 +1,7 @@
 from blist import blacklist
 import yaml
 
-#TODO could this just be a dict? Perhaps it's fine as is. May actually be faster, not sure
-#Actually, this may be better as it has defined required fields and the existence of the fields cannot be modified
-# by the program.
+#TODO improve order of args
 class design_parameters():
     def __init__(self, target_temp: float, target_energy:float, blacklist: blacklist = blacklist(''), temp_offset: float = 5.0,
             weight_factor: int = 1, num_mutants: int = 16, program: str = 'VIENNA', weights:list = [16, 16, 16, 16, 16, 16, 16],
@@ -55,30 +53,31 @@ class design_parameters():
         else:
             raise ValueError
         
-    #TODO convert this to use pyyaml for accuracy / future-proofing
+    #TODO improve order of args
     def save(self, path:str):
-        try:
-            with open(path, 'w') as handle:
-                handle.write('blacklist: ' + self.blacklist.blacklist_path + '\n')
-                handle.write('target_temp: ' + str(self.target_temp) + '\n')
-                handle.write('temp_offset: ' + str(self.temp_offset) + '\n')
-                handle.write('weight_factor: ' + str(self.weight_factor) + '\n')
-                handle.write('num_mutants: ' + str(self.num_mutants) + '\n')
-                handle.write('program: ' + self.program + '\n')
-                handle.write('target_energy: ' + str(self.target_energy) + '\n')
-                handle.write('free_energy_max_score: ' + str(self.free_energy_max_score) + '\n')
-                handle.write('nucl_max_score: ' + str(self.nucl_max_score) + '\n')
-                handle.write('max_dimer_monomer_factor: ' + str(self.max_dimer_monomer_factor) + '\n')
-                handle.write('thermo_score_temp: ' + str(self.thermo_score_temp) + '\n')
-                handle.write('weights:\n')
-                for weight in self.weights:
-                    handle.write(' - ' + str(weight)+"\n")
-        except IOError:
-            print("Warning: could not save parameters")
+        yml_dict = {
+            'blacklist':                self.blacklist.blacklist_path,
+            'target_temp':              self.target_temp,
+            'temp_offset':              self.temp_offset,
+            'weight_factor':            self.weight_factor,
+            'num_mutants':              self.num_mutants,
+            'program':                  self.program,
+            'target_energy':            self.target_energy,
+            'free_energy_max_score':    self.free_energy_max_score,
+            'nucl_max_score':           self.nucl_max_score,
+            'max_dimer_monomer_factor': self.max_dimer_monomer_factor,
+            'thermo_score_temp':        self.thermo_score_temp,
+            'weights':                  self.weights
+        }
+
+        stream = open(path, 'w')
+        yaml.safe_dump(data=yml_dict, stream=stream, sort_keys=False)
+        stream.close()
 
 def read_parameters(path:str) -> design_parameters:
     stream = open(path, "r")
     yml = yaml.safe_load(stream=stream)
+    stream.close()
 
     yml['blacklist'] = blacklist(yml['blacklist'])
 

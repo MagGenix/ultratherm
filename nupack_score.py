@@ -1,3 +1,4 @@
+#TODO is it actually OK to be importing function names??
 from nupack import Tube, Complex, complex_analysis, complex_concentrations, Strand, SetSpec, Model
 from math import log10
 
