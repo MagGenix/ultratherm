@@ -9,5 +9,3 @@ PARAMS_*
 *.fasta
 *.fastq
 *.yml
-*.o
-*.so
