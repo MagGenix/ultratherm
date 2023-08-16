@@ -3,6 +3,12 @@ from Bio import SeqIO
 class blacklist():
     def __init__(self, path: str):
         self.blacklist_sequences = []
+
+        if not path:
+            self.is_empty = True
+            self.blacklist_path = ""
+            return
+        
         try:
             with open(path) as handle:
                 for record in SeqIO.parse(handle, "fasta"):

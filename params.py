@@ -1,11 +1,14 @@
 from blist import blacklist
-from Bio.Seq import Seq
+import yaml
 
+#TODO could this just be a dict? Perhaps it's fine as is. May actually be faster, not sure
+#Actually, this may be better as it has defined required fields and the existence of the fields cannot be modified
+# by the program.
 class design_parameters():
-    def __init__(self, blacklist: blacklist, target_temp: float, temp_offset: float,
-            weight_factor: int, num_mutants: int, program: str, weights:list,
-            target_energy:float=-10.0, free_energy_max_score:float=1.0,
-            nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0, thermo_score_temp:int=37):
+    def __init__(self, target_temp: float, target_energy:float, blacklist: blacklist = blacklist(''), temp_offset: float = 5.0,
+            weight_factor: int = 1, num_mutants: int = 16, program: str = 'VIENNA', weights:list = [16, 16, 16, 16, 16, 16, 16],
+            free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0,
+            thermo_score_temp:int=37):
         
         self.blacklist = blacklist
         self.target_temp = target_temp
@@ -52,6 +55,7 @@ class design_parameters():
         else:
             raise ValueError
         
+    #TODO convert this to use pyyaml for accuracy / future-proofing
     def save(self, path:str):
         try:
             with open(path, 'w') as handle:
@@ -62,12 +66,20 @@ class design_parameters():
                 handle.write('num_mutants: ' + str(self.num_mutants) + '\n')
                 handle.write('program: ' + self.program + '\n')
                 handle.write('target_energy: ' + str(self.target_energy) + '\n')
+                handle.write('free_energy_max_score: ' + str(self.free_energy_max_score) + '\n')
+                handle.write('nucl_max_score: ' + str(self.nucl_max_score) + '\n')
+                handle.write('max_dimer_monomer_factor: ' + str(self.max_dimer_monomer_factor) + '\n')
+                handle.write('thermo_score_temp: ' + str(self.thermo_score_temp) + '\n')
                 handle.write('weights:\n')
                 for weight in self.weights:
                     handle.write(' - ' + str(weight)+"\n")
         except IOError:
             print("Warning: could not save parameters")
 
-    def read(self, path:str):
-        #TODO implement
-        pass
+def read_parameters(path:str) -> design_parameters:
+    stream = open(path, "r")
+    yml = yaml.safe_load(stream=stream)
+
+    yml['blacklist'] = blacklist(yml['blacklist'])
+
+    return design_parameters(**yml)

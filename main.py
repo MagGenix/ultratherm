@@ -1,7 +1,7 @@
 from nucl import nucl_acid, nucl_set
 from blist import blacklist
 from Bio.Seq import Seq
-from params import design_parameters
+from params import design_parameters, read_parameters
 from des import design
 from vienna_score import vienna_score
 
@@ -41,10 +41,13 @@ def test():
         target_energy=-12.0, free_energy_max_score=1.0 , nucl_max_score=1.0, max_dimer_monomer_factor=1.0))
     print(score)
 
-    des_params = design_parameters(blacklist=blist, target_temp=55, temp_offset=5, program="VIENNA",
-        weights=[8, 8, 8, 8, 10, 10, 16], weight_factor=1, num_mutants=8, target_energy=-8.0, # based on FourU Hairpin 2
-        free_energy_max_score=1.0 , nucl_max_score=1.0, max_dimer_monomer_factor=1.0)
+    des_params = design_parameters(blacklist=blist, target_temp=55, temp_offset=4, program="NUPACK",
+        weights=[8, 8, 8, 8, 10, 10, 16], weight_factor=2, num_mutants=8, target_energy=-8.0, # based on FourU Hairpin 2
+        free_energy_max_score=0.9 , nucl_max_score=0.9, max_dimer_monomer_factor=0.9, thermo_score_temp=36)
     
+    des_params.save('PARAMS.yml')
+    test_parameters = read_parameters(path='PARAMS.yml')
+    test_parameters.save('PARAMS2.yml')
 
     pool = nucl_set(nucls = [])
     for i in range(0, 16):
@@ -55,7 +58,7 @@ def test():
             design_parameters=des_params, is_rna=True))
 
     pool.save("TEST" + '.fastq')
-    #del pool
+    del pool
     
     new_pool = nucl_set(nucls = [])
     new_pool.read("TEST.fastq", design_parameters=des_params)
