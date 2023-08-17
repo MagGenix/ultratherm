@@ -61,7 +61,6 @@ class design_parameters():
         else:
             raise ValueError
         
-    #TODO improve order of args
     def save(self, path:str):
         yml_dict = {
             'target_energy':            self.target_energy,

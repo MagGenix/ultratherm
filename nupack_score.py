@@ -1,4 +1,3 @@
-#TODO is it actually OK to be importing function names??
 from nupack import Tube, Complex, complex_analysis, complex_concentrations, Strand, SetSpec, Model
 from math import log10
 
@@ -101,9 +100,10 @@ def nupack_score_temp(
     
     score_nucl = 0
     count_scored_nuc = 0
+    diagonal = results_nucl.complexes[complex_nucl_single].pairs.diagonal
     for i, x in enumerate(score_region):
         if x:
-            score_nucl += results_nucl.complexes[complex_nucl_single].pairs.diagonal[i]
+            score_nucl += diagonal[i]
             count_scored_nuc+=1
     score_nucl = score_nucl / count_scored_nuc
 

@@ -52,7 +52,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     monomer_energy = fc.pf()[1]
     
     # NOTE! Vienna bpp array reports pairs from and onto in different positions of array.
-    # TODO: verify that the NUPACK array doesn't behave like this, or scoring may be off!
+    # This is unlike the NUPACK pairs array which is symmetric.
     basepair_probs_diagonal = list()
     bpp = fc.bpp()
     for i in range(1, len(seq) + 1):
@@ -91,9 +91,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     # delG = -RT lnQ --> Q = e^(-delG / RT)
     # Q = [DIMER] / [MONOMER]^2
     # [DIMER] / [MONOMER] = Q * [MONOMER]
-    # log10(Q*[MONOMER]) + 2 to produce dimer_monomer_factor
-    # For now, [MONOMER] fixed at 1e-6 (this is a key assumption) TODO mark as final constant
-    # TODO mark the 1e-2 threshold for dimerization as a final constant
+    # log10(Q*[MONOMER]) + dimer_max_order_magnitude to produce dimer_monomer_factor
 
     dimer_monomer_factor = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * nucl_concentration) + dimer_max_order_magnitude
     if dimer_monomer_factor < 0:
