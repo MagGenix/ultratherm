@@ -18,7 +18,7 @@ conda activate ultratherm
 Install nupack from local using pip3 with the env active. It should appear in the env list.
 
 ```
-pip3 install -U nupack -f ./nupack-4.0.1.8/package
+python3 -m pip install -U nupack -f ./nupack-4.0.1.8/package
 ```
 
 As of RNAlib2.6.2 Python 3.9 is required (a standard installation will use this).
