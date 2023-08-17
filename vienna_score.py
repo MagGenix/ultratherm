@@ -40,6 +40,8 @@ def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters
 # Returns (float: score_nucl, float: ensemble_energy)
 def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentration:float, dimer_max_order_magnitude:float, max_dimer_monomer_factor: float, nucl_max_score: float, hot: bool, is_rna: bool) -> tuple[float, float]:
     # If DNA needed, needs to be selected before RNA.md() called!
+    # NOTE - threadsafety WARNING!
+    # inclusion of both RNA/DNA in the same set is not threadsafe as parameters are stored in GLOBALS.
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
     else:
