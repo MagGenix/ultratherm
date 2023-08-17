@@ -30,5 +30,5 @@ pdoc is used to generate documentation.
 
 Install pdoc to the *same* conda environment, make sure main() and test() are commented out in main.py, and run:
 ```
-pdoc --docformat google *.py -o docs *.py
+pdoc --docformat google -o docs *.py
 ```
