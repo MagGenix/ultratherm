@@ -21,6 +21,6 @@ Install nupack from local using pip3 with the env active. It should appear in th
 python3 -m pip install -U nupack -f ./nupack-4.0.1.8/package
 ```
 
-As of RNAlib2.6.2 Python 3.9 is required (a standard installation will use this).
+As of NUPACK 4.0 Python >3.7 is required (a standard installation will use this).
 
 **Operation is not guaranteed with any other version of Python!**
