@@ -7,7 +7,6 @@ from vienna_score import vienna_score
 
 # NOTE Customize this!
 def main():
-    # Create result save directory
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
     des_params = design_parameters(blacklist=blist, target_temp=55, program='NUPACK',
