@@ -69,5 +69,5 @@ def test():
 
 #####
 
-main()
-#test()
+#main()
+test()

@@ -28,6 +28,7 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
         if design_parameters.can_decrement_weights():
             design_parameters.decrement_weights()
     iter_count+=1
+    # TODO consider making the number of rounds to save an intermediate file a parameter
     if iter_count % 50 == 0:
         pool.save("MID_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
     

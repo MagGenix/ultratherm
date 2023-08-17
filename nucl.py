@@ -154,16 +154,22 @@ class nucl_set():
             quals = record.letter_annotations["phred_quality"]
             if max(quals) > 86 or min(quals) < 15:
                 raise ValueError("NOT SPSS")
-            if max(quals) > 22: # Either RNA or invalid
+            elif max(quals) > 22: # Either RNA or invalid
                 if max(quals) < 79:
+                    raise ValueError("NOT SPSS")
+                if min(quals) < 79:
                     raise ValueError("NOT SPSS")
                 offset = 79
                 is_rna = True
-            if min(quals) <  79: # Either DNA or invalid
+            elif min(quals) <  79: # Either DNA or invalid
                 if min(quals) > 22:
+                    raise ValueError("NOT SPSS")
+                if max(quals) > 22:
                     raise ValueError("NOT SPSS")
                 offset = 15
                 is_rna = False
+            else:
+                raise ValueError("NOT SPSS")
             no_mod = list()
             no_indel = list()
             score_region = list()

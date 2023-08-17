@@ -55,7 +55,7 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameter
     return score_energy + sum(scores_cold) + sum(scores_hot)
 
 def nupack_score_energy(
-        temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float, material: str
+        temp: float, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float, material: str
     ) -> float:
     model_nucl=Model(kelvin=temp + 273.15, material=material)
     results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs'])
@@ -71,7 +71,7 @@ def nupack_score_energy(
     return score_free_energy
 
 def nupack_score_temp(
-        score_region: list, temp: int, dimer_max_order_magnitude:float,
+        score_region: list, temp: float, dimer_max_order_magnitude:float,
         tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex,
         hot:bool, max_dimer_monomer_factor:float, nucl_max_score:float, material: str
     ) -> tuple[float, float]:
