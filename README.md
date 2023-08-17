@@ -18,7 +18,7 @@ conda activate ultratherm
 Install nupack from local using pip3 with the env active. It should appear in the env list.
 
 ```
-pip3 install -U nupack -f ./nupack-4.0.1.8/package
+python3 -m pip install -U nupack -f ./nupack-4.0.1.8/package
 ```
 
 Install the ViennaRNA package using instructions provided by ViennaRNA to get RNAlib2.6.2 (or newer).
