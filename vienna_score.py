@@ -41,9 +41,9 @@ def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters
 def vienna_score_temp(seq:str, score_region:list, temp: float, rna_concentration:float, dimer_max_order_magnitude:float, max_dimer_monomer_factor: float, nucl_max_score: float, hot: bool, is_rna: bool) -> tuple[float, float]:
     # If DNA needed, needs to be selected before RNA.md() called!
     if not is_rna:
-        RNA.params_load_DNA_Mathews2004()
+        RNA.params_load_DNA_Mathews1999()
     else:
-        RNA.params_load_defaults()
+        RNA.params_load_RNA_Turner2004() # Default parameters for Vienna
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 1
@@ -79,7 +79,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, rna_concentration
     if score_nucl > nucl_max_score:
         score_nucl = nucl_max_score
 
-    dimer_energy = vienna_dimer_energy(seq=seq, temp=temp)
+    dimer_energy = vienna_dimer_energy(seq=seq, temp=temp, is_rna=is_rna)
 
     # Reaction: 2 Monomer <--> Dimer
     # Energies are in kcal / mol
@@ -108,9 +108,9 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, rna_concentration
     
 def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float:
     if not is_rna:
-        RNA.params_load_DNA_Mathews2004()
+        RNA.params_load_DNA_Mathews1999()
     else:
-        RNA.params_load_defaults()
+        RNA.params_load_RNA_Turner2004() # Default parameters for Vienna
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 0
@@ -121,9 +121,9 @@ def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float:
 
 def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_max_score: float, is_rna: bool) -> float:
     if not is_rna:
-        RNA.params_load_DNA_Mathews2004()
+        RNA.params_load_DNA_Mathews1999()
     else:
-        RNA.params_load_defaults()
+        RNA.params_load_RNA_Turner2004() # Default parameters for Vienna
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 0

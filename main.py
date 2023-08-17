@@ -31,13 +31,13 @@ def main():
 
 def test():
     blist = blacklist(path="blacklist.fasta")
-    score = vienna_score(sequence="CGAAAUCCCAACAGUGAAAACUUCCUCCAUGUUACAUAAUAGUAAGGAGGAAACAAAUG",
-        score_region=[0]*42+[1]*8+[0]*9, design_parameters=design_parameters(blacklist=blist, target_temp=70,
-        temp_offset=5, program="VIENNA", weights=[8, 8, 8, 8, 10, 10, 16], weight_factor=1, num_mutants=8,
-        target_energy=-12.0, free_energy_max_score=1.0 , nucl_max_score=1.0, max_dimer_monomer_factor=1.0))
-    print(score)
+    # score = vienna_score(sequence="CGAAAUCCCAACAGUGAAAACUUCCUCCAUGUUACAUAAUAGUAAGGAGGAAACAAAUG",
+    #     score_region=[0]*42+[1]*8+[0]*9, design_parameters=design_parameters(blacklist=blist, target_temp=70,
+    #     temp_offset=5, program="VIENNA", weights=[8, 8, 8, 8, 10, 10, 16], weight_factor=1, num_mutants=8,
+    #     target_energy=-12.0, free_energy_max_score=1.0 , nucl_max_score=1.0, max_dimer_monomer_factor=1.0), is_rna=True)
+    # print(score)
 
-    des_params = design_parameters(blacklist=blist, target_temp=55, temp_offset=4, program="NUPACK",
+    des_params = design_parameters(blacklist=blist, target_temp=55, temp_offset=4, program="VIENNA",
         weights=[8, 8, 8, 8, 10, 10, 16], weight_factor=2, num_mutants=8, target_energy=-8.0, # based on FourU Hairpin 2
         free_energy_max_score=0.9 , nucl_max_score=0.9, max_dimer_monomer_factor=0.9, thermo_score_temp=36)
     
@@ -47,11 +47,11 @@ def test():
 
     pool = nucl_set(nucls = [])
     for i in range(0, 16):
-        pool.append(nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
+        pool.append(nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNTAAGGAGGNNNNNNATG'),
             no_indel =      [0]*20+[1]*17,
             no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
             score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
-            design_parameters=des_params, is_rna=True))
+            design_parameters=des_params, is_rna=False))
 
     pool.save("TEST" + '.fastq')
     del pool
