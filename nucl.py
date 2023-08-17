@@ -74,7 +74,8 @@ class nucl_acid():
             self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
         elif design_parameters.program == "VIENNA":
             self.score = vienna_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
-        raise Exception("no program specified for scoring")
+        else:
+            raise Exception("no program specified for scoring")
 
     #As of right now, this function is only accessed from within fitness_score, but could be useful to external processes.
     #If used in external processes it would be more efficent to store it as a boolean member variable.
