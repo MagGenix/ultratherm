@@ -10,6 +10,8 @@ from nupack_score import nupack_score
 from vienna_score import vienna_score
 
 class nucl_acid():
+    """nucleic acid. Stores its sequence, score, no_mod, no_no_indel, score_region, and whether it is RNA or DNA.
+    """
     def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters, is_rna: bool):
         if len(no_mod) != len(sequence):
             raise Exception("no_mod length is not equal to seq length")
@@ -57,24 +59,38 @@ class nucl_acid():
         as_string += str(self.score_region) + "\n"
         return as_string
 
-    def fitness_score(self, design_parameters: design_parameters):
+    def fitness_score(self, design_parameters: design_parameters) -> None:
+        """Called during initialization to score the nucl_acid.
+
+        Args:
+            design_parameters (design_parameters): the design parameters.
+
+        Raises:
+            Exception: _description_
+        """
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
-            return 6
-        
-        if design_parameters.program == "NUPACK":  
+            self.score = 6.0
+        elif design_parameters.program == "NUPACK":  
             self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
-            return self.score
-        if design_parameters.program == "VIENNA":
+        elif design_parameters.program == "VIENNA":
             self.score = vienna_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
-            return self.score
-        raise Exception("no program specified for scoring")
+        else:
+            raise Exception("no program specified for scoring")
 
     #As of right now, this function is only accessed from within fitness_score, but could be useful to external processes.
     #If used in external processes it would be more efficent to store it as a boolean member variable.
     #However, since member variables are public in Python, this would make is_blacklisted modifiable and potentially inaccurate.
     #For that reason, and since it should only be performed once but is also generally important,
     #this stays a function for now.
-    def is_blacklisted(self, blacklist: blacklist):
+    def is_blacklisted(self, blacklist: blacklist) -> bool:
+        """Called during initialization to determine whether the nucl_acid is blacklisted.
+
+        Args:
+            blacklist (blacklist): the blacklist object.
+
+        Returns:
+            bool: whether or not the nucl_acid is blacklisted.
+        """
         if blacklist.is_empty:
             return False
         if self.sequence in blacklist.blacklist_sequences:
@@ -82,6 +98,12 @@ class nucl_acid():
         return False
 
 class nucl_set():
+    """A data type to store nucl_acid's for design. Stores ordered lists of nucl_acid and their scores.
+    Use .append(), .remove(), and .replace() to modify.
+    Use .save() and .read() for I/O.
+
+    DO NOT DIRECTLY MODIFY MEMBERS! They are intended for read-only. Use the above methods for modification.
+    """
     def __init__(self, nucls: list):
         self.nucls = nucls
         self.scores = []
@@ -99,7 +121,17 @@ class nucl_set():
             as_string = as_string + str(nucl) + "\n"
         return as_string
 
-    def replace(self, index:int, new_nucl_acid:nucl_acid):
+    def replace(self, index:int, new_nucl_acid:nucl_acid) -> None:
+        """Replace a nucl_acid in the nucl_set.
+
+        Args:
+            index (int): the index of the nucl_acid in nucls[].
+            new_nucl_acid (nucl_acid): a new nucl_acid object to insert at the index.
+
+        Raises:
+            IndexError: _description_
+            IndexError: _description_
+        """
         if index < 0:
             raise IndexError
         
@@ -109,15 +141,30 @@ class nucl_set():
         self.nucls[index] = new_nucl_acid
         self.scores[index] = new_nucl_acid.score
 
-    def append(self, new_nucl_acid:nucl_acid):
+    def append(self, new_nucl_acid:nucl_acid) -> None:
+        """Append a nucl_acid to the end of the nucl_set.
+
+        Args:
+            new_nucl_acid (nucl_acid): a nucl_acid object to append.
+        """
         self.nucls.append(new_nucl_acid)
         self.scores.append(new_nucl_acid.score)
 
-    def remove(self, index:int):
+    def remove(self, index:int) -> None:
+        """Remove a nucl_acid from the nucl_set.
+
+        Args:
+            index (int): the index of the nucl_acid object in nucls[] to be removed.
+        """
         del self.nucls[index]
         del self.scores[index]
 
-    def save(self, path:str):
+    def save(self, path:str) -> None:
+        """Write the nucl_set to an SPSS formatted .fastq file.
+
+        Args:
+            path (str): Path to save the file. If no directory specified will save to source directory.
+        """
         #raises IOError if path is invalid, overwrites existing files
         #This saves to a .fastq, where the quality scores are used instead for bitwise indicating nomod, noindel, scoreregion
         #This will be done with ASCII 0-7, p-w  [XXX011Y]
@@ -148,7 +195,21 @@ class nucl_set():
                 del record
                 del nucl
 
-    def read(self, path:str, design_parameters:design_parameters):
+    def read(self, path:str, design_parameters:design_parameters) -> None:
+        """Reads an SPSS formatted .fastq file and appends its nucl_acid's to the nucl_set.
+
+        Args:
+            path (str): Path to read the file. If no directory specified will assume source directory.
+            design_parameters (design_parameters): the design parameters.
+
+        Raises:
+            ValueError: _description_
+            ValueError: _description_
+            ValueError: _description_
+            ValueError: _description_
+            ValueError: _description_
+            ValueError: _description_
+        """
         #If any other characters are encountered, an error should be raised.
         for record in SeqIO.parse(path, "fastq"):
             quals = record.letter_annotations["phred_quality"]
@@ -181,7 +242,19 @@ class nucl_set():
                 score_region.append(int(bits_string[2] == '1'))
             self.append(new_nucl_acid=nucl_acid(sequence=record.seq, no_mod=no_mod, no_indel=no_indel, score_region=score_region, is_rna=is_rna, design_parameters=design_parameters))
 
-def mutate(nucl:nucl_acid, design_parameters:design_parameters):
+def mutate(nucl:nucl_acid, design_parameters:design_parameters) -> nucl_acid:
+    """Mutates a nucl_acid given design parameters and returns a mutated nucl_acid. Does not modify the original.
+
+    Args:
+        nucl (nucl_acid): the nucl_acid to make a mutant of.
+        design_parameters (design_parameters): the design parameters.
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        nucl_acid: a new nucl_acid.
+    """
     #I'm trying to make this function as fast as possible since it will be called once per every single
     #nucleotide in a sequence to generate one variant.
     #For larger pool sizes this can really stack up.

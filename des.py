@@ -1,16 +1,36 @@
 from nucl import nucl_set, mutate
 from params import design_parameters
 import time
+import os
 
-def design(design_parameters:design_parameters, max_reps:int, current_rep:int, pool:nucl_set, prev_min:float, iter_count:int):
+def design(design_parameters:design_parameters, max_reps:int, pool:nucl_set, current_rep:int = 0, prev_min:float = 0.0, iter_count:int = 0) -> None:
+    """A recursive design loop that retains the best nucl_acid's and decrements mutation weights as it runs
+    Repetitions are counted in current_rep.
+    If max_reps is hit and the weights can be decremented, the weights will be decremented and current_rep reset.
+    If max_reps is hit and the weights cannot be decremented, the loop ends.
+
+    Args:
+        design_parameters (design_parameters): the design parameters.
+        max_reps (int): the maximum number of loops to perform without a decrease in minimum pool score.
+        current_rep (int): the repetition the preceding loop (or main) started on.
+        pool (nucl_set): a nucl_set that will be modified by the loop.
+        prev_min (float): the minimum pool score from the preceding loop.
+        iter_count (int): the total number of repetitions.
+    """
     #Note - now that the temp offset decrementing code is gone, the nucl_acid's are NEVER rescored (the temp never changes). This is less expensive.
     #If for some reason that becomes necessary in the future (I doubt it), it will have to be added back.
+    
+    if iter_count == 0:
+        if not os.path.exists("RESULTS"):
+            os.makedirs('RESULTS')
+        design_parameters.save("RESULTS/" + 'PARAMS_' + time.asctime() + '.yml')
+        pool.save("RESULTS/" + "START_" + time.asctime() + '.fastq')
     if current_rep == max_reps:
         if design_parameters.can_decrement_weights():
             design_parameters.decrement_weights()
             current_rep = 0
         else:
-            pool.save("END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
+            pool.save("RESULTS/" + "END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
             return
     for nucl in pool.nucls:
         for i in range(0, design_parameters.num_mutants):
@@ -30,7 +50,7 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
     iter_count+=1
     # TODO consider making the number of rounds to save an intermediate file a parameter
     if iter_count % 50 == 0:
-        pool.save("MID_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
+        pool.save("RESULTS/" + "MID_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
     
     print("iter_count:\t" + str(iter_count))
     print("current_rep:\t" + str(current_rep))

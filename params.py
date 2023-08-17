@@ -5,6 +5,8 @@ import yaml
 #Adding default values to other functions may conflict with the ones specified here.
 #Any and all arguments to other functions should be required, and if unspecified, that function should error.
 class design_parameters():
+    """Stores parameters used in nucleic acid design.
+    """
     def __init__(
             self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
             nucl_concentration:float = 1e-6, dimer_max_order_magnitude:float = 2.0,
@@ -51,17 +53,32 @@ class design_parameters():
         self.weights = weights
     
     #Only decrement the weights for mutations, not the no-mutation weight
-    def can_decrement_weights(self):
+    def can_decrement_weights(self) -> bool:
+        """Returns whether the mutation weights can be decremented by the weight_factor.
+
+        Returns:
+            bool: mutation weights can be decremented (True / False)
+        """
         return min(self.weights[0:6]) > self.weight_factor and self.weight_factor != 0 # type: ignore
 
-    def decrement_weights(self):
+    def decrement_weights(self) -> None:
+        """Decrements the first 6 weights (not the no-mutation weight) by the weight_factor.
+
+        Raises:
+            ValueError: Attempted to decrement weights where impossible.
+        """
         if min(self.weights[0:6]) > self.weight_factor: # type: ignore
             for i in range(0, 6):
                 self.weights[i] -= self.weight_factor
         else:
             raise ValueError
         
-    def save(self, path:str):
+    def save(self, path:str) -> None:
+        """Writes the design parameters to a .yml file.
+
+        Args:
+            path (str): Path to save the file. If no directory specified will save to source directory.
+        """
         yml_dict = {
             'target_energy':            self.target_energy,
             'target_temp':              self.target_temp,
@@ -88,6 +105,15 @@ class design_parameters():
         stream.close()
 
 def read_parameters(path:str) -> design_parameters:
+    """Reads design parameters from a .yml file and generates a design_parameters object.
+    If optargs are omitted, defaults will be used.
+
+    Args:
+        path (str): Path to read the file. If no directory specified will assume source directory.
+
+    Returns:
+        design_parameters: the design parameters read from the file.
+    """
     stream = open(path, "r")
     yml = yaml.safe_load(stream=stream)
     stream.close()

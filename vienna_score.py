@@ -3,6 +3,22 @@ from math import exp, log10
 from params import design_parameters
 
 def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters:design_parameters) -> float:
+    """Scores a sequence (using ViennaRNA) on score region accessibility, free energy, and dimer formation.
+
+    Args:
+        sequence (str): the nucleic acid sequence.
+        score_region (list): a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        is_rna (bool): whether the sequence is RNA or DNA.
+        design_parameters (design_parameters): The design parameters.
+
+    Raises:
+        ValueError: _description_
+        Exception: _description_
+        Exception: _description_
+
+    Returns:
+        float: A total score, lower is better.
+    """
     if len(sequence) != len(score_region):
         raise ValueError
     
@@ -10,14 +26,14 @@ def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters
     cold_temp = design_parameters.target_temp-design_parameters.temp_offset
     if cold_temp < 0:
         cold_temp = 0
-    if cold_temp >= 100:
+    elif cold_temp >= 100:
         raise Exception("illegal cold temperature")
     
     #Calculate hot temp for scoring
     hot_temp = design_parameters.target_temp+design_parameters.temp_offset
     if hot_temp < 0:
         raise Exception("illegal hot temperature")
-    if hot_temp > 100:
+    elif hot_temp > 100:
         hot_temp = 100
 
     scores_hot = vienna_score_temp(seq=sequence, score_region=score_region, temp=hot_temp,
@@ -39,6 +55,26 @@ def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters
 
 # Returns (float: score_nucl, float: ensemble_energy)
 def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentration:float, dimer_max_order_magnitude:float, max_dimer_monomer_factor: float, nucl_max_score: float, hot: bool, is_rna: bool) -> tuple[float, float]:
+    """Generate a tuple containing the dimerization score and the score region accessibility score respectively.
+    Generally reserved for usage by vienna_score().
+
+    Args:
+        seq (str): the nucleic acid sequence.
+        score_region (list): a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        temp (float): the temperature to score at.
+        nucl_concentration (float): the concentration of the monomeric nucleic acid (provide the initial concentration).
+        dimer_max_order_magnitude (float): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]).
+        max_dimer_monomer_factor (float): The maximum score penalty for dimer formation.
+        nucl_max_score (float): The maximum score penalty for score region accessibility.
+        hot (bool): whether to invert the score region accessibility score.
+        is_rna (bool): whether the nucleic acid is RNA or DNA.
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        tuple[float, float]: (dimer_monomer_factor, score_nucl)
+    """
     # If DNA needed, needs to be selected before RNA.md() called!
     # NOTE - threadsafety WARNING!
     # inclusion of both RNA/DNA in the same set is not threadsafe as parameters are stored in GLOBALS.
@@ -94,11 +130,14 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     # Q = [DIMER] / [MONOMER]^2
     # [DIMER] / [MONOMER] = Q * [MONOMER]
     # log10(Q*[MONOMER]) + dimer_max_order_magnitude to produce dimer_monomer_factor
-
+    # NOTE! This assumes that the FINAL concentration of the [MONOMER] is as provided, not the INITIAL.
+    # This means it will not correct [MONOMER] for [DIMER], so it is an approximation for small [DIMER].
+    # If this is only used for scoring this is appropriate,
+    # as for [DIMER] > [MONOMER] * 10^(1-dimer_max_order_magnitude) the score is the max score.
     dimer_monomer_factor = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * nucl_concentration) + dimer_max_order_magnitude
     if dimer_monomer_factor < 0:
         dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
-    if dimer_monomer_factor > max_dimer_monomer_factor:
+    elif dimer_monomer_factor > max_dimer_monomer_factor:
         dimer_monomer_factor = max_dimer_monomer_factor #cap cost of having a poor monomer formation
 
     if hot:
@@ -107,6 +146,17 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     return (dimer_monomer_factor, score_nucl)
     
 def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float:
+    """Determines the ensemble free energy of a dimerized sequence.
+    Generally reserved for usage by vienna_score().
+
+    Args:
+        seq (str): the nucleic acid sequence.
+        temp (float): the temperature to score at.
+        is_rna (bool): whether the nucleic acid is RNA or DNA.
+
+    Returns:
+        float: dimer_energy
+    """
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
     else:
@@ -120,6 +170,19 @@ def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float:
     return dimer_energy
 
 def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_max_score: float, is_rna: bool) -> float:
+    """Generate a free energy score for a sequence at a given temperature.
+    Generally reserved for usage by vienna_score().
+
+    Args:
+        seq (str): the nucleic acid sequence.
+        temp (float): the temperature to score at.
+        target_energy (float): the target free energy in kcal/mol.
+        free_energy_max_score (float): the maximum score penalty for having a free energy greater than target.
+        is_rna (bool): whether the nucleic acid is RNA or DNA.
+
+    Returns:
+        float: score_free_energy
+    """
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
     else:
@@ -134,6 +197,6 @@ def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_m
     score_free_energy = (target_energy - ensemble_energy) / target_energy
     if score_free_energy < 0:
         score_free_energy = 0
-    if score_free_energy > free_energy_max_score:
+    elif score_free_energy > free_energy_max_score:
         score_free_energy = free_energy_max_score
     return score_free_energy
