@@ -63,7 +63,7 @@ class nucl_acid():
         """Called during initialization to score the nucl_acid.
 
         Args:
-            design_parameters (design_parameters): _description_
+            design_parameters (design_parameters): the design parameters.
 
         Raises:
             Exception: _description_
@@ -85,10 +85,10 @@ class nucl_acid():
         """Called during initialization to determine whether the nucl_acid is blacklisted.
 
         Args:
-            blacklist (blacklist): _description_
+            blacklist (blacklist): the blacklist object.
 
         Returns:
-            bool: _description_
+            bool: whether or not the nucl_acid is blacklisted.
         """
         if blacklist.is_empty:
             return False
@@ -124,8 +124,8 @@ class nucl_set():
         """Replace a nucl_acid in the nucl_set.
 
         Args:
-            index (int): _description_
-            new_nucl_acid (nucl_acid): _description_
+            index (int): the index of the nucl_acid in nucls[].
+            new_nucl_acid (nucl_acid): a new nucl_acid object to insert at the index.
 
         Raises:
             IndexError: _description_
@@ -141,10 +141,10 @@ class nucl_set():
         self.scores[index] = new_nucl_acid.score
 
     def append(self, new_nucl_acid:nucl_acid) -> None:
-        """Add a nucl_acid to the nucl_set.
+        """Append a nucl_acid to the end of the nucl_set.
 
         Args:
-            new_nucl_acid (nucl_acid): _description_
+            new_nucl_acid (nucl_acid): a nucl_acid object to append.
         """
         self.nucls.append(new_nucl_acid)
         self.scores.append(new_nucl_acid.score)
@@ -153,7 +153,7 @@ class nucl_set():
         """Remove a nucl_acid from the nucl_set.
 
         Args:
-            index (int): _description_
+            index (int): the index of the nucl_acid object in nucls[] to be removed.
         """
         del self.nucls[index]
         del self.scores[index]
@@ -162,7 +162,7 @@ class nucl_set():
         """Write the nucl_set to an SPSS formatted .fastq file.
 
         Args:
-            path (str): _description_
+            path (str): Path to save the file. If no directory specified will save to source directory.
         """
         #raises IOError if path is invalid, overwrites existing files
         #This saves to a .fastq, where the quality scores are used instead for bitwise indicating nomod, noindel, scoreregion
@@ -198,8 +198,8 @@ class nucl_set():
         """Reads an SPSS formatted .fastq file and appends its nucl_acid's to the nucl_set.
 
         Args:
-            path (str): _description_
-            design_parameters (design_parameters): _description_
+            path (str): Path to read the file. If no directory specified will assume source directory.
+            design_parameters (design_parameters): the design parameters.
 
         Raises:
             ValueError: _description_
@@ -245,14 +245,14 @@ def mutate(nucl:nucl_acid, design_parameters:design_parameters) -> nucl_acid:
     """Mutates a nucl_acid given design parameters and returns a mutated nucl_acid. Does not modify the original.
 
     Args:
-        nucl (nucl_acid): _description_
-        design_parameters (design_parameters): _description_
+        nucl (nucl_acid): the nucl_acid to make a mutant of.
+        design_parameters (design_parameters): the design parameters.
 
     Raises:
         ValueError: _description_
 
     Returns:
-        nucl_acid: _description_
+        nucl_acid: a new nucl_acid.
     """
     #I'm trying to make this function as fast as possible since it will be called once per every single
     #nucleotide in a sequence to generate one variant.

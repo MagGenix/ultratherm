@@ -57,7 +57,7 @@ class design_parameters():
         """Returns whether the mutation weights can be decremented by the weight_factor.
 
         Returns:
-            bool: _description_
+            bool: mutation weights can be decremented (True / False)
         """
         return min(self.weights[0:6]) > self.weight_factor and self.weight_factor != 0 # type: ignore
 
@@ -65,7 +65,7 @@ class design_parameters():
         """Decrements the first 6 weights (not the no-mutation weight) by the weight_factor.
 
         Raises:
-            ValueError: _description_
+            ValueError: Attempted to decrement weights where impossible.
         """
         if min(self.weights[0:6]) > self.weight_factor: # type: ignore
             for i in range(0, 6):
@@ -77,7 +77,7 @@ class design_parameters():
         """Writes the design parameters to a .yml file.
 
         Args:
-            path (str): _description_
+            path (str): Path to save the file. If no directory specified will save to source directory.
         """
         yml_dict = {
             'target_energy':            self.target_energy,
@@ -106,12 +106,13 @@ class design_parameters():
 
 def read_parameters(path:str) -> design_parameters:
     """Reads design parameters from a .yml file and generates a design_parameters object.
+    If optargs are omitted, defaults will be used.
 
     Args:
-        path (str): _description_
+        path (str): Path to read the file. If no directory specified will assume source directory.
 
     Returns:
-        design_parameters: _description_
+        design_parameters: the design parameters read from the file.
     """
     stream = open(path, "r")
     yml = yaml.safe_load(stream=stream)

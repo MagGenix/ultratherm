@@ -7,10 +7,10 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameter
     """Scores a sequence (using NUPACK) on score region accessibility, free energy, and dimer formation.
 
     Args:
-        sequence (str): _description_
-        score_region (list): _description_
-        is_rna (bool): _description_
-        design_parameters (design_parameters): _description_
+        sequence (str): the nucleic acid sequence.
+        score_region (list): a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        is_rna (bool): whether the sequence is RNA or DNA.
+        design_parameters (design_parameters): The design parameters.
 
     Raises:
         ValueError: _description_
@@ -18,7 +18,7 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameter
         Exception: _description_
 
     Returns:
-        float: _description_
+        float: A total score, lower is better.
     """
     if len(sequence) != len(score_region):
         raise ValueError
@@ -77,15 +77,15 @@ def nupack_score_energy(
     Generally reserved for usage by nupack_score().
     
     Args:
-        temp (float): _description_
-        energy (float): _description_
-        tube_nucl (Tube): _description_
-        complex_nucl_single (Complex): _description_
-        free_energy_max_score (float): _description_
-        material (str): _description_
+        temp (float): the temperature to score at.
+        energy (float): the target free energy in kcal/mol.
+        tube_nucl (Tube): NUPACK Tube containing the strand to be scored.
+        complex_nucl_single (Complex): A defined complex of the monomeric strand to be assessed for concentration.
+        free_energy_max_score (float): the maximum score penalty for having a free energy greater than target.
+        material (str): 'dna' or 'rna'.
 
     Returns:
-        float: _description_
+        float: score_free_energy
     """
     model_nucl=Model(kelvin=temp + 273.15, material=material)
     results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs'])
@@ -109,22 +109,22 @@ def nupack_score_temp(
     Generally reserved for usage by nupack_score().
 
     Args:
-        score_region (list): _description_
-        temp (float): _description_
-        dimer_max_order_magnitude (float): _description_
-        tube_nucl (Tube): _description_
-        complex_nucl_single (Complex): _description_
-        complex_nucl_double (Complex): _description_
-        hot (bool): _description_
-        max_dimer_monomer_factor (float): _description_
-        nucl_max_score (float): _description_
-        material (str): _description_
+        score_region (list): a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        temp (float): the temperature to score at.
+        dimer_max_order_magnitude (float): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]).
+        tube_nucl (Tube): NUPACK Tube containing the strand to be scored.
+        complex_nucl_single (Complex): A defined complex of the monomeric strand to be assessed for concentration.
+        complex_nucl_double (Complex): A defined complex of the dimerized strand to be assessed for concentration.
+        hot (bool): whether to invert the score region accessibility score.
+        max_dimer_monomer_factor (float): The maximum score penalty for dimer formation.
+        nucl_max_score (float): The maximum score penalty for score region accessibility.
+        material (str): 'dna' or 'rna'.
 
     Raises:
         ValueError: _description_
 
     Returns:
-        tuple[float, float]: _description_
+        tuple[float, float]: (dimer_monomer_factor, score_nucl)
     """
     #Make NUPACK model
     model_nucl=Model(kelvin=temp + 273.15, material=material)

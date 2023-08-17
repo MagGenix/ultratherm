@@ -4,14 +4,17 @@ import time
 
 def design(design_parameters:design_parameters, max_reps:int, current_rep:int, pool:nucl_set, prev_min:float, iter_count:int) -> None:
     """A recursive design loop that retains the best nucl_acid's and decrements mutation weights as it runs
+    Repetitions are counted in current_rep.
+    If max_reps is hit and the weights can be decremented, the weights will be decremented and current_rep reset.
+    If max_reps is hit and the weights cannot be decremented, the loop ends.
 
     Args:
-        design_parameters (design_parameters): _description_
-        max_reps (int): _description_
-        current_rep (int): _description_
-        pool (nucl_set): _description_
-        prev_min (float): _description_
-        iter_count (int): _description_
+        design_parameters (design_parameters): the design parameters.
+        max_reps (int): the maximum number of loops to perform without a decrease in minimum pool score.
+        current_rep (int): the repetition the preceding loop (or main) started on.
+        pool (nucl_set): a nucl_set that will be modified by the loop.
+        prev_min (float): the minimum pool score from the preceding loop.
+        iter_count (int): the total number of repetitions.
     """
     #Note - now that the temp offset decrementing code is gone, the nucl_acid's are NEVER rescored (the temp never changes). This is less expensive.
     #If for some reason that becomes necessary in the future (I doubt it), it will have to be added back.
