@@ -1,8 +1,9 @@
 from nucl import nucl_set, mutate
 from params import design_parameters
 import time
+import os
 
-def design(design_parameters:design_parameters, max_reps:int, current_rep:int, pool:nucl_set, prev_min:float, iter_count:int) -> None:
+def design(design_parameters:design_parameters, max_reps:int, pool:nucl_set, current_rep:int = 0, prev_min:float = 0.0, iter_count:int = 0) -> None:
     """A recursive design loop that retains the best nucl_acid's and decrements mutation weights as it runs
     Repetitions are counted in current_rep.
     If max_reps is hit and the weights can be decremented, the weights will be decremented and current_rep reset.
@@ -18,6 +19,12 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
     """
     #Note - now that the temp offset decrementing code is gone, the nucl_acid's are NEVER rescored (the temp never changes). This is less expensive.
     #If for some reason that becomes necessary in the future (I doubt it), it will have to be added back.
+    
+    if iter_count == 0:
+        if not os.path.exists("RESULTS"):
+            os.makedirs('RESULTS')
+        design_parameters.save("RESULTS/" + 'PARAMS_' + time.asctime() + '.yml')
+        pool.save("RESULTS/" + "START_" + time.asctime() + '.fastq')
     if current_rep == max_reps:
         if design_parameters.can_decrement_weights():
             design_parameters.decrement_weights()

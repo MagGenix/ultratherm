@@ -5,19 +5,14 @@ from params import design_parameters, read_parameters
 from des import design
 from vienna_score import vienna_score
 
-import time
-import os
-
+# NOTE Customize this!
 def main():
     # Create result save directory
-    if not os.path.exists("RESULTS"):
-        os.makedirs('RESULTS')
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
     des_params = design_parameters(blacklist=blist, target_temp=55, program='NUPACK',
         num_mutants=2, target_energy=-8.0, # based on FourU Hairpin 2
         )
-    des_params.save("RESULTS/" + 'PARAMS_' + time.asctime() + '.yml')
 
     #Create nucleotide set
     pool = nucl_set(nucls = [])
@@ -28,10 +23,8 @@ def main():
             score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
             design_parameters=des_params, is_rna=True))
 
-    pool.save("RESULTS/" + "START_" + time.asctime() + '.fastq')
-
     #Start design loop
-    design(design_parameters=des_params, max_reps=4, current_rep=0, pool=pool, prev_min=4, iter_count=0)
+    design(design_parameters=des_params, max_reps=4, pool=pool)
 
 def test():
     blist = blacklist(path="blacklist.fasta")
