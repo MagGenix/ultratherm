@@ -10,7 +10,7 @@ import time
 def main():
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
-    des_params = design_parameters(blacklist=blist, target_temp=55,
+    des_params = design_parameters(blacklist=blist, target_temp=55, program='NUPACK',
         num_mutants=8, target_energy=-8.0, # based on FourU Hairpin 2
         )
     des_params.save('PARAMS_' + time.asctime() + '.yml')
@@ -69,5 +69,5 @@ def test():
 
 #####
 
-#main()
-test()
+main()
+#test()

@@ -2,7 +2,17 @@ from nucl import nucl_set, mutate
 from params import design_parameters
 import time
 
-def design(design_parameters:design_parameters, max_reps:int, current_rep:int, pool:nucl_set, prev_min:float, iter_count:int):
+def design(design_parameters:design_parameters, max_reps:int, current_rep:int, pool:nucl_set, prev_min:float, iter_count:int) -> None:
+    """_summary_
+
+    Args:
+        design_parameters (design_parameters): _description_
+        max_reps (int): _description_
+        current_rep (int): _description_
+        pool (nucl_set): _description_
+        prev_min (float): _description_
+        iter_count (int): _description_
+    """
     #Note - now that the temp offset decrementing code is gone, the nucl_acid's are NEVER rescored (the temp never changes). This is less expensive.
     #If for some reason that becomes necessary in the future (I doubt it), it will have to be added back.
     if current_rep == max_reps:

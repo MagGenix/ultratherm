@@ -5,6 +5,8 @@ import yaml
 #Adding default values to other functions may conflict with the ones specified here.
 #Any and all arguments to other functions should be required, and if unspecified, that function should error.
 class design_parameters():
+    """_summary_
+    """
     def __init__(
             self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
             nucl_concentration:float = 1e-6, dimer_max_order_magnitude:float = 2.0,
@@ -51,17 +53,32 @@ class design_parameters():
         self.weights = weights
     
     #Only decrement the weights for mutations, not the no-mutation weight
-    def can_decrement_weights(self):
+    def can_decrement_weights(self) -> bool:
+        """_summary_
+
+        Returns:
+            bool: _description_
+        """
         return min(self.weights[0:6]) > self.weight_factor and self.weight_factor != 0 # type: ignore
 
-    def decrement_weights(self):
+    def decrement_weights(self) -> None:
+        """_summary_
+
+        Raises:
+            ValueError: _description_
+        """
         if min(self.weights[0:6]) > self.weight_factor: # type: ignore
             for i in range(0, 6):
                 self.weights[i] -= self.weight_factor
         else:
             raise ValueError
         
-    def save(self, path:str):
+    def save(self, path:str) -> None:
+        """_summary_
+
+        Args:
+            path (str): _description_
+        """
         yml_dict = {
             'target_energy':            self.target_energy,
             'target_temp':              self.target_temp,
@@ -88,6 +105,14 @@ class design_parameters():
         stream.close()
 
 def read_parameters(path:str) -> design_parameters:
+    """_summary_
+
+    Args:
+        path (str): _description_
+
+    Returns:
+        design_parameters: _description_
+    """
     stream = open(path, "r")
     yml = yaml.safe_load(stream=stream)
     stream.close()

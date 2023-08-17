@@ -3,6 +3,22 @@ from math import exp, log10
 from params import design_parameters
 
 def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters:design_parameters) -> float:
+    """_summary_
+
+    Args:
+        sequence (str): _description_
+        score_region (list): _description_
+        is_rna (bool): _description_
+        design_parameters (design_parameters): _description_
+
+    Raises:
+        ValueError: _description_
+        Exception: _description_
+        Exception: _description_
+
+    Returns:
+        float: _description_
+    """
     if len(sequence) != len(score_region):
         raise ValueError
     
@@ -39,6 +55,25 @@ def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters
 
 # Returns (float: score_nucl, float: ensemble_energy)
 def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentration:float, dimer_max_order_magnitude:float, max_dimer_monomer_factor: float, nucl_max_score: float, hot: bool, is_rna: bool) -> tuple[float, float]:
+    """_summary_
+
+    Args:
+        seq (str): _description_
+        score_region (list): _description_
+        temp (float): _description_
+        nucl_concentration (float): _description_
+        dimer_max_order_magnitude (float): _description_
+        max_dimer_monomer_factor (float): _description_
+        nucl_max_score (float): _description_
+        hot (bool): _description_
+        is_rna (bool): _description_
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        tuple[float, float]: _description_
+    """
     # If DNA needed, needs to be selected before RNA.md() called!
     # NOTE - threadsafety WARNING!
     # inclusion of both RNA/DNA in the same set is not threadsafe as parameters are stored in GLOBALS.
@@ -107,6 +142,16 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     return (dimer_monomer_factor, score_nucl)
     
 def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float:
+    """_summary_
+
+    Args:
+        seq (str): _description_
+        temp (float): _description_
+        is_rna (bool): _description_
+
+    Returns:
+        float: _description_
+    """
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
     else:
@@ -120,6 +165,18 @@ def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float:
     return dimer_energy
 
 def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_max_score: float, is_rna: bool) -> float:
+    """_summary_
+
+    Args:
+        seq (str): _description_
+        temp (float): _description_
+        target_energy (float): _description_
+        free_energy_max_score (float): _description_
+        is_rna (bool): _description_
+
+    Returns:
+        float: _description_
+    """
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
     else:

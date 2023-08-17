@@ -4,6 +4,22 @@ from math import log10
 from params import design_parameters
 
 def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameters:design_parameters) -> float:
+    """_summary_
+
+    Args:
+        sequence (str): _description_
+        score_region (list): _description_
+        is_rna (bool): _description_
+        design_parameters (design_parameters): _description_
+
+    Raises:
+        ValueError: _description_
+        Exception: _description_
+        Exception: _description_
+
+    Returns:
+        float: _description_
+    """
     if len(sequence) != len(score_region):
         raise ValueError
     
@@ -57,6 +73,19 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameter
 def nupack_score_energy(
         temp: float, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float, material: str
     ) -> float:
+    """_summary_
+
+    Args:
+        temp (float): _description_
+        energy (float): _description_
+        tube_nucl (Tube): _description_
+        complex_nucl_single (Complex): _description_
+        free_energy_max_score (float): _description_
+        material (str): _description_
+
+    Returns:
+        float: _description_
+    """
     model_nucl=Model(kelvin=temp + 273.15, material=material)
     results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs'])
     #concentrations_nucl = complex_concentrations(tube=tube_nucl, data = results_nucl)
@@ -75,6 +104,26 @@ def nupack_score_temp(
         tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex,
         hot:bool, max_dimer_monomer_factor:float, nucl_max_score:float, material: str
     ) -> tuple[float, float]:
+    """_summary_
+
+    Args:
+        score_region (list): _description_
+        temp (float): _description_
+        dimer_max_order_magnitude (float): _description_
+        tube_nucl (Tube): _description_
+        complex_nucl_single (Complex): _description_
+        complex_nucl_double (Complex): _description_
+        hot (bool): _description_
+        max_dimer_monomer_factor (float): _description_
+        nucl_max_score (float): _description_
+        material (str): _description_
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        tuple[float, float]: _description_
+    """
     #Make NUPACK model
     model_nucl=Model(kelvin=temp + 273.15, material=material)
 

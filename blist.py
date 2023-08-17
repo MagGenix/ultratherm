@@ -1,6 +1,8 @@
 from Bio import SeqIO
 
 class blacklist():
+    """_summary_
+    """
     def __init__(self, path: str):
         self.blacklist_sequences = []
 
