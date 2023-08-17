@@ -7,4 +7,5 @@ START_*
 END_*
 PARAMS_*
 *.fasta
+*.fastq
 *.yml

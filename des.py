@@ -10,7 +10,7 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
             design_parameters.decrement_weights()
             current_rep = 0
         else:
-            pool.save("END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fasta')
+            pool.save("END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
             return
     for nucl in pool.nucls:
         for i in range(0, design_parameters.num_mutants):
@@ -21,19 +21,19 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
 
     current_min = min(pool.scores)
     
-    if current_min >= prev_min:
+    if current_min >= prev_min: # type: ignore
         current_rep+=1
     else:
         current_rep = 0
         if design_parameters.can_decrement_weights():
             design_parameters.decrement_weights()
     iter_count+=1
+    # TODO consider making the number of rounds to save an intermediate file a parameter
     if iter_count % 50 == 0:
-        pool.save("MID_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fasta')
+        pool.save("MID_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
     
     print("iter_count:\t" + str(iter_count))
     print("current_rep:\t" + str(current_rep))
-    print("offset:\t" + str(design_parameters.temp_offset))
-    print("min weight:\t" + str(min(design_parameters.weights[0:7])))
+    print("min weight:\t" + str(min(design_parameters.weights[0:6])))
     print('')
-    design(design_parameters=design_parameters, max_reps=max_reps, current_rep=current_rep, pool=pool, prev_min=current_min, iter_count=iter_count)
+    design(design_parameters=design_parameters, max_reps=max_reps, current_rep=current_rep, pool=pool, prev_min=current_min, iter_count=iter_count) # type: ignore

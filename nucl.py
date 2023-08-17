@@ -1,13 +1,13 @@
-from nupack import Tube, Complex, complex_analysis, complex_concentrations, Strand, SetSpec, Model
 from Bio.Seq import Seq, MutableSeq
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
-from math import log10
 import random
 import copy
 
 from params import design_parameters
 from blist import blacklist
+from nupack_score import nupack_score
+from vienna_score import vienna_score
 
 class nucl_acid():
     def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters, is_rna: bool):
@@ -22,6 +22,13 @@ class nucl_acid():
         self.no_indel = no_indel
         self.score_region = score_region
         self.is_rna = is_rna
+
+        #Check that definded RNAs do not contain DNA bases and vice versa
+        if self.is_rna and self.sequence.find('T') != -1:
+            raise ValueError
+        elif (not self.is_rna) and self.sequence.find('U') != -1:
+            raise ValueError
+
         if self.sequence.find('N') != -1:
             self.sequence = MutableSeq(self.sequence)
             if self.is_rna:
@@ -38,104 +45,35 @@ class nucl_acid():
         self.fitness_score(design_parameters)
 
     
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.sequence)
+    
+    def __str__(self) -> str:
+        as_string = ""
+        as_string += str(self.score) + "\n"
+        as_string += str(self.sequence) + "\n"
+        as_string += str(self.no_mod) + "\n"
+        as_string += str(self.no_indel) + "\n"
+        as_string += str(self.score_region) + "\n"
+        return as_string
 
     def fitness_score(self, design_parameters: design_parameters):
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
             return 6
         
-        #Calculate cold temp for scoring
-        cold_temp = design_parameters.target_temp-design_parameters.temp_offset
-        if cold_temp < 0:
-            cold_temp = 0
-        if cold_temp >= 100:
-            raise Exception("illegal cold temperature")
-        
-        #Calculate hot temp for scoring
-        hot_temp = design_parameters.target_temp+design_parameters.temp_offset
-        if hot_temp < 0:
-            raise Exception("illegal hot temperature")
-        if hot_temp > 100:
-            hot_temp = 100
-
-        if design_parameters.program == "NUPACK":
-            #TODO: specify whether sequence to be analyzed is DNA or RNA
-            #Create NUPACK strand using sequence of nucl
-            strand_nucl = Strand(name='A', string=str(self.sequence))
-
-            #Create NUPACK complexes for monomer and homodimer
-            complex_nucl_single = Complex(strands=[strand_nucl], name='A')
-            complex_nucl_double = Complex(strands=[strand_nucl, strand_nucl], name='AA')
-
-            #Create NUPACK Tube and track both the monomer and homodimer complexes
-            tube_nucl = Tube(strands={strand_nucl:1e-6}, complexes=SetSpec(max_size=2,
-               include=(complex_nucl_single, complex_nucl_double)), name='tube_nucl')
-            
-            scores_cold = self.nupack_score_temp(temp=cold_temp, energy=design_parameters.target_energy, tube_nucl=tube_nucl,
-                complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot=False,
-                max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
-                free_energy_max_score=design_parameters.free_energy_max_score,
-                nucl_max_score=design_parameters.nucl_max_score)
-            
-            scores_hot = self.nupack_score_temp(temp=hot_temp, energy=design_parameters.target_energy, tube_nucl=tube_nucl,
-                complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot = True,
-                max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
-                free_energy_max_score=design_parameters.free_energy_max_score,
-                nucl_max_score=design_parameters.nucl_max_score)
-
-            self.score = sum(scores_cold) + sum(scores_hot)
+        if design_parameters.program == "NUPACK":  
+            self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
             return self.score
         if design_parameters.program == "VIENNA":
-            self.score = 6
+            self.score = vienna_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
             return self.score
         raise Exception("no program specified for scoring")
 
-    def nupack_score_temp(self, temp: int, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex, hot:bool, max_dimer_monomer_factor:float=1.0, free_energy_max_score:float=1.0, nucl_max_score:float=1.0):
-        #Make NUPACK model
-        model_nucl=Model(celsius=temp)
-
-        #Run NUPACK model for temp (Complex analysis)
-        results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pfunc', 'pairs'])
-        concentrations_nucl = complex_concentrations(tube=tube_nucl, data = results_nucl)
-
-        #Calculate ratio of AA to A and take log10. lower is better
-        if concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_double] == 0:
-            dimer_monomer_factor=0
-        elif concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_single] == 0:
-            dimer_monomer_factor=1
-        else:
-            dimer_monomer_factor = log10(concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_double] /
-                concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_single]) + 2 #+2 means dimer must be 2 factors of 10 less abundant to avoid score penalty
-            if dimer_monomer_factor < 0:
-                dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
-            if dimer_monomer_factor > max_dimer_monomer_factor:
-                dimer_monomer_factor = max_dimer_monomer_factor #cap cost of having a poor monomer formation
-        
-
-        #Changing max value for free energy score since it can make the resulting RNATs terrible at RBS occlusion
-        score_free_energy = (energy - results_nucl.complexes[complex_nucl_single].free_energy) / energy
-        if score_free_energy < 0:
-            score_free_energy = 0
-        if score_free_energy > free_energy_max_score:
-            score_free_energy = free_energy_max_score
-
-        score_nucl = 0
-        count_scored_nuc = 0
-        for i, x in enumerate(self.score_region):
-            if x:
-                score_nucl += results_nucl.complexes[complex_nucl_single].pairs.diagonal[i]
-                count_scored_nuc+=1
-        score_nucl = score_nucl / count_scored_nuc
-
-        if score_nucl > nucl_max_score:
-            score_nucl = nucl_max_score
-
-        if hot:
-            score_nucl = nucl_max_score - score_nucl
-            score_free_energy = free_energy_max_score - score_free_energy
-        return [dimer_monomer_factor, score_nucl, score_free_energy]
-
+    #As of right now, this function is only accessed from within fitness_score, but could be useful to external processes.
+    #If used in external processes it would be more efficent to store it as a boolean member variable.
+    #However, since member variables are public in Python, this would make is_blacklisted modifiable and potentially inaccurate.
+    #For that reason, and since it should only be performed once but is also generally important,
+    #this stays a function for now.
     def is_blacklisted(self, blacklist: blacklist):
         if blacklist.is_empty:
             return False
@@ -152,8 +90,14 @@ class nucl_set():
                 #Raise an error if an object in the list was not a nucl_acid
                 raise TypeError
             self.scores[i] = self.nucls[i].score
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.nucls)
+
+    def __str__(self) -> str:
+        as_string = ""
+        for nucl in self.nucls:
+            as_string = as_string + str(nucl) + "\n"
+        return as_string
 
     def replace(self, index:int, new_nucl_acid:nucl_acid):
         if index < 0:
@@ -175,9 +119,67 @@ class nucl_set():
 
     def save(self, path:str):
         #raises IOError if path is invalid, overwrites existing files
+        #This saves to a .fastq, where the quality scores are used instead for bitwise indicating nomod, noindel, scoreregion
+        #This will be done with ASCII 0-7, p-w  [XXX011Y]
+        #These were chosen to avoid any extraneous ASCII characters.
+        #b1: no_mod
+        #b2: no_indel
+        #b3: score_region
+        #b7: DNA / RNA
+        # AS SANGER SCORES:
+        # 0: 15, 7: 22
+        # p: 79, w: 86
         with open(path, 'w') as handle:
             for i in range(0, len(self)):
-                SeqIO.write(SeqRecord(seq=self.nucls[i].sequence, id=str(i), description="score=" + str(self.nucls[i].score)), handle=handle, format='fasta')
+                nucl = self.nucls[i]
+                if nucl.is_rna:
+                    offset = 79
+                else:
+                    offset = 15
+                quals = list()
+                for j in range (0, len(nucl)):
+                    bitString = str(nucl.no_mod[j]) + str(nucl.no_indel[j]) + str(nucl.score_region[j])
+                    bitsAsInt = int(bitString, 2)
+                    quals.append(bitsAsInt + offset)
+                record = SeqRecord(seq=self.nucls[i].sequence, id=str(i), description="score=" + str(self.nucls[i].score))
+                record.letter_annotations["phred_quality"] = quals
+                SeqIO.write(record, handle=handle, format='fastq')
+                del quals
+                del record
+                del nucl
+
+    def read(self, path:str, design_parameters:design_parameters):
+        #If any other characters are encountered, an error should be raised.
+        for record in SeqIO.parse(path, "fastq"):
+            quals = record.letter_annotations["phred_quality"]
+            if max(quals) > 86 or min(quals) < 15:
+                raise ValueError("NOT SPSS")
+            elif max(quals) > 22: # Either RNA or invalid
+                if max(quals) < 79:
+                    raise ValueError("NOT SPSS")
+                if min(quals) < 79:
+                    raise ValueError("NOT SPSS")
+                offset = 79
+                is_rna = True
+            elif min(quals) <  79: # Either DNA or invalid
+                if min(quals) > 22:
+                    raise ValueError("NOT SPSS")
+                if max(quals) > 22:
+                    raise ValueError("NOT SPSS")
+                offset = 15
+                is_rna = False
+            else:
+                raise ValueError("NOT SPSS")
+            no_mod = list()
+            no_indel = list()
+            score_region = list()
+            for qual in quals:
+                #Convert qual score to int. Backfill 0s to make 3 bit int
+                bits_string = str(bin(qual - offset))[2:].zfill(3)
+                no_mod.append(int(bits_string[0] == '1'))
+                no_indel.append(int(bits_string[1] == '1'))
+                score_region.append(int(bits_string[2] == '1'))
+            self.append(new_nucl_acid=nucl_acid(sequence=record.seq, no_mod=no_mod, no_indel=no_indel, score_region=score_region, is_rna=is_rna, design_parameters=design_parameters))
 
 def mutate(nucl:nucl_acid, design_parameters:design_parameters):
     #I'm trying to make this function as fast as possible since it will be called once per every single

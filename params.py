@@ -1,16 +1,31 @@
 from blist import blacklist
-from Bio.Seq import Seq
+import yaml
 
+#NOTE design_parameters() is the ONLY function that should have default values!!
+#Adding default values to other functions may conflict with the ones specified here.
+#Any and all arguments to other functions should be required, and if unspecified, that function should error.
 class design_parameters():
-    def __init__(self, blacklist: blacklist, target_temp: int, temp_offset: int, weight_factor: int, num_mutants: int, program: str, weights:list, target_energy:float=-10.0, competitor:Seq=Seq(""), free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0):
-        self.blacklist = blacklist
+    def __init__(
+            self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
+            nucl_concentration:float = 1e-6, dimer_max_order_magnitude:float = 2.0,
+            blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA',
+            weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1,
+            free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0,
+        ):
+        
+        self.target_energy = target_energy
         self.target_temp = target_temp
         self.temp_offset = temp_offset
-        self.weight_factor = weight_factor
-        self.program = program
+        self.thermo_score_temp = thermo_score_temp
+
+        self.nucl_concentration = nucl_concentration
+        self.dimer_max_order_magnitude = dimer_max_order_magnitude
+
+        self.blacklist = blacklist
         self.num_mutants = num_mutants
-        self.target_energy = target_energy
-        self.competitor = competitor
+        self.program = program
+        
+        self.weight_factor = weight_factor
 
         self.free_energy_max_score = free_energy_max_score
         self.nucl_max_score = nucl_max_score
@@ -35,28 +50,48 @@ class design_parameters():
                 raise TypeError
         self.weights = weights
     
+    #Only decrement the weights for mutations, not the no-mutation weight
     def can_decrement_weights(self):
-        return min(self.weights[0:7]) > self.weight_factor and self.weight_factor != 0
+        return min(self.weights[0:6]) > self.weight_factor and self.weight_factor != 0 # type: ignore
 
     def decrement_weights(self):
-        if min(self.weights[0:7]) > self.weight_factor:
-            for i in range(0, 7):
+        if min(self.weights[0:6]) > self.weight_factor: # type: ignore
+            for i in range(0, 6):
                 self.weights[i] -= self.weight_factor
         else:
             raise ValueError
         
     def save(self, path:str):
-        try:
-            with open(path, 'w') as handle:
-                handle.write('blacklist: ' + self.blacklist.blacklist_path + '\n')
-                handle.write('target_temp: ' + str(self.target_temp) + '\n')
-                handle.write('temp_offset: ' + str(self.temp_offset) + '\n')
-                handle.write('weight_factor: ' + str(self.weight_factor) + '\n')
-                handle.write('target_energy: ' + str(self.target_energy) + '\n')
-                handle.write('program: ' + self.program + '\n')
-                handle.write('num_mutants: ' + str(self.num_mutants) + '\n')
-                handle.write('weights:\n')
-                for weight in self.weights:
-                    handle.write(' - ' + str(weight)+"\n")
-        except IOError:
-            print("Warning: could not save parameters")
+        yml_dict = {
+            'target_energy':            self.target_energy,
+            'target_temp':              self.target_temp,
+            'temp_offset':              self.temp_offset,
+            'thermo_score_temp':        self.thermo_score_temp,
+
+            'nucl_concentration':       self.nucl_concentration,
+            'dimer_max_order_magnitude':self.dimer_max_order_magnitude,
+
+            'blacklist':                self.blacklist.blacklist_path,
+            'num_mutants':              self.num_mutants,
+            'program':                  self.program,
+
+            'weights':                  self.weights,
+            'weight_factor':            self.weight_factor,
+
+            'free_energy_max_score':    self.free_energy_max_score,
+            'nucl_max_score':           self.nucl_max_score,
+            'max_dimer_monomer_factor': self.max_dimer_monomer_factor
+        }
+
+        stream = open(path, 'w')
+        yaml.safe_dump(data=yml_dict, stream=stream, sort_keys=False)
+        stream.close()
+
+def read_parameters(path:str) -> design_parameters:
+    stream = open(path, "r")
+    yml = yaml.safe_load(stream=stream)
+    stream.close()
+
+    yml['blacklist'] = blacklist(yml['blacklist'])
+
+    return design_parameters(**yml)
