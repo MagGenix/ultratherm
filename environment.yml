@@ -1,15 +1,15 @@
 name: ultratherm
 channels:
- - conda-forge
- - bioconda
+  - conda-forge
+  - bioconda
 dependencies:
- - python=3.9
- - numpy
- - scipy
- - pandas
- - biopython
- - pyyaml
- - pip
- - pip:
-  # bioconda viennarna does not work! use PyPi
-  - viennarna
+  - python=3.9
+  - numpy
+  - scipy
+  - pandas
+  - biopython
+  - pyyaml
+  - pip
+  - pip:
+    # NOTE: bioconda viennarna does not work! Use PyPi
+    - viennarna
