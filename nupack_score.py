@@ -34,7 +34,7 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameter
     complex_nucl_double = Complex(strands=[strand_nucl, strand_nucl], name='AA')
 
     #Create NUPACK Tube and track both the monomer and homodimer complexes
-    tube_nucl = Tube(strands={strand_nucl:design_parameters.rna_concentration}, complexes=SetSpec(max_size=2,
+    tube_nucl = Tube(strands={strand_nucl:design_parameters.nucl_concentration}, complexes=SetSpec(max_size=2,
         include=(complex_nucl_single, complex_nucl_double)), name='tube_nucl')
     
     scores_cold = nupack_score_temp(score_region, temp=cold_temp, tube_nucl=tube_nucl,

@@ -7,7 +7,7 @@ import yaml
 class design_parameters():
     def __init__(
             self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
-            rna_concentration:float = 1e-6, dimer_max_order_magnitude:float = 2.0,
+            nucl_concentration:float = 1e-6, dimer_max_order_magnitude:float = 2.0,
             blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA',
             weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1,
             free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0,
@@ -18,7 +18,7 @@ class design_parameters():
         self.temp_offset = temp_offset
         self.thermo_score_temp = thermo_score_temp
 
-        self.rna_concentration = rna_concentration
+        self.nucl_concentration = nucl_concentration
         self.dimer_max_order_magnitude = dimer_max_order_magnitude
 
         self.blacklist = blacklist
@@ -69,7 +69,7 @@ class design_parameters():
             'temp_offset':              self.temp_offset,
             'thermo_score_temp':        self.thermo_score_temp,
 
-            'rna_concentration':        self.rna_concentration,
+            'nucl_concentration':       self.nucl_concentration,
             'dimer_max_order_magnitude':self.dimer_max_order_magnitude,
 
             'blacklist':                self.blacklist.blacklist_path,

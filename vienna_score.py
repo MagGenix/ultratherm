@@ -21,12 +21,12 @@ def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters
         hot_temp = 100
 
     scores_hot = vienna_score_temp(seq=sequence, score_region=score_region, temp=hot_temp,
-        rna_concentration=design_parameters.rna_concentration,
+        nucl_concentration=design_parameters.nucl_concentration,
         dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
         nucl_max_score=design_parameters.nucl_max_score, hot=True, is_rna=is_rna)
     scores_cold = vienna_score_temp(seq=sequence, score_region=score_region, temp=cold_temp,
-        rna_concentration=design_parameters.rna_concentration,
+        nucl_concentration=design_parameters.nucl_concentration,
         dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
         max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
         nucl_max_score=design_parameters.nucl_max_score, hot=False, is_rna=is_rna)
@@ -38,7 +38,7 @@ def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters
     return score_energy + sum(scores_hot) + sum(scores_cold)
 
 # Returns (float: score_nucl, float: ensemble_energy)
-def vienna_score_temp(seq:str, score_region:list, temp: float, rna_concentration:float, dimer_max_order_magnitude:float, max_dimer_monomer_factor: float, nucl_max_score: float, hot: bool, is_rna: bool) -> tuple[float, float]:
+def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentration:float, dimer_max_order_magnitude:float, max_dimer_monomer_factor: float, nucl_max_score: float, hot: bool, is_rna: bool) -> tuple[float, float]:
     # If DNA needed, needs to be selected before RNA.md() called!
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
@@ -95,7 +95,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, rna_concentration
     # For now, [MONOMER] fixed at 1e-6 (this is a key assumption) TODO mark as final constant
     # TODO mark the 1e-2 threshold for dimerization as a final constant
 
-    dimer_monomer_factor = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * rna_concentration) + dimer_max_order_magnitude
+    dimer_monomer_factor = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * nucl_concentration) + dimer_max_order_magnitude
     if dimer_monomer_factor < 0:
         dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
     if dimer_monomer_factor > max_dimer_monomer_factor:
