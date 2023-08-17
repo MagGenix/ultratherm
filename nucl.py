@@ -10,7 +10,7 @@ from nupack_score import nupack_score
 from vienna_score import vienna_score
 
 class nucl_acid():
-    """_summary_
+    """nucleic acid. Stores its sequence, score, no_mod, no_no_indel, score_region, and whether it is RNA or DNA.
     """
     def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters, is_rna: bool):
         if len(no_mod) != len(sequence):
@@ -60,7 +60,7 @@ class nucl_acid():
         return as_string
 
     def fitness_score(self, design_parameters: design_parameters) -> None:
-        """_summary_
+        """Called during initialization to score the nucl_acid.
 
         Args:
             design_parameters (design_parameters): _description_
@@ -70,9 +70,9 @@ class nucl_acid():
         """
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
             self.score = 6.0
-        if design_parameters.program == "NUPACK":  
+        elif design_parameters.program == "NUPACK":  
             self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
-        if design_parameters.program == "VIENNA":
+        elif design_parameters.program == "VIENNA":
             self.score = vienna_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
         raise Exception("no program specified for scoring")
 
@@ -82,7 +82,7 @@ class nucl_acid():
     #For that reason, and since it should only be performed once but is also generally important,
     #this stays a function for now.
     def is_blacklisted(self, blacklist: blacklist) -> bool:
-        """_summary_
+        """Called during initialization to determine whether the nucl_acid is blacklisted.
 
         Args:
             blacklist (blacklist): _description_
@@ -97,7 +97,11 @@ class nucl_acid():
         return False
 
 class nucl_set():
-    """_summary_
+    """A data type to store nucl_acid's for design. Stores ordered lists of nucl_acid and their scores.
+    Use .append(), .remove(), and .replace() to modify.
+    Use .save() and .read() for I/O.
+
+    DO NOT DIRECTLY MODIFY MEMBERS! They are intended for read-only. Use the above methods for modification.
     """
     def __init__(self, nucls: list):
         self.nucls = nucls
@@ -117,7 +121,7 @@ class nucl_set():
         return as_string
 
     def replace(self, index:int, new_nucl_acid:nucl_acid) -> None:
-        """_summary_
+        """Replace a nucl_acid in the nucl_set.
 
         Args:
             index (int): _description_
@@ -137,7 +141,7 @@ class nucl_set():
         self.scores[index] = new_nucl_acid.score
 
     def append(self, new_nucl_acid:nucl_acid) -> None:
-        """_summary_
+        """Add a nucl_acid to the nucl_set.
 
         Args:
             new_nucl_acid (nucl_acid): _description_
@@ -146,7 +150,7 @@ class nucl_set():
         self.scores.append(new_nucl_acid.score)
 
     def remove(self, index:int) -> None:
-        """_summary_
+        """Remove a nucl_acid from the nucl_set.
 
         Args:
             index (int): _description_
@@ -155,7 +159,7 @@ class nucl_set():
         del self.scores[index]
 
     def save(self, path:str) -> None:
-        """_summary_
+        """Write the nucl_set to an SPSS formatted .fastq file.
 
         Args:
             path (str): _description_
@@ -191,7 +195,7 @@ class nucl_set():
                 del nucl
 
     def read(self, path:str, design_parameters:design_parameters) -> None:
-        """_summary_
+        """Reads an SPSS formatted .fastq file and appends its nucl_acid's to the nucl_set.
 
         Args:
             path (str): _description_
@@ -238,7 +242,7 @@ class nucl_set():
             self.append(new_nucl_acid=nucl_acid(sequence=record.seq, no_mod=no_mod, no_indel=no_indel, score_region=score_region, is_rna=is_rna, design_parameters=design_parameters))
 
 def mutate(nucl:nucl_acid, design_parameters:design_parameters) -> nucl_acid:
-    """_summary_
+    """Mutates a nucl_acid given design parameters and returns a mutated nucl_acid. Does not modify the original.
 
     Args:
         nucl (nucl_acid): _description_

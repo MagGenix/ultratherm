@@ -5,7 +5,7 @@ import yaml
 #Adding default values to other functions may conflict with the ones specified here.
 #Any and all arguments to other functions should be required, and if unspecified, that function should error.
 class design_parameters():
-    """_summary_
+    """Stores parameters used in nucleic acid design.
     """
     def __init__(
             self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
@@ -54,7 +54,7 @@ class design_parameters():
     
     #Only decrement the weights for mutations, not the no-mutation weight
     def can_decrement_weights(self) -> bool:
-        """_summary_
+        """Returns whether the mutation weights can be decremented by the weight_factor.
 
         Returns:
             bool: _description_
@@ -62,7 +62,7 @@ class design_parameters():
         return min(self.weights[0:6]) > self.weight_factor and self.weight_factor != 0 # type: ignore
 
     def decrement_weights(self) -> None:
-        """_summary_
+        """Decrements the first 6 weights (not the no-mutation weight) by the weight_factor.
 
         Raises:
             ValueError: _description_
@@ -74,7 +74,7 @@ class design_parameters():
             raise ValueError
         
     def save(self, path:str) -> None:
-        """_summary_
+        """Writes the design parameters to a .yml file.
 
         Args:
             path (str): _description_
@@ -105,7 +105,7 @@ class design_parameters():
         stream.close()
 
 def read_parameters(path:str) -> design_parameters:
-    """_summary_
+    """Reads design parameters from a .yml file and generates a design_parameters object.
 
     Args:
         path (str): _description_

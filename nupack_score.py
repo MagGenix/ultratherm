@@ -4,7 +4,7 @@ from math import log10
 from params import design_parameters
 
 def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameters:design_parameters) -> float:
-    """_summary_
+    """Scores a sequence (using NUPACK) on score region accessibility, free energy, and dimer formation.
 
     Args:
         sequence (str): _description_
@@ -32,14 +32,14 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameter
     cold_temp = design_parameters.target_temp-design_parameters.temp_offset
     if cold_temp < 0:
         cold_temp = 0
-    if cold_temp >= 100:
+    elif cold_temp >= 100:
         raise Exception("illegal cold temperature")
     
     #Calculate hot temp for scoring
     hot_temp = design_parameters.target_temp+design_parameters.temp_offset
     if hot_temp < 0:
         raise Exception("illegal hot temperature")
-    if hot_temp > 100:
+    elif hot_temp > 100:
         hot_temp = 100
 
     strand_nucl = Strand(name='A', string=sequence)
@@ -73,8 +73,9 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameter
 def nupack_score_energy(
         temp: float, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float, material: str
     ) -> float:
-    """_summary_
-
+    """Generate a free energy score for a sequence at a given temperature.
+    Generally reserved for usage by nupack_score().
+    
     Args:
         temp (float): _description_
         energy (float): _description_
@@ -94,7 +95,7 @@ def nupack_score_energy(
     score_free_energy = (energy - results_nucl.complexes[complex_nucl_single].free_energy) / energy
     if score_free_energy < 0:
         score_free_energy = 0
-    if score_free_energy > free_energy_max_score:
+    elif score_free_energy > free_energy_max_score:
         score_free_energy = free_energy_max_score
 
     return score_free_energy
@@ -104,7 +105,8 @@ def nupack_score_temp(
         tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex,
         hot:bool, max_dimer_monomer_factor:float, nucl_max_score:float, material: str
     ) -> tuple[float, float]:
-    """_summary_
+    """Generate a tuple containing the dimerization score and the score region accessibility score respectively.
+    Generally reserved for usage by nupack_score().
 
     Args:
         score_region (list): _description_
@@ -141,7 +143,7 @@ def nupack_score_temp(
             concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_single]) + dimer_max_order_magnitude #+2 means dimer must be 2 factors of 10 less abundant to avoid score penalty
         if dimer_monomer_factor < 0:
             dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
-        if dimer_monomer_factor > max_dimer_monomer_factor:
+        elif dimer_monomer_factor > max_dimer_monomer_factor:
             dimer_monomer_factor = max_dimer_monomer_factor #cap cost of having a poor monomer formation
     
     if len(results_nucl.complexes[complex_nucl_single].pairs.diagonal) != len(score_region):

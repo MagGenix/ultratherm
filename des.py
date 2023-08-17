@@ -3,7 +3,7 @@ from params import design_parameters
 import time
 
 def design(design_parameters:design_parameters, max_reps:int, current_rep:int, pool:nucl_set, prev_min:float, iter_count:int) -> None:
-    """_summary_
+    """A recursive design loop that retains the best nucl_acid's and decrements mutation weights as it runs
 
     Args:
         design_parameters (design_parameters): _description_
