@@ -23,7 +23,7 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
             design_parameters.decrement_weights()
             current_rep = 0
         else:
-            pool.save("END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
+            pool.save("RESULTS/" + "END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
             return
     for nucl in pool.nucls:
         for i in range(0, design_parameters.num_mutants):
@@ -43,7 +43,7 @@ def design(design_parameters:design_parameters, max_reps:int, current_rep:int, p
     iter_count+=1
     # TODO consider making the number of rounds to save an intermediate file a parameter
     if iter_count % 50 == 0:
-        pool.save("MID_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
+        pool.save("RESULTS/" + "MID_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
     
     print("iter_count:\t" + str(iter_count))
     print("current_rep:\t" + str(current_rep))
