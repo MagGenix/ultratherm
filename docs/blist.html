@@ -71,23 +71,28 @@ blist    </h1>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Stores blacklisted sequences, whether it is empty, and the path to a blacklist file.</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new blacklist.</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>            <span class="k">return</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>        
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>                <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">):</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>                    <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="n">path</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>            <span class="ne">Warning</span><span class="p">(</span><span class="s2">&quot;Invalid path to blacklist or invalid blacklist file. Blacklist will be empty&quot;</span><span class="p">)</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd">        Args:</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="sd">            path (str): path to the blacklist FASTA file.</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>            <span class="k">return</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>                <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">):</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>                    <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="n">path</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>            <span class="ne">Warning</span><span class="p">(</span><span class="s2">&quot;Invalid path to blacklist or invalid blacklist file. Blacklist will be empty&quot;</span><span class="p">)</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 </span></pre></div>
 
 
@@ -107,23 +112,28 @@ blist    </h1>
 </span><span id="blacklist-5"><a href="#blacklist-5"><span class="linenos"> 5</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Stores blacklisted sequences, whether it is empty, and the path to a blacklist file.</span>
 </span><span id="blacklist-6"><a href="#blacklist-6"><span class="linenos"> 6</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="blacklist-7"><a href="#blacklist-7"><span class="linenos"> 7</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="blacklist-8"><a href="#blacklist-8"><span class="linenos"> 8</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="blacklist-8"><a href="#blacklist-8"><span class="linenos"> 8</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new blacklist.</span>
 </span><span id="blacklist-9"><a href="#blacklist-9"><span class="linenos"> 9</span></a>
-</span><span id="blacklist-10"><a href="#blacklist-10"><span class="linenos">10</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
-</span><span id="blacklist-11"><a href="#blacklist-11"><span class="linenos">11</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="blacklist-12"><a href="#blacklist-12"><span class="linenos">12</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span id="blacklist-13"><a href="#blacklist-13"><span class="linenos">13</span></a>            <span class="k">return</span>
-</span><span id="blacklist-14"><a href="#blacklist-14"><span class="linenos">14</span></a>        
-</span><span id="blacklist-15"><a href="#blacklist-15"><span class="linenos">15</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="blacklist-16"><a href="#blacklist-16"><span class="linenos">16</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
-</span><span id="blacklist-17"><a href="#blacklist-17"><span class="linenos">17</span></a>                <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">):</span>
-</span><span id="blacklist-18"><a href="#blacklist-18"><span class="linenos">18</span></a>                    <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span>
-</span><span id="blacklist-19"><a href="#blacklist-19"><span class="linenos">19</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
-</span><span id="blacklist-20"><a href="#blacklist-20"><span class="linenos">20</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="n">path</span>
-</span><span id="blacklist-21"><a href="#blacklist-21"><span class="linenos">21</span></a>        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-</span><span id="blacklist-22"><a href="#blacklist-22"><span class="linenos">22</span></a>            <span class="ne">Warning</span><span class="p">(</span><span class="s2">&quot;Invalid path to blacklist or invalid blacklist file. Blacklist will be empty&quot;</span><span class="p">)</span>
-</span><span id="blacklist-23"><a href="#blacklist-23"><span class="linenos">23</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="blacklist-24"><a href="#blacklist-24"><span class="linenos">24</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="blacklist-10"><a href="#blacklist-10"><span class="linenos">10</span></a><span class="sd">        Args:</span>
+</span><span id="blacklist-11"><a href="#blacklist-11"><span class="linenos">11</span></a><span class="sd">            path (str): path to the blacklist FASTA file.</span>
+</span><span id="blacklist-12"><a href="#blacklist-12"><span class="linenos">12</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="blacklist-13"><a href="#blacklist-13"><span class="linenos">13</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="blacklist-14"><a href="#blacklist-14"><span class="linenos">14</span></a>
+</span><span id="blacklist-15"><a href="#blacklist-15"><span class="linenos">15</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+</span><span id="blacklist-16"><a href="#blacklist-16"><span class="linenos">16</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="blacklist-17"><a href="#blacklist-17"><span class="linenos">17</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="blacklist-18"><a href="#blacklist-18"><span class="linenos">18</span></a>            <span class="k">return</span>
+</span><span id="blacklist-19"><a href="#blacklist-19"><span class="linenos">19</span></a>        
+</span><span id="blacklist-20"><a href="#blacklist-20"><span class="linenos">20</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="blacklist-21"><a href="#blacklist-21"><span class="linenos">21</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+</span><span id="blacklist-22"><a href="#blacklist-22"><span class="linenos">22</span></a>                <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">):</span>
+</span><span id="blacklist-23"><a href="#blacklist-23"><span class="linenos">23</span></a>                    <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span>
+</span><span id="blacklist-24"><a href="#blacklist-24"><span class="linenos">24</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span id="blacklist-25"><a href="#blacklist-25"><span class="linenos">25</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="n">path</span>
+</span><span id="blacklist-26"><a href="#blacklist-26"><span class="linenos">26</span></a>        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+</span><span id="blacklist-27"><a href="#blacklist-27"><span class="linenos">27</span></a>            <span class="ne">Warning</span><span class="p">(</span><span class="s2">&quot;Invalid path to blacklist or invalid blacklist file. Blacklist will be empty&quot;</span><span class="p">)</span>
+</span><span id="blacklist-28"><a href="#blacklist-28"><span class="linenos">28</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="blacklist-29"><a href="#blacklist-29"><span class="linenos">29</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 </span></pre></div>
 
 
@@ -142,27 +152,40 @@ blist    </h1>
     </div>
     <a class="headerlink" href="#blacklist.__init__"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="blacklist.__init__-7"><a href="#blacklist.__init__-7"><span class="linenos"> 7</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="blacklist.__init__-8"><a href="#blacklist.__init__-8"><span class="linenos"> 8</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="blacklist.__init__-8"><a href="#blacklist.__init__-8"><span class="linenos"> 8</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new blacklist.</span>
 </span><span id="blacklist.__init__-9"><a href="#blacklist.__init__-9"><span class="linenos"> 9</span></a>
-</span><span id="blacklist.__init__-10"><a href="#blacklist.__init__-10"><span class="linenos">10</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
-</span><span id="blacklist.__init__-11"><a href="#blacklist.__init__-11"><span class="linenos">11</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="blacklist.__init__-12"><a href="#blacklist.__init__-12"><span class="linenos">12</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span id="blacklist.__init__-13"><a href="#blacklist.__init__-13"><span class="linenos">13</span></a>            <span class="k">return</span>
-</span><span id="blacklist.__init__-14"><a href="#blacklist.__init__-14"><span class="linenos">14</span></a>        
-</span><span id="blacklist.__init__-15"><a href="#blacklist.__init__-15"><span class="linenos">15</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="blacklist.__init__-16"><a href="#blacklist.__init__-16"><span class="linenos">16</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
-</span><span id="blacklist.__init__-17"><a href="#blacklist.__init__-17"><span class="linenos">17</span></a>                <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">):</span>
-</span><span id="blacklist.__init__-18"><a href="#blacklist.__init__-18"><span class="linenos">18</span></a>                    <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span>
-</span><span id="blacklist.__init__-19"><a href="#blacklist.__init__-19"><span class="linenos">19</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
-</span><span id="blacklist.__init__-20"><a href="#blacklist.__init__-20"><span class="linenos">20</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="n">path</span>
-</span><span id="blacklist.__init__-21"><a href="#blacklist.__init__-21"><span class="linenos">21</span></a>        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-</span><span id="blacklist.__init__-22"><a href="#blacklist.__init__-22"><span class="linenos">22</span></a>            <span class="ne">Warning</span><span class="p">(</span><span class="s2">&quot;Invalid path to blacklist or invalid blacklist file. Blacklist will be empty&quot;</span><span class="p">)</span>
-</span><span id="blacklist.__init__-23"><a href="#blacklist.__init__-23"><span class="linenos">23</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="blacklist.__init__-24"><a href="#blacklist.__init__-24"><span class="linenos">24</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="blacklist.__init__-10"><a href="#blacklist.__init__-10"><span class="linenos">10</span></a><span class="sd">        Args:</span>
+</span><span id="blacklist.__init__-11"><a href="#blacklist.__init__-11"><span class="linenos">11</span></a><span class="sd">            path (str): path to the blacklist FASTA file.</span>
+</span><span id="blacklist.__init__-12"><a href="#blacklist.__init__-12"><span class="linenos">12</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="blacklist.__init__-13"><a href="#blacklist.__init__-13"><span class="linenos">13</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="blacklist.__init__-14"><a href="#blacklist.__init__-14"><span class="linenos">14</span></a>
+</span><span id="blacklist.__init__-15"><a href="#blacklist.__init__-15"><span class="linenos">15</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+</span><span id="blacklist.__init__-16"><a href="#blacklist.__init__-16"><span class="linenos">16</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="blacklist.__init__-17"><a href="#blacklist.__init__-17"><span class="linenos">17</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="blacklist.__init__-18"><a href="#blacklist.__init__-18"><span class="linenos">18</span></a>            <span class="k">return</span>
+</span><span id="blacklist.__init__-19"><a href="#blacklist.__init__-19"><span class="linenos">19</span></a>        
+</span><span id="blacklist.__init__-20"><a href="#blacklist.__init__-20"><span class="linenos">20</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="blacklist.__init__-21"><a href="#blacklist.__init__-21"><span class="linenos">21</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+</span><span id="blacklist.__init__-22"><a href="#blacklist.__init__-22"><span class="linenos">22</span></a>                <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">):</span>
+</span><span id="blacklist.__init__-23"><a href="#blacklist.__init__-23"><span class="linenos">23</span></a>                    <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span>
+</span><span id="blacklist.__init__-24"><a href="#blacklist.__init__-24"><span class="linenos">24</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blacklist_sequences</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span id="blacklist.__init__-25"><a href="#blacklist.__init__-25"><span class="linenos">25</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="n">path</span>
+</span><span id="blacklist.__init__-26"><a href="#blacklist.__init__-26"><span class="linenos">26</span></a>        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+</span><span id="blacklist.__init__-27"><a href="#blacklist.__init__-27"><span class="linenos">27</span></a>            <span class="ne">Warning</span><span class="p">(</span><span class="s2">&quot;Invalid path to blacklist or invalid blacklist file. Blacklist will be empty&quot;</span><span class="p">)</span>
+</span><span id="blacklist.__init__-28"><a href="#blacklist.__init__-28"><span class="linenos">28</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="blacklist.__init__-29"><a href="#blacklist.__init__-29"><span class="linenos">29</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">blacklist_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Create a new blacklist.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>path (str):</strong>  path to the blacklist FASTA file.</li>
+</ul>
+</div>
+
 
                             </div>
                             <div id="blacklist.blacklist_sequences" class="classattr">

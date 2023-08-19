@@ -14,6 +14,32 @@ class design_parameters():
             weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1,
             free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0,
         ):
+        """Create a new design_parameters object. THIS IS THE ONLY FUNCTION WITH DEFAULTS!
+
+        Args:
+            target_energy (float): the target ensemble free energy (kcal/mol). If higher than target, penalties are incurred (higher score). If lower, no penalty.
+            target_temp (float): Target temp for 50% pairing of the score_region. At target_temp - temp_offset, pairing should be 0% and 100% at target_temp + temp_offset.
+            temp_offset (float, optional): The offset temperature for score_region pair probability assessment. See target_temp. Defaults to 5.0.
+            thermo_score_temp (int, optional): The temperature at which the ensemble energy is scored. Defaults to 37.
+            nucl_concentration (float, optional): The concentration of the nucleic acids. Defaults to 1e-6.
+            dimer_max_order_magnitude (float, optional): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]). Defaults to 2.0.
+            blacklist (blacklist, optional): A blacklist object. Defaults to blacklist('').
+            num_mutants (int, optional): The number of mutants to generate per nucl_acid in the nucl_set. Defaults to 16.
+            program (str, optional): 'NUPACK' or 'VIENNA'. Defaults to 'VIENNA'.
+            weights (list, optional): Mutation weights. All weights besides the no modification weight are decremented in the design loop. The higher the weight, the higher the probabiltiy said mutation is chosen. Each vary from 0 to 16. [A, T/U, G, C, insertion, deletion, no modification]. Defaults to [16, 16, 16, 16, 16, 16, 16].
+            weight_factor (int, optional): How much to decrement the weights by. Defaults to 1.
+            free_energy_max_score (float, optional): The maximum score penalty for having a free energy greater than target. Defaults to 1.0.
+            nucl_max_score (float, optional): The maximum score penalty for score region accessibility. Defaults to 1.0.
+            max_dimer_monomer_factor (float, optional): The maximum score penalty for dimer formation. Defaults to 1.0.
+
+        Raises:
+            ValueError: _description_
+            ValueError: _description_
+            ValueError: _description_
+            ValueError: _description_
+            TypeError: _description_
+            TypeError: _description_
+        """
         
         self.target_energy = target_energy
         self.target_temp = target_temp
