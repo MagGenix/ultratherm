@@ -213,7 +213,7 @@ class nucl_set():
                     bitString = str(nucl.no_mod[j]) + str(nucl.no_indel[j]) + str(nucl.score_region[j])
                     bitsAsInt = int(bitString, 2)
                     quals.append(bitsAsInt + offset)
-                record = SeqRecord(seq=self.nucls[i].sequence, id=str(i), description="score=" + str(self.nucls[i].score))
+                record = SeqRecord(seq=self.nucls[i].sequence, id=str(i), description=str(self.nucls[i].score))
                 record.letter_annotations["phred_quality"] = quals
                 SeqIO.write(record, handle=handle, format='fastq')
                 del quals
