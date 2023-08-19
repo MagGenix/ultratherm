@@ -13,6 +13,23 @@ class nucl_acid():
     """nucleic acid. Stores its sequence, score, no_mod, no_no_indel, score_region, and whether it is RNA or DNA.
     """
     def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters, is_rna: bool):
+        """Create a new nucl_acid.
+
+        Args:
+            sequence (Seq): the nucleic acid sequence.
+            no_mod (list): A list() of 0 and 1 (ints), where 1 denotes nucleotides that CANNOT be modified (neither indels nor substitutions).
+            no_indel (list): A list() of 0 and 1 (ints), where 1 denotes nucleotides that CANNOT have indel mutations adjacent to them.
+            score_region (list): A list() of 0 and 1 (ints), where 1 denotes nucleotides that will be scored for high pair probability at temp - offset and low pair probability at temp + offset.
+            design_parameters (design_parameters): the design parameters.
+            is_rna (bool): whether the nucleic acid is DNA or RNA.
+
+        Raises:
+            Exception: _description_
+            Exception: _description_
+            Exception: _description_
+            ValueError: _description_
+            ValueError: _description_
+        """
         if len(no_mod) != len(sequence):
             raise Exception("no_mod length is not equal to seq length")
         if len(no_indel) != len(sequence):
@@ -105,6 +122,14 @@ class nucl_set():
     DO NOT DIRECTLY MODIFY MEMBERS! They are intended for read-only. Use the above methods for modification.
     """
     def __init__(self, nucls: list):
+        """Create a new nucl_set.
+
+        Args:
+            nucls (list): a list of nucl_acid.
+
+        Raises:
+            TypeError: A member of the list was not a nucl_acid.
+        """
         self.nucls = nucls
         self.scores = []
         for i in range (0, len(self.nucls)):

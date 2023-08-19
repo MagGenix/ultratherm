@@ -4,6 +4,11 @@ class blacklist():
     """Stores blacklisted sequences, whether it is empty, and the path to a blacklist file.
     """
     def __init__(self, path: str):
+        """Create a new blacklist.
+
+        Args:
+            path (str): path to the blacklist FASTA file.
+        """
         self.blacklist_sequences = []
 
         if not path:
