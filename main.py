@@ -23,7 +23,7 @@ def main():
             design_parameters=des_params, is_rna=True))
 
     #Start design loop
-    design(design_parameters=des_params, max_reps=4, pool=pool)
+    design(design_parameters=des_params, pool=pool)
 
 def test():
     blist = blacklist(path="blacklist.fasta")
