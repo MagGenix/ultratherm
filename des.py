@@ -3,7 +3,7 @@ from params import design_parameters
 import time
 import os
 
-def design(design_parameters:design_parameters, max_reps:int, pool:nucl_set, current_rep:int = 0, prev_min:float = 0.0, iter_count:int = 0) -> None:
+def design(design_parameters:design_parameters, pool:nucl_set, current_rep:int = 0, prev_min:float = 0.0, iter_count:int = 0) -> None:
     """A recursive design loop that retains the best nucl_acid's and decrements mutation weights as it runs
     Repetitions are counted in current_rep.
     If max_reps is hit and the weights can be decremented, the weights will be decremented and current_rep reset.
@@ -11,7 +11,6 @@ def design(design_parameters:design_parameters, max_reps:int, pool:nucl_set, cur
 
     Args:
         design_parameters (design_parameters): the design parameters.
-        max_reps (int): the maximum number of loops to perform without a decrease in minimum pool score.
         current_rep (int): the repetition the preceding loop (or main) started on.
         pool (nucl_set): a nucl_set that will be modified by the loop.
         prev_min (float): the minimum pool score from the preceding loop.
@@ -25,7 +24,7 @@ def design(design_parameters:design_parameters, max_reps:int, pool:nucl_set, cur
             os.makedirs('RESULTS')
         design_parameters.save("RESULTS/" + 'PARAMS_' + time.asctime() + '.yml')
         pool.save("RESULTS/" + "START_" + time.asctime() + '.fastq')
-    if current_rep == max_reps:
+    if current_rep == design_parameters.max_reps:
         if design_parameters.can_decrement_weights():
             design_parameters.decrement_weights()
             current_rep = 0
@@ -56,4 +55,4 @@ def design(design_parameters:design_parameters, max_reps:int, pool:nucl_set, cur
     print("current_rep:\t" + str(current_rep))
     print("min weight:\t" + str(min(design_parameters.weights[0:6])))
     print('')
-    design(design_parameters=design_parameters, max_reps=max_reps, current_rep=current_rep, pool=pool, prev_min=current_min, iter_count=iter_count) # type: ignore
+    design(design_parameters=design_parameters, current_rep=current_rep, pool=pool, prev_min=current_min, iter_count=iter_count) # type: ignore

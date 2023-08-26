@@ -11,7 +11,7 @@ class design_parameters():
             self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
             nucl_concentration:float = 1e-6, dimer_max_order_magnitude:float = 2.0,
             blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA',
-            weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1,
+            weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1, max_reps:int = 16,
             free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0,
         ):
         """Create a new design_parameters object. THIS IS THE ONLY FUNCTION WITH DEFAULTS!
@@ -28,11 +28,13 @@ class design_parameters():
             program (str, optional): 'NUPACK' or 'VIENNA'. Defaults to 'VIENNA'.
             weights (list, optional): Mutation weights. All weights besides the no modification weight are decremented in the design loop. The higher the weight, the higher the probabiltiy said mutation is chosen. Each vary from 0 to 16. [A, T/U, G, C, insertion, deletion, no modification]. Defaults to [16, 16, 16, 16, 16, 16, 16].
             weight_factor (int, optional): How much to decrement the weights by. Defaults to 1.
+            max_reps (int, optional): the maximum number of loops to perform without a decrease in minimum pool score.
             free_energy_max_score (float, optional): The maximum score penalty for having a free energy greater than target. Defaults to 1.0.
             nucl_max_score (float, optional): The maximum score penalty for score region accessibility. Defaults to 1.0.
             max_dimer_monomer_factor (float, optional): The maximum score penalty for dimer formation. Defaults to 1.0.
 
         Raises:
+            ValueError: _description_
             ValueError: _description_
             ValueError: _description_
             ValueError: _description_
@@ -54,6 +56,7 @@ class design_parameters():
         self.program = program
         
         self.weight_factor = weight_factor
+        self.max_reps = max_reps
 
         self.free_energy_max_score = free_energy_max_score
         self.nucl_max_score = nucl_max_score
@@ -67,6 +70,9 @@ class design_parameters():
             raise ValueError
 
         if target_energy >= 0:
+            raise ValueError
+
+        if max_reps < 1:
             raise ValueError
 
         if len(weights) != 7:
@@ -120,6 +126,7 @@ class design_parameters():
 
             'weights':                  self.weights,
             'weight_factor':            self.weight_factor,
+            'max_reps':                 self.max_reps,
 
             'free_energy_max_score':    self.free_energy_max_score,
             'nucl_max_score':           self.nucl_max_score,
