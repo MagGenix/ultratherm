@@ -14,6 +14,7 @@ def main():
     blist = blacklist(path="blacklist.fasta")
     des_params = design_parameters(blacklist=blist, target_temp=55, program='VIENNA', parallel=True,
         num_mutants=2, target_energy=-8.0, # based on FourU Hairpin 2
+        weights=[32, 32, 32, 32, 32, 32, 16]
         )
 
     #Create nucleotide set

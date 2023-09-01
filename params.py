@@ -27,7 +27,7 @@ class design_parameters():
             num_mutants (int, optional): The number of mutants to generate per nucl_acid in the nucl_set. Defaults to 16.
             program (str, optional): 'NUPACK' or 'VIENNA'. Defaults to 'VIENNA'.
             parallel (bool, optional): Whether or not to parallelize mutation by computing mutants with different workers. Only applies to VIENNA.
-            weights (list, optional): Mutation weights. All weights besides the no modification weight are decremented in the design loop. The higher the weight, the higher the probabiltiy said mutation is chosen. Each vary from 0 to 16. [A, T/U, G, C, insertion, deletion, no modification]. Defaults to [16, 16, 16, 16, 16, 16, 16].
+            weights (list, optional): Mutation weights. All weights besides the no modification weight are decremented in the design loop. The higher the weight, the higher the probabiltiy said mutation is chosen. Each are above 0. [A, T/U, G, C, insertion, deletion, no modification]. Defaults to [16, 16, 16, 16, 16, 16, 16].
             weight_factor (int, optional): How much to decrement the weights by. Defaults to 1.
             max_reps (int, optional): the maximum number of loops to perform without a decrease in minimum pool score.
             free_energy_max_score (float, optional): The maximum score penalty for having a free energy greater than target. Defaults to 1.0.
@@ -82,7 +82,7 @@ class design_parameters():
         for weight in weights:
             if type(weights) != int:
                 weight = int(weight)
-            if weight > 16 or weight < 0: # TODO: change this. 16 is too low of a limit.
+            if weight < 0:
                 raise TypeError
         self.weights = weights
     

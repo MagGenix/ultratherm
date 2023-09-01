@@ -287,8 +287,7 @@ def mutate(nucl:nucl_acid, design_parameters:design_parameters) -> nucl_acid:
     if len(nucl.no_mod) != len(nucl.sequence) or len(nucl.no_indel) != len(nucl.score_region) or len(nucl.no_mod) != len(nucl.no_indel):
         raise ValueError
 
-    #As of writing the design parameters function forces the weights to be whole numbers between 0 and 16.
-    #This could be made a touch faster explicitly using ints.
+    #As of writing the design parameters function forces the weights to be ints above 0.
     weights = copy.copy(design_parameters.weights)
     weights_total = sum(weights)
 

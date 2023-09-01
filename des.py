@@ -17,7 +17,7 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
     #Note - now that the temp offset decrementing code is gone, the nucl_acid's are NEVER rescored (the temp never changes). This is less expensive.
     #If for some reason that becomes necessary in the future (I doubt it), it will have to be added back.
     
-    ABSOLUTE_MAX_REPS = (design_parameters.max_reps + 1) * (min(design_parameters.weights)) # type: ignore
+    ABSOLUTE_MAX_REPS = (design_parameters.max_reps + 1) * (min(design_parameters.weights[0:6])) # type: ignore
 
     current_rep = 0
     prev_min = 0.0
