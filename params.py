@@ -82,7 +82,7 @@ class design_parameters():
         for weight in weights:
             if type(weights) != int:
                 weight = int(weight)
-            if weight > 16 or weight < 0:
+            if weight > 16 or weight < 0: # TODO: change this. 16 is too low of a limit.
                 raise TypeError
         self.weights = weights
     
