@@ -4,7 +4,7 @@ import time
 import os
 import multiprocessing
 
-def design(design_parameters:design_parameters, pool:nucl_set, current_rep:int = 0, prev_min:float = 0.0, iter_count:int = 0) -> None:
+def design(design_parameters:design_parameters, nucl_pool:nucl_set, current_rep:int = 0, prev_min:float = 0.0, iter_count:int = 0) -> None:
     """A recursive design loop that retains the best nucl_acid's and decrements mutation weights as it runs
     Repetitions are counted in current_rep.
     If max_reps is hit and the weights can be decremented, the weights will be decremented and current_rep reset.
@@ -13,7 +13,7 @@ def design(design_parameters:design_parameters, pool:nucl_set, current_rep:int =
     Args:
         design_parameters (design_parameters): the design parameters.
         current_rep (int): the repetition the preceding loop (or main) started on.
-        pool (nucl_set): a nucl_set that will be modified by the loop.
+        nucl_pool (nucl_set): a nucl_set that will be modified by the loop.
         prev_min (float): the minimum pool score from the preceding loop.
         iter_count (int): the total number of repetitions.
     """
@@ -24,31 +24,31 @@ def design(design_parameters:design_parameters, pool:nucl_set, current_rep:int =
         if not os.path.exists("RESULTS"):
             os.makedirs('RESULTS')
         design_parameters.save("RESULTS/" + 'PARAMS_' + time.asctime() + '.yml')
-        pool.save("RESULTS/" + "START_" + time.asctime() + '.fastq')
+        nucl_pool.save("RESULTS/" + "START_" + time.asctime() + '.fastq')
     if current_rep == design_parameters.max_reps:
         if design_parameters.can_decrement_weights():
             design_parameters.decrement_weights()
             current_rep = 0
         else:
-            pool.save("RESULTS/" + "END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
+            nucl_pool.save("RESULTS/" + "END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
             return
     
     if design_parameters.parallel and design_parameters.program == 'VIENNA':
-        for nucl in pool.nucls:
+        for nucl in nucl_pool.nucls:
             for i in range(0, design_parameters.num_mutants):
                 pass # TODO implement
             for i in range(0, design_parameters.num_mutants):
-                pool.remove(pool.scores.index(max(pool.scores)))
+                nucl_pool.remove(nucl_pool.scores.index(max(nucl_pool.scores)))
     
     else:
-        for nucl in pool.nucls:
+        for nucl in nucl_pool.nucls:
             for i in range(0, design_parameters.num_mutants):
-                pool.append(mutate(nucl=nucl, design_parameters=design_parameters))
+                nucl_pool.append(mutate(nucl=nucl, design_parameters=design_parameters))
             
             for i in range(0, design_parameters.num_mutants):
-                pool.remove(pool.scores.index(max(pool.scores)))
+                nucl_pool.remove(nucl_pool.scores.index(max(nucl_pool.scores)))
 
-    current_min = min(pool.scores)
+    current_min = min(nucl_pool.scores)
     
     if current_min >= prev_min: # type: ignore
         current_rep+=1
@@ -59,10 +59,10 @@ def design(design_parameters:design_parameters, pool:nucl_set, current_rep:int =
     iter_count+=1
     # TODO consider making the number of rounds to save an intermediate file a parameter
     if iter_count % 50 == 0:
-        pool.save("RESULTS/" + "MID_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
+        nucl_pool.save("RESULTS/" + "MID_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
     
     print("iter_count:\t" + str(iter_count))
     print("current_rep:\t" + str(current_rep))
     print("min weight:\t" + str(min(design_parameters.weights[0:6])))
     print('')
-    design(design_parameters=design_parameters, current_rep=current_rep, pool=pool, prev_min=current_min, iter_count=iter_count) # type: ignore
+    design(design_parameters=design_parameters, current_rep=current_rep, nucl_pool=nucl_pool, prev_min=current_min, iter_count=iter_count) # type: ignore

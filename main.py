@@ -17,16 +17,16 @@ def main():
         )
 
     #Create nucleotide set
-    pool = nucl_set(nucls = [])
+    nucl_pool = nucl_set(nucls = [])
     for i in range(0, 4):
-        pool.append(nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
+        nucl_pool.append(nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
             no_indel =      [0]*20+[1]*17,
             no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
             score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
             design_parameters=des_params, is_rna=True))
 
     #Start design loop
-    design(design_parameters=des_params, pool=pool)
+    design(design_parameters=des_params, nucl_pool=nucl_pool)
 
 def test():
     blist = blacklist(path="blacklist.fasta")
@@ -44,16 +44,16 @@ def test():
     test_parameters = read_parameters(path='PARAMS.yml')
     test_parameters.save('PARAMS2.yml')
 
-    pool = nucl_set(nucls = [])
+    nucl_pool = nucl_set(nucls = [])
     for i in range(0, 16):
-        pool.append(nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNTAAGGAGGNNNNNNATG'),
+        nucl_pool.append(nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNTAAGGAGGNNNNNNATG'),
             no_indel =      [0]*20+[1]*17,
             no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
             score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
             design_parameters=des_params, is_rna=False))
 
-    pool.save("TEST" + '.fastq')
-    del pool
+    nucl_pool.save("TEST" + '.fastq')
+    del nucl_pool
     
     new_pool = nucl_set(nucls = [])
     new_pool.read("TEST.fastq", design_parameters=des_params)
