@@ -12,7 +12,7 @@ def main():
     signal(SIGPIPE, SIG_IGN) # Ignore broken pipe (usually ssh) and continue program
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
-    des_params = design_parameters(blacklist=blist, target_temp=55, program='NUPACK',
+    des_params = design_parameters(blacklist=blist, target_temp=55, program='VIENNA', parallel=False,
         num_mutants=2, target_energy=-8.0, # based on FourU Hairpin 2
         )
 
@@ -67,6 +67,6 @@ def test():
 #  #   ###   #  #
 
 #####
-
-main()
-#test()
+if __name__ == '__main__':
+    main()
+    #test()

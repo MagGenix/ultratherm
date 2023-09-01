@@ -19,50 +19,64 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set, current_rep:
     """
     #Note - now that the temp offset decrementing code is gone, the nucl_acid's are NEVER rescored (the temp never changes). This is less expensive.
     #If for some reason that becomes necessary in the future (I doubt it), it will have to be added back.
-    
-    if iter_count == 0:
-        if not os.path.exists("RESULTS"):
-            os.makedirs('RESULTS')
-        design_parameters.save("RESULTS/" + 'PARAMS_' + time.asctime() + '.yml')
-        nucl_pool.save("RESULTS/" + "START_" + time.asctime() + '.fastq')
-    if current_rep == design_parameters.max_reps:
-        if design_parameters.can_decrement_weights():
-            design_parameters.decrement_weights()
-            current_rep = 0
-        else:
-            nucl_pool.save("RESULTS/" + "END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
-            return
-    
-    if design_parameters.parallel and design_parameters.program == 'VIENNA':
-        for nucl in nucl_pool.nucls:
-            for i in range(0, design_parameters.num_mutants):
-                pass # TODO implement
-            for i in range(0, design_parameters.num_mutants):
-                nucl_pool.remove(nucl_pool.scores.index(max(nucl_pool.scores)))
-    
-    else:
-        for nucl in nucl_pool.nucls:
-            for i in range(0, design_parameters.num_mutants):
-                nucl_pool.append(mutate(nucl=nucl, design_parameters=design_parameters))
-            
-            for i in range(0, design_parameters.num_mutants):
-                nucl_pool.remove(nucl_pool.scores.index(max(nucl_pool.scores)))
 
-    current_min = min(nucl_pool.scores)
-    
-    if current_min >= prev_min: # type: ignore
-        current_rep+=1
-    else:
-        current_rep = 0
-        if design_parameters.can_decrement_weights():
-            design_parameters.decrement_weights()
-    iter_count+=1
-    # TODO consider making the number of rounds to save an intermediate file a parameter
-    if iter_count % 50 == 0:
-        nucl_pool.save("RESULTS/" + "MID_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
-    
-    print("iter_count:\t" + str(iter_count))
-    print("current_rep:\t" + str(current_rep))
-    print("min weight:\t" + str(min(design_parameters.weights[0:6])))
-    print('')
-    design(design_parameters=design_parameters, current_rep=current_rep, nucl_pool=nucl_pool, prev_min=current_min, iter_count=iter_count) # type: ignore
+    ABSOLUTE_MAX_REPS = design_parameters.max_reps * min(design_parameters.weights) # type: ignore
+
+    while (iter_count <= ABSOLUTE_MAX_REPS):
+        if iter_count == 0:
+            if not os.path.exists("RESULTS"):
+                os.makedirs('RESULTS')
+            design_parameters.save("RESULTS/" + 'PARAMS_' + time.asctime() + '.yml')
+            nucl_pool.save("RESULTS/" + "START_" + time.asctime() + '.fastq')
+        if current_rep == design_parameters.max_reps:
+            if design_parameters.can_decrement_weights():
+                design_parameters.decrement_weights()
+                current_rep = 0
+            else:
+                nucl_pool.save("RESULTS/" + "END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
+                return
+        
+        if design_parameters.parallel and design_parameters.program == 'VIENNA':
+            parallel_pool = multiprocessing.Pool()
+            
+            for nucl in nucl_pool.nucls:
+                list_old_nucl = [(nucl, design_parameters)] * design_parameters.num_mutants
+                new_mutants = parallel_pool.starmap(func=mutate, iterable=list_old_nucl)
+                
+                for mutant in new_mutants:
+                    nucl_pool.append(mutant)
+                    
+                for i in range(0, design_parameters.num_mutants):
+                    nucl_pool.remove(nucl_pool.scores.index(max(nucl_pool.scores)))
+                
+            parallel_pool.close()
+            parallel_pool.terminate()
+            del parallel_pool
+        
+        else:
+            for nucl in nucl_pool.nucls:
+                for i in range(0, design_parameters.num_mutants):
+                    nucl_pool.append(mutate(nucl=nucl, design_parameters=design_parameters))
+                
+                for i in range(0, design_parameters.num_mutants):
+                    nucl_pool.remove(nucl_pool.scores.index(max(nucl_pool.scores)))
+
+        current_min = min(nucl_pool.scores)
+        
+        if current_min >= prev_min: # type: ignore
+            current_rep+=1
+        else:
+            current_rep = 0
+            if design_parameters.can_decrement_weights():
+                design_parameters.decrement_weights()
+        iter_count+=1
+        # TODO consider making the number of rounds to save an intermediate file a parameter
+        if iter_count % 50 == 0:
+            nucl_pool.save("RESULTS/" + "MID_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
+        
+        print("iter_count:\t" + str(iter_count))
+        print("current_rep:\t" + str(current_rep))
+        print("min weight:\t" + str(min(design_parameters.weights[0:6])))
+        print('')
+
+        prev_min = current_min # type: ignore
