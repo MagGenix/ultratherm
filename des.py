@@ -2,6 +2,7 @@ from nucl import nucl_set, mutate
 from params import design_parameters
 import time
 import os
+import multiprocessing
 
 def design(design_parameters:design_parameters, pool:nucl_set, current_rep:int = 0, prev_min:float = 0.0, iter_count:int = 0) -> None:
     """A recursive design loop that retains the best nucl_acid's and decrements mutation weights as it runs
@@ -31,12 +32,21 @@ def design(design_parameters:design_parameters, pool:nucl_set, current_rep:int =
         else:
             pool.save("RESULTS/" + "END_" +time.asctime() + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
             return
-    for nucl in pool.nucls:
-        for i in range(0, design_parameters.num_mutants):
-            pool.append(mutate(nucl=nucl, design_parameters=design_parameters))
-        
-        for i in range(0, design_parameters.num_mutants):
-            pool.remove(pool.scores.index(max(pool.scores)))
+    
+    if design_parameters.parallel and design_parameters.program == 'VIENNA':
+        for nucl in pool.nucls:
+            for i in range(0, design_parameters.num_mutants):
+                pass # TODO implement
+            for i in range(0, design_parameters.num_mutants):
+                pool.remove(pool.scores.index(max(pool.scores)))
+    
+    else:
+        for nucl in pool.nucls:
+            for i in range(0, design_parameters.num_mutants):
+                pool.append(mutate(nucl=nucl, design_parameters=design_parameters))
+            
+            for i in range(0, design_parameters.num_mutants):
+                pool.remove(pool.scores.index(max(pool.scores)))
 
     current_min = min(pool.scores)
     

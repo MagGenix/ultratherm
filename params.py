@@ -10,7 +10,7 @@ class design_parameters():
     def __init__(
             self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
             nucl_concentration:float = 1e-6, dimer_max_order_magnitude:float = 2.0,
-            blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA',
+            blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA', parallel:bool = True,
             weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1, max_reps:int = 16,
             free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0,
         ):
@@ -54,6 +54,7 @@ class design_parameters():
         self.blacklist = blacklist
         self.num_mutants = num_mutants
         self.program = program
+        self.parallel = parallel
         
         self.weight_factor = weight_factor
         self.max_reps = max_reps
@@ -123,6 +124,7 @@ class design_parameters():
             'blacklist':                self.blacklist.blacklist_path,
             'num_mutants':              self.num_mutants,
             'program':                  self.program,
+            'parallel':                 self.parallel,
 
             'weights':                  self.weights,
             'weight_factor':            self.weight_factor,

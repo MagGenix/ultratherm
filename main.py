@@ -5,8 +5,11 @@ from params import design_parameters, read_parameters
 from des import design
 from vienna_score import vienna_score
 
+from signal import signal, SIGPIPE, SIG_IGN
+
 # NOTE Customize this!
 def main():
+    signal(SIGPIPE, SIG_IGN) # Ignore broken pipe (usually ssh) and continue program
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
     des_params = design_parameters(blacklist=blist, target_temp=55, program='NUPACK',
