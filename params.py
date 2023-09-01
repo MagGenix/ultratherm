@@ -10,7 +10,7 @@ class design_parameters():
     def __init__(
             self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
             nucl_concentration:float = 1e-6, dimer_max_order_magnitude:float = 2.0,
-            blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA',
+            blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA', parallel:bool = True,
             weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1, max_reps:int = 16,
             free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0,
         ):
@@ -26,6 +26,7 @@ class design_parameters():
             blacklist (blacklist, optional): A blacklist object. Defaults to blacklist('').
             num_mutants (int, optional): The number of mutants to generate per nucl_acid in the nucl_set. Defaults to 16.
             program (str, optional): 'NUPACK' or 'VIENNA'. Defaults to 'VIENNA'.
+            parallel (bool, optional): Whether or not to parallelize mutation by computing mutants with different workers. Only applies to VIENNA.
             weights (list, optional): Mutation weights. All weights besides the no modification weight are decremented in the design loop. The higher the weight, the higher the probabiltiy said mutation is chosen. Each vary from 0 to 16. [A, T/U, G, C, insertion, deletion, no modification]. Defaults to [16, 16, 16, 16, 16, 16, 16].
             weight_factor (int, optional): How much to decrement the weights by. Defaults to 1.
             max_reps (int, optional): the maximum number of loops to perform without a decrease in minimum pool score.
@@ -54,6 +55,7 @@ class design_parameters():
         self.blacklist = blacklist
         self.num_mutants = num_mutants
         self.program = program
+        self.parallel = parallel
         
         self.weight_factor = weight_factor
         self.max_reps = max_reps
@@ -123,6 +125,7 @@ class design_parameters():
             'blacklist':                self.blacklist.blacklist_path,
             'num_mutants':              self.num_mutants,
             'program':                  self.program,
+            'parallel':                 self.parallel,
 
             'weights':                  self.weights,
             'weight_factor':            self.weight_factor,
