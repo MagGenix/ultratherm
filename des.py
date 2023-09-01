@@ -4,23 +4,25 @@ import time
 import os
 import multiprocessing
 
-def design(design_parameters:design_parameters, nucl_pool:nucl_set, current_rep:int = 0, prev_min:float = 0.0, iter_count:int = 0) -> None:
-    """A recursive design loop that retains the best nucl_acid's and decrements mutation weights as it runs
+def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
+    """A design loop that retains the best nucl_acid's and decrements mutation weights as it runs
     Repetitions are counted in current_rep.
     If max_reps is hit and the weights can be decremented, the weights will be decremented and current_rep reset.
     If max_reps is hit and the weights cannot be decremented, the loop ends.
 
     Args:
         design_parameters (design_parameters): the design parameters.
-        current_rep (int): the repetition the preceding loop (or main) started on.
         nucl_pool (nucl_set): a nucl_set that will be modified by the loop.
-        prev_min (float): the minimum pool score from the preceding loop.
-        iter_count (int): the total number of repetitions.
     """
     #Note - now that the temp offset decrementing code is gone, the nucl_acid's are NEVER rescored (the temp never changes). This is less expensive.
     #If for some reason that becomes necessary in the future (I doubt it), it will have to be added back.
-
+    
+    # TODO is this a fence post error? iter_count starts at 0 so it should reach max_reps * min weight at start in the worst case right
     ABSOLUTE_MAX_REPS = design_parameters.max_reps * min(design_parameters.weights) # type: ignore
+
+    current_rep = 0
+    prev_min = 0.0
+    iter_count = 0
 
     while (iter_count <= ABSOLUTE_MAX_REPS):
         if iter_count == 0:
