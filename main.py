@@ -81,6 +81,10 @@ def test():
     print(new_nucl_dimer)
 
     new_pool.save("TEST2.fastq")
+    newer_pool = nucl_set(nucls=[])
+    newer_pool.read("TEST2.fastq", design_parameters=des_params)
+    print(newer_pool)
+    newer_pool.save("TEST3.fastq")
 #####
 
 ###   #   #  #  #
