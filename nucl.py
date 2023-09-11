@@ -3,6 +3,7 @@ from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
 import random
 import copy
+from typing import Union
 
 from params import design_parameters
 from blist import blacklist
@@ -12,7 +13,7 @@ from vienna_score import vienna_score
 class nucl_acid():
     """nucleic acid. Stores its sequence, score, no_mod, no_no_indel, score_region, and whether it is RNA or DNA.
     """
-    def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, design_parameters: design_parameters, is_rna: bool):
+    def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, is_rna: bool):
         """Create a new nucl_acid.
 
         Args:
@@ -61,8 +62,7 @@ class nucl_acid():
         if score_region.count(0) == len(score_region):
             self.score_region = [1] * len(score_region)
 
-        self.fitness_score(design_parameters)
-
+        self.score = None
     
     def __len__(self) -> int:
         return len(self.sequence)
@@ -114,6 +114,18 @@ class nucl_acid():
             return True
         return False
 
+class nucl_hybrid():
+    def __init__(self, nucl_1: nucl_acid, nucl_2:nucl_acid):
+        self.nucl_1 = nucl_1
+        self.nucl_2 = nucl_2
+        self.score = None
+    def fitness_score(self, design_parameters: design_parameters):
+        pass # TODO implement
+
+def score(nucl: Union[nucl_acid, nucl_hybrid], design_parameters: design_parameters):
+    nucl.fitness_score(design_parameters=design_parameters)
+    return nucl
+
 class nucl_set():
     """A data type to store nucl_acid's for design. Stores ordered lists of nucl_acid and their scores.
     Use .append(), .remove(), and .replace() to modify.
@@ -125,7 +137,7 @@ class nucl_set():
         """Create a new nucl_set.
 
         Args:
-            nucls (list): a list of nucl_acid.
+            nucls (list): a list of nucl_acid and/or nucl_hybrid.
 
         Raises:
             TypeError: A member of the list was not a nucl_acid.
@@ -133,8 +145,8 @@ class nucl_set():
         self.nucls = nucls
         self.scores = []
         for i in range (0, len(self.nucls)):
-            if type(self.nucls[i]) != nucl_acid:
-                #Raise an error if an object in the list was not a nucl_acid
+            if type(self.nucls[i]) != nucl_acid and type(self.nucls[i]) != nucl_hybrid:
+                #Raise an error if an object in the list was not a nucl_acid or nucl_hybrid
                 raise TypeError
             self.scores[i] = self.nucls[i].score
     def __len__(self) -> int:
@@ -163,17 +175,24 @@ class nucl_set():
         #nucl_set is zero-indexed!
         if index > len(self) - 1:
             raise IndexError
+        
+        if new_nucl_acid.score == None:
+            raise ValueError # scores array MUST support comparison!
+        
         self.nucls[index] = new_nucl_acid
         self.scores[index] = new_nucl_acid.score
 
-    def append(self, new_nucl_acid:nucl_acid) -> None:
-        """Append a nucl_acid to the end of the nucl_set.
+    def append(self, new_nucl: Union[nucl_acid, nucl_hybrid]) -> None:
+        """Append a nucl_acid or nucl_hybrid to the end of the nucl_set.
 
         Args:
             new_nucl_acid (nucl_acid): a nucl_acid object to append.
         """
-        self.nucls.append(new_nucl_acid)
-        self.scores.append(new_nucl_acid.score)
+        if new_nucl.score == None:
+            raise ValueError # scores array MUST support comparison!
+        
+        self.nucls.append(new_nucl)
+        self.scores.append(new_nucl.score)
 
     def remove(self, index:int) -> None:
         """Remove a nucl_acid from the nucl_set.
@@ -204,18 +223,63 @@ class nucl_set():
         with open(path, 'w') as handle:
             for i in range(0, len(self)):
                 nucl = self.nucls[i]
-                if nucl.is_rna:
-                    offset = 79
+
+                # If a nucl_acid, follow the basic protocol to write to a FASTQ record
+                if type(nucl) == nucl_acid:
+                    no_mod = nucl.no_mod
+                    no_indel = nucl.no_indel
+                    score_region = nucl.score_region
+                    
+                    sequence = nucl.sequence
+
+                    length = len(nucl)
+
+                    if nucl.is_rna:
+                        offset = [79] * length
+                    else:
+                        offset = [15] * length
+
+                    score = nucl.score
+                # Combine and represent the nucl_hybrid so it can be printed to one FASTQ record
+                elif type(nucl) == nucl_hybrid:
+                    no_mod =        nucl.nucl_1.no_mod +        [-1] + nucl.nucl_2.no_mod # TODO fix this fucking shit
+                    no_indel =      nucl.nucl_1.no_indel +      [-1] + nucl.nucl_2.no_mod
+                    score_region =  nucl.nucl_2.score_region +  [-1] + nucl.nucl_2.score_region
+                    
+                    if nucl.nucl_1.is_rna:
+                        offset1 = 79
+                    else:
+                        offset1 = 15
+                    
+                    if nucl.nucl_2.is_rna:
+                        offset2 = 79
+                    else:
+                        offset2 = 15
+                    
+                    sequence = nucl.nucl_1.sequence + "&" + nucl.nucl_2.sequence
+
+                    length = len(nucl.nucl_1) + 1 + len(nucl.nucl_2)
+                    offset = [offset1] * len(nucl.nucl_1) + [-1] + [offset2] * len(nucl.nucl_2)
+
+                    score = nucl.score
+                    
+                # Element was not a nucl_acid or nucl_hybrid!
                 else:
-                    offset = 15
+                    raise TypeError
+
                 quals = list()
-                for j in range (0, len(nucl)):
-                    bitString = str(nucl.no_mod[j]) + str(nucl.no_indel[j]) + str(nucl.score_region[j])
+                for j in range (0, length):
+                    if no_mod[i] == -1:
+                        quals.append(5) # The '&' character, denoting a hybrid of 2 strands
+                        continue
+                    bitString = str(no_mod[j]) + str(no_indel[j]) + str(score_region[j])
                     bitsAsInt = int(bitString, 2)
-                    quals.append(bitsAsInt + offset)
-                record = SeqRecord(seq=self.nucls[i].sequence, id=str(i), description=str(self.nucls[i].score))
+                    quals.append(bitsAsInt + offset[i])
+                record = SeqRecord(seq=sequence, id=str(i), description=str(score))
                 record.letter_annotations["phred_quality"] = quals
                 SeqIO.write(record, handle=handle, format='fastq')
+
+                # TODO do these variables need to be cleared every time ? ? ?
                 del quals
                 del record
                 del nucl
@@ -235,6 +299,7 @@ class nucl_set():
             ValueError: _description_
             ValueError: _description_
         """
+        # TODO implement reading for nucl_hybrid's
         #If any other characters are encountered, an error should be raised.
         for record in SeqIO.parse(path, "fastq"):
             quals = record.letter_annotations["phred_quality"]
@@ -265,10 +330,13 @@ class nucl_set():
                 no_mod.append(int(bits_string[0] == '1'))
                 no_indel.append(int(bits_string[1] == '1'))
                 score_region.append(int(bits_string[2] == '1'))
-            self.append(new_nucl_acid=nucl_acid(sequence=record.seq, no_mod=no_mod, no_indel=no_indel, score_region=score_region, is_rna=is_rna, design_parameters=design_parameters))
+            
+            new_nucl_acid = nucl_acid(sequence=record.seq, no_mod=no_mod, no_indel=no_indel, score_region=score_region, is_rna=is_rna)
+            new_nucl_acid.fitness_score(design_parameters=design_parameters)
+            self.append(new_nucl=new_nucl_acid)
 
 def mutate(nucl:nucl_acid, design_parameters:design_parameters) -> nucl_acid:
-    """Mutates a nucl_acid given design parameters and returns a mutated nucl_acid. Does not modify the original.
+    """Mutates a nucl_acid given design parameters and returns a mutated, scored nucl_acid. Does not modify the original.
 
     Args:
         nucl (nucl_acid): the nucl_acid to make a mutant of.
@@ -420,5 +488,6 @@ def mutate(nucl:nucl_acid, design_parameters:design_parameters) -> nucl_acid:
             #TODO: remove unnecessary continue
             continue
     
-    return nucl_acid(sequence=Seq(''.join(sequence)), no_mod=no_mod, no_indel=no_indel, score_region=score_region,
-                     design_parameters=design_parameters, is_rna=nucl.is_rna)
+    new_nucl_acid = nucl_acid(sequence=Seq(''.join(sequence)), no_mod=no_mod, no_indel=no_indel, score_region=score_region,
+                              is_rna=nucl.is_rna)
+    return new_nucl_acid

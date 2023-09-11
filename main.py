@@ -12,19 +12,21 @@ def main():
     signal(SIGPIPE, SIG_IGN) # Ignore broken pipe (usually ssh) and continue program
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
-    des_params = design_parameters(blacklist=blist, target_temp=55, program='VIENNA', parallel=True,
-        num_mutants=2, target_energy=-8.0, # based on FourU Hairpin 2
+    des_params = design_parameters(blacklist=blist, target_temp=52, program='VIENNA',
+        num_mutants=8, target_energy=-9.75, # based on FourU Hairpin 2
         weights=[32, 32, 32, 32, 32, 32, 16]
         )
 
     #Create nucleotide set
     nucl_pool = nucl_set(nucls = [])
-    for i in range(0, 4):
-        nucl_pool.append(nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
+    for i in range(0, 32):
+        new_nucl = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
             no_indel =      [0]*20+[1]*17,
             no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
             score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
-            design_parameters=des_params, is_rna=True))
+            is_rna=True)
+        new_nucl.fitness_score(design_parameters=des_params)
+        nucl_pool.append(new_nucl=new_nucl)
 
     #Start design loop
     design(design_parameters=des_params, nucl_pool=nucl_pool)
@@ -47,11 +49,13 @@ def test():
 
     nucl_pool = nucl_set(nucls = [])
     for i in range(0, 16):
-        nucl_pool.append(nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNTAAGGAGGNNNNNNATG'),
+        new_nucl = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNTAAGGAGGNNNNNNATG'),
             no_indel =      [0]*20+[1]*17,
             no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
             score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
-            design_parameters=des_params, is_rna=False))
+            is_rna=False)
+        new_nucl.fitness_score(design_parameters=des_params)
+        nucl_pool.append(new_nucl=new_nucl)
 
     nucl_pool.save("TEST" + '.fastq')
     del nucl_pool

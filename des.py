@@ -1,4 +1,4 @@
-from nucl import nucl_set, mutate
+from nucl import nucl_set, mutate, score
 from params import design_parameters
 import time
 import os
@@ -48,10 +48,13 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
         
         if parallel_pool != None:
             for nucl in nucl_pool.nucls:
-                list_old_nucl = [(nucl, design_parameters)] * design_parameters.num_mutants
-                new_mutants = parallel_pool.starmap(func=mutate, iterable=list_old_nucl)
+                list_mut_nucl = list()
+                for i in range(design_parameters.num_mutants):
+                    list_mut_nucl.append((mutate(nucl=nucl, design_parameters=design_parameters), design_parameters))
+
+                list_new_nucl = parallel_pool.starmap(func=score, iterable=list_mut_nucl)
                 
-                for mutant in new_mutants:
+                for mutant in list_new_nucl:
                     nucl_pool.append(mutant)
                     
                 for i in range(0, design_parameters.num_mutants):
