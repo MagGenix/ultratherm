@@ -1,4 +1,4 @@
-from nucl import nucl_acid, nucl_set
+from nucl import nucl_acid, nucl_set, nucl_hybrid
 from blist import blacklist
 from Bio.Seq import Seq
 from params import design_parameters, read_parameters
@@ -56,7 +56,7 @@ def test():
             is_rna=False)
         new_nucl.fitness_score(design_parameters=des_params)
         nucl_pool.append(new_nucl=new_nucl)
-
+    
     nucl_pool.save("TEST" + '.fastq')
     del nucl_pool
     
@@ -64,6 +64,23 @@ def test():
     new_pool.read("TEST.fastq", design_parameters=des_params)
     print(new_pool)
 
+    new_nucl1 = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
+            no_indel =      [0]*20+[1]*17,
+            no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
+            score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
+            is_rna=True)
+    new_nucl2 = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNTAAGGAGGNNNNNNATG'),
+            no_indel =      [0]*20+[1]*17,
+            no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
+            score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
+            is_rna=False)
+    new_nucl_dimer = nucl_hybrid(new_nucl1, new_nucl2)
+    new_pool.append(new_nucl_dimer)
+    
+    print(new_pool)
+    print(new_nucl_dimer)
+
+    new_pool.save("TEST2.fastq")
 #####
 
 ###   #   #  #  #
@@ -73,5 +90,5 @@ def test():
 
 #####
 if __name__ == '__main__':
-    main()
-    #test()
+    #main()
+    test()

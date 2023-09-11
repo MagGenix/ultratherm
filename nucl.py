@@ -118,9 +118,17 @@ class nucl_hybrid():
     def __init__(self, nucl_1: nucl_acid, nucl_2:nucl_acid):
         self.nucl_1 = nucl_1
         self.nucl_2 = nucl_2
-        self.score = None
+        self.score = 6.0
     def fitness_score(self, design_parameters: design_parameters):
         pass # TODO implement
+    def __str__(self) -> str:
+        as_string = ""
+        as_string += str(self.score) + "\n"
+        as_string += str(self.nucl_1.sequence)      + "\t" + str(self.nucl_2.sequence)      + "\n"
+        as_string += str(self.nucl_1.no_mod)        + "\t" + str(self.nucl_2.no_mod)        + "\n"
+        as_string += str(self.nucl_1.no_indel)      + "\t" + str(self.nucl_2.no_indel)      + "\n"
+        as_string += str(self.nucl_1.score_region)  + "\t" + str(self.nucl_2.score_region)  + "\n"
+        return as_string
 
 def score(nucl: Union[nucl_acid, nucl_hybrid], design_parameters: design_parameters):
     nucl.fitness_score(design_parameters=design_parameters)
@@ -269,12 +277,12 @@ class nucl_set():
 
                 quals = list()
                 for j in range (0, length):
-                    if no_mod[i] == -1:
+                    if no_mod[j] == -1:
                         quals.append(5) # The '&' character, denoting a hybrid of 2 strands
                         continue
                     bitString = str(no_mod[j]) + str(no_indel[j]) + str(score_region[j])
                     bitsAsInt = int(bitString, 2)
-                    quals.append(bitsAsInt + offset[i])
+                    quals.append(bitsAsInt + offset[j])
                 record = SeqRecord(seq=sequence, id=str(i), description=str(score))
                 record.letter_annotations["phred_quality"] = quals
                 SeqIO.write(record, handle=handle, format='fastq')
