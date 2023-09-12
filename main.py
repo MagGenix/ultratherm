@@ -75,6 +75,7 @@ def test():
             score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
             is_rna=False)
     new_nucl_dimer = nucl_hybrid(new_nucl1, new_nucl2)
+    new_nucl_dimer.fitness_score(design_parameters=des_params)
     new_pool.append(new_nucl_dimer)
     
     print(new_pool)

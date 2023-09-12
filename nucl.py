@@ -118,9 +118,9 @@ class nucl_hybrid():
     def __init__(self, nucl_1: nucl_acid, nucl_2:nucl_acid):
         self.nucl_1 = nucl_1
         self.nucl_2 = nucl_2
-        self.score = 6.0
+        self.score = None
     def fitness_score(self, design_parameters: design_parameters):
-        pass # TODO implement
+        self.score = 6.0
     def __str__(self) -> str:
         as_string = ""
         as_string += str(self.score) + "\n"
@@ -323,7 +323,7 @@ class nucl_set():
                 split_point = quals.index(5)
 
                 strands.append((sequence[0:split_point],    quals[0:split_point]))
-                strands.append((sequence[split_point+1:len(sequence)], quals[split_point+1:len(quals)]))
+                strands.append((sequence[split_point+1:],   quals[split_point+1:]))
 
             else:
                 strands.append((sequence, quals))
