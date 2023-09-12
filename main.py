@@ -19,7 +19,7 @@ def main():
 
     #Create nucleotide set
     nucl_pool = nucl_set(nucls = [])
-    for i in range(0, 32):
+    for i in range(0, 2):
         new_nucl = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
             no_indel =      [0]*20+[1]*17,
             no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
@@ -95,5 +95,5 @@ def test():
 
 #####
 if __name__ == '__main__':
-    #main()
-    test()
+    main()
+    #test()

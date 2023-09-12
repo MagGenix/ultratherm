@@ -130,10 +130,6 @@ class nucl_hybrid():
         as_string += str(self.nucl_1.score_region)  + "\t" + str(self.nucl_2.score_region)  + "\n"
         return as_string
 
-def score(nucl: Union[nucl_acid, nucl_hybrid], design_parameters: design_parameters):
-    nucl.fitness_score(design_parameters=design_parameters)
-    return nucl
-
 class nucl_set():
     """A data type to store nucl_acid's for design. Stores ordered lists of nucl_acid and their scores.
     Use .append(), .remove(), and .replace() to modify.

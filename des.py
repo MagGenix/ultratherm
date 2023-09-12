@@ -1,8 +1,9 @@
-from nucl import nucl_set, mutate, score
+from nucl import nucl_set, mutate, nucl_acid, nucl_hybrid
 from params import design_parameters
 import time
 import os
 import multiprocessing
+from typing import Union
 
 def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
     """A design loop that retains the best nucl_acid's and decrements mutation weights as it runs
@@ -48,11 +49,9 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
         
         if parallel_pool != None:
             for nucl in nucl_pool.nucls:
-                list_mut_nucl = list()
-                for i in range(design_parameters.num_mutants):
-                    list_mut_nucl.append((mutate(nucl=nucl, design_parameters=design_parameters), design_parameters))
-
-                list_new_nucl = parallel_pool.starmap(func=score, iterable=list_mut_nucl)
+                list_nucl = [(nucl, design_parameters)] * design_parameters.num_mutants
+                
+                list_new_nucl = parallel_pool.starmap(func=mutate_and_score, iterable=list_nucl)
                 
                 for mutant in list_new_nucl:
                     nucl_pool.append(mutant)
@@ -89,3 +88,8 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
     if parallel_pool != None:
         parallel_pool.close()
         parallel_pool.terminate()
+
+def mutate_and_score(nucl: Union[nucl_acid, nucl_hybrid], design_parameters: design_parameters):
+    new_nucl = mutate(nucl = nucl, design_parameters = design_parameters)
+    new_nucl.fitness_score(design_parameters = design_parameters)
+    return new_nucl
