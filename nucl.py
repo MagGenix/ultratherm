@@ -9,6 +9,8 @@ from params import design_parameters
 from blist import blacklist
 from nupack_score import nupack_score
 from vienna_score import vienna_score
+from nupack_score_hybrid import nupack_score_hybrid
+from vienna_score_hybrid import vienna_score_hybrid
 
 class nucl_acid():
     """nucleic acid. Stores its sequence, score, no_mod, no_no_indel, score_region, and whether it is RNA or DNA.
@@ -120,7 +122,28 @@ class nucl_hybrid():
         self.nucl_2 = nucl_2
         self.score = None
     def fitness_score(self, design_parameters: design_parameters):
-        self.score = 6.0
+        if self.is_blacklisted(blacklist=design_parameters.blacklist):
+            self.score = 6.0
+        
+        elif design_parameters.program == "NUPACK":  
+            self.score = nupack_score_hybrid(sequence_1=str(self.nucl_1.sequence),
+                                             score_region_1=self.nucl_1.score_region,
+                                             is_rna_1=self.nucl_1.is_rna,
+                                             sequence_2=str(self.nucl_2.sequence),
+                                             score_region_2=self.nucl_2.score_region,
+                                             is_rna_2=self.nucl_2.is_rna,
+                                             design_parameters=design_parameters)
+        elif design_parameters.program == "VIENNA":
+            self.score = vienna_score_hybrid(sequence_1=str(self.nucl_1.sequence),
+                                             score_region_1=self.nucl_1.score_region,
+                                             is_rna_1=self.nucl_1.is_rna,
+                                             sequence_2=str(self.nucl_2.sequence),
+                                             score_region_2=self.nucl_2.score_region,
+                                             is_rna_2=self.nucl_2.is_rna,
+                                             design_parameters=design_parameters)
+        else:
+            raise Exception("no program specified for scoring")
+
     def __str__(self) -> str:
         as_string = ""
         as_string += str(self.score) + "\n"
@@ -130,6 +153,13 @@ class nucl_hybrid():
         as_string += str(self.nucl_1.score_region)  + "\t" + str(self.nucl_2.score_region)  + "\n"
         return as_string
 
+    def is_blacklisted(self, blacklist: blacklist) -> bool:
+        if blacklist.is_empty:
+            return False
+        if self.nucl_1.is_blacklisted or self.nucl_2.is_blacklisted:
+            return True
+        return False
+    
 class nucl_set():
     """A data type to store nucl_acid's for design. Stores ordered lists of nucl_acid and their scores.
     Use .append(), .remove(), and .replace() to modify.
