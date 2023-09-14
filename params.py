@@ -12,7 +12,7 @@ class design_parameters():
             nucl_concentration:float = 1e-6, dimer_max_order_magnitude:float = 2.0,
             blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA', parallel:bool = True,
             weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1, max_reps:int = 16,
-            free_energy_max_score:float=1.0, nucl_max_score:float=1.0, max_dimer_monomer_factor:float=1.0,
+            free_energy_max_score:float=1.0, accessibility_max_score:float=1.0, parasitic_complex_max_score:float=1.0,
         ):
         """Create a new design_parameters object. THIS IS THE ONLY FUNCTION WITH DEFAULTS!
 
@@ -31,8 +31,8 @@ class design_parameters():
             weight_factor (int, optional): How much to decrement the weights by. Defaults to 1.
             max_reps (int, optional): the maximum number of loops to perform without a decrease in minimum pool score.
             free_energy_max_score (float, optional): The maximum score penalty for having a free energy greater than target. Defaults to 1.0.
-            nucl_max_score (float, optional): The maximum score penalty for score region accessibility. Defaults to 1.0.
-            max_dimer_monomer_factor (float, optional): The maximum score penalty for dimer formation. Defaults to 1.0.
+            accessibility_max_score (float, optional): The maximum score penalty for score region accessibility. Defaults to 1.0.
+            parasitic_complex_max_score (float, optional): The maximum score penalty for dimer formation. Defaults to 1.0.
 
         Raises:
             ValueError: _description_
@@ -60,15 +60,15 @@ class design_parameters():
         self.weight_factor = weight_factor
         self.max_reps = max_reps
 
-        self.free_energy_max_score = free_energy_max_score
-        self.nucl_max_score = nucl_max_score
-        self.max_dimer_monomer_factor = max_dimer_monomer_factor
+        self.free_energy_max_score          = free_energy_max_score
+        self.accessibility_max_score        = accessibility_max_score
+        self.parasitic_complex_max_score    = parasitic_complex_max_score
 
         if free_energy_max_score < 0 or free_energy_max_score > 1:
             raise ValueError
-        if nucl_max_score < 0 or nucl_max_score > 1:
+        if accessibility_max_score < 0 or accessibility_max_score > 1:
             raise ValueError
-        if max_dimer_monomer_factor < 0 or max_dimer_monomer_factor > 1:
+        if parasitic_complex_max_score < 0 or parasitic_complex_max_score > 1:
             raise ValueError
 
         if target_energy >= 0:
@@ -114,26 +114,26 @@ class design_parameters():
             path (str): Path to save the file. If no directory specified will save to source directory.
         """
         yml_dict = {
-            'target_energy':            self.target_energy,
-            'target_temp':              self.target_temp,
-            'temp_offset':              self.temp_offset,
-            'thermo_score_temp':        self.thermo_score_temp,
+            'target_energy':                self.target_energy,
+            'target_temp':                  self.target_temp,
+            'temp_offset':                  self.temp_offset,
+            'thermo_score_temp':            self.thermo_score_temp,
 
-            'nucl_concentration':       self.nucl_concentration,
-            'dimer_max_order_magnitude':self.dimer_max_order_magnitude,
+            'nucl_concentration':           self.nucl_concentration,
+            'dimer_max_order_magnitude':    self.dimer_max_order_magnitude,
 
-            'blacklist':                self.blacklist.blacklist_path,
-            'num_mutants':              self.num_mutants,
-            'program':                  self.program,
-            'parallel':                 self.parallel,
+            'blacklist':                    self.blacklist.blacklist_path,
+            'num_mutants':                  self.num_mutants,
+            'program':                      self.program,
+            'parallel':                     self.parallel,
 
-            'weights':                  self.weights,
-            'weight_factor':            self.weight_factor,
-            'max_reps':                 self.max_reps,
+            'weights':                      self.weights,
+            'weight_factor':                self.weight_factor,
+            'max_reps':                     self.max_reps,
 
-            'free_energy_max_score':    self.free_energy_max_score,
-            'nucl_max_score':           self.nucl_max_score,
-            'max_dimer_monomer_factor': self.max_dimer_monomer_factor
+            'free_energy_max_score':        self.free_energy_max_score,
+            'accessibility_max_score':      self.accessibility_max_score,
+            'parasitic_complex_max_score':  self.parasitic_complex_max_score
         }
 
         stream = open(path, 'w')

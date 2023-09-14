@@ -54,15 +54,15 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameter
     
     scores_cold = nupack_score_temp(score_region, temp=cold_temp, tube_nucl=tube_nucl,
         complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot=False,
-        max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
+        parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
-        nucl_max_score=design_parameters.nucl_max_score, material=material)
+        accessibility_max_score=design_parameters.accessibility_max_score, material=material)
     
     scores_hot = nupack_score_temp(score_region, temp=hot_temp, tube_nucl=tube_nucl,
         complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot = True,
-        max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
+        parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
-        nucl_max_score=design_parameters.nucl_max_score, material=material)
+        accessibility_max_score=design_parameters.accessibility_max_score, material=material)
 
     score_energy = nupack_score_energy(temp=design_parameters.thermo_score_temp, energy=design_parameters.target_energy,
         tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single,
@@ -103,7 +103,7 @@ def nupack_score_energy(
 def nupack_score_temp(
         score_region: list, temp: float, dimer_max_order_magnitude:float,
         tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex,
-        hot:bool, max_dimer_monomer_factor:float, nucl_max_score:float, material: str
+        hot:bool, parasitic_complex_max_score:float, accessibility_max_score:float, material: str
     ) -> tuple[float, float]:
     """Generate a tuple containing the dimerization score and the score region accessibility score respectively.
     Generally reserved for usage by nupack_score().
@@ -116,8 +116,8 @@ def nupack_score_temp(
         complex_nucl_single (Complex): A defined complex of the monomeric strand to be assessed for concentration.
         complex_nucl_double (Complex): A defined complex of the dimerized strand to be assessed for concentration.
         hot (bool): whether to invert the score region accessibility score.
-        max_dimer_monomer_factor (float): The maximum score penalty for dimer formation.
-        nucl_max_score (float): The maximum score penalty for score region accessibility.
+        parasitic_complex_max_score (float): The maximum score penalty for dimer formation.
+        accessibility_max_score (float): The maximum score penalty for score region accessibility.
         material (str): 'dna' or 'rna'.
 
     Raises:
@@ -145,8 +145,8 @@ def nupack_score_temp(
         dimer_monomer_factor = log10(nucl_dimer_conc / nucl_monomer_conc) + dimer_max_order_magnitude # +2 means dimer must be 2 factors of 10 less abundant to avoid score penalty
         if dimer_monomer_factor < 0:
             dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
-        elif dimer_monomer_factor > max_dimer_monomer_factor:
-            dimer_monomer_factor = max_dimer_monomer_factor #cap cost of having a poor monomer formation
+        elif dimer_monomer_factor > parasitic_complex_max_score:
+            dimer_monomer_factor = parasitic_complex_max_score #cap cost of having a poor monomer formation
     
     if len(results_nucl.complexes[complex_nucl_single].pairs.diagonal) != len(score_region):
         raise ValueError
@@ -160,10 +160,10 @@ def nupack_score_temp(
             count_scored_nuc+=1
     accessibility_score = accessibility_score / count_scored_nuc
 
-    if accessibility_score > nucl_max_score:
-        accessibility_score = nucl_max_score
+    if accessibility_score > accessibility_max_score:
+        accessibility_score = accessibility_max_score
 
     if hot:
-        accessibility_score = nucl_max_score - accessibility_score
+        accessibility_score = accessibility_max_score - accessibility_score
 
     return (dimer_monomer_factor, accessibility_score)
