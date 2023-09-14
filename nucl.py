@@ -118,10 +118,16 @@ class nucl_acid():
         return False
 
 class nucl_hybrid():
-    def __init__(self, nucl_1: nucl_acid, nucl_2:nucl_acid):
+    def __init__(self, nucl_1: nucl_acid, nucl_2:nucl_acid, score_strand_1: bool = True, score_strand_2: bool = True):
         self.nucl_1 = nucl_1
         self.nucl_2 = nucl_2
         self.score = None
+        if not(score_strand_1 or score_strand_2):
+            raise ValueError
+        
+        self.score_strand_1 = score_strand_1
+        self.score_strand_2 = score_strand_2
+
     def fitness_score(self, design_parameters: design_parameters):
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
             self.score = 6.0
@@ -133,7 +139,9 @@ class nucl_hybrid():
                                              sequence_2=str(self.nucl_2.sequence),
                                              score_region_2=self.nucl_2.score_region,
                                              is_rna_2=self.nucl_2.is_rna,
-                                             design_parameters=design_parameters)
+                                             design_parameters=design_parameters,
+                                             score_strand_1=self.score_strand_1,
+                                             score_strand_2=self.score_strand_2)
         elif design_parameters.program == "VIENNA":
             self.score = vienna_score_hybrid(sequence_1=str(self.nucl_1.sequence),
                                              score_region_1=self.nucl_1.score_region,
@@ -141,7 +149,9 @@ class nucl_hybrid():
                                              sequence_2=str(self.nucl_2.sequence),
                                              score_region_2=self.nucl_2.score_region,
                                              is_rna_2=self.nucl_2.is_rna,
-                                             design_parameters=design_parameters)
+                                             design_parameters=design_parameters,
+                                             score_strand_1=self.score_strand_1,
+                                             score_strand_2=self.score_strand_2)
         else:
             raise Exception("no program specified for scoring")
 

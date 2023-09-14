@@ -3,7 +3,9 @@ from math import log10
 from params import design_parameters
 import numpy
 
-def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, sequence_2:str, score_region_2:list, is_rna_2:bool, design_parameters:design_parameters) -> float:
+def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, score_strand_1:bool,
+                        sequence_2:str, score_region_2:list, is_rna_2:bool, score_strand_2:bool,
+                        design_parameters:design_parameters) -> float:
     if len(sequence_1) != len(score_region_1) or len(sequence_2) != len(score_region_2):
         raise ValueError
     if not(is_rna_1 and is_rna_2): # Can only fold hybrids with the same strand types!
@@ -53,7 +55,9 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, sequ
         unbound_complexes=unbound_complexes, parasitic_complexes=parasitic_complexes,
         hybrid_complex=complex_AB,
         hot=False, parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
-        score_region_1=score_region_1, score_region_2=score_region_2)
+        score_region_1=score_region_1, score_region_2=score_region_2,
+        accessibility_max_score=design_parameters.accessibility_max_score, parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
+        score_strand_1=score_strand_1, score_strand_2=score_strand_2)
 
     # TODO add the rest of the scoring (hot temp, energy)
 
@@ -61,7 +65,9 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, sequ
 def nupack_score_temp(
         material: str, temp:float, tube_nucl: Tube,
         unbound_complexes: list[Complex], parasitic_complexes: list[Complex], hybrid_complex: Complex,
-        hot: bool, parasitic_max_order_magnitude:float, score_region_1:list, score_region_2:list
+        hot: bool, parasitic_max_order_magnitude:float, score_region_1:list, score_region_2:list,
+        accessibility_max_score: float, parasitic_complex_max_score: float,
+        score_strand_1: bool, score_strand_2: bool
 ) -> tuple[float, float, float]:
     
     if len(hybrid_complex.strands[0]) != len(score_region_1) or len(hybrid_complex.strands[1]) != len(score_region_2):
@@ -85,13 +91,17 @@ def nupack_score_temp(
     accessibility_score = 1.0
 
     if total_unbound_concentration == 0 and hybrid_concentration == 0: # Worst case - all parasitic, no unbound and no hybrid
-        parasitic_score = 1.0
+        parasitic_score = parasitic_complex_max_score
     elif total_parasitic_concentration == 0:
         parasitic_score = 0.0
     else:
         parasitic_score = log10(
             total_parasitic_concentration / (total_unbound_concentration + hybrid_concentration)
             ) + parasitic_max_order_magnitude
+        if parasitic_score < 0:
+            parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
+        elif parasitic_score > parasitic_complex_max_score:
+            parasitic_score = parasitic_complex_max_score #cap cost of having a poor monomer formation
     
     if hybrid_concentration == 0:
         hybrid_score = 1.0
@@ -100,7 +110,11 @@ def nupack_score_temp(
     else:
         hybrid_score = log10(
             total_unbound_concentration / hybrid_concentration
-        ) + parasitic_max_order_magnitude # TODO Need sep. variable!
+        ) + 2 # TODO Need sep. variable!
+        if hybrid_score < 0:
+            hybrid_score = 0 #0 is the best possible factor, indicates limited dimer formation
+        elif hybrid_score > accessibility_max_score:
+            hybrid_score = accessibility_max_score #cap cost of having a poor monomer formation
 
 
     pairs_arr = results_nucl.complexes[hybrid_complex].pairs.to_array()
@@ -115,24 +129,26 @@ def nupack_score_temp(
     total_bound_2 = 0.0
     count_scored_nuc_2 = 0
 
-    if True: # TODO replace with if score strand_1
+    if score_strand_1:
         for i, x in enumerate(score_region_1):
             if x:
                 total_bound_1 += paired_strand_1[i]
                 count_scored_nuc_1+=1
-    if True: # TODO replace with if score strand_2
+    if score_strand_2:
         for i, x in enumerate(score_region_2):
             if x:
                 total_bound_2 += paired_strand_2[i]
                 count_scored_nuc_2+=1
     
     accessibility_score = (total_bound_1 + total_bound_2) / float(count_scored_nuc_1 + count_scored_nuc_2)
+    if accessibility_score > accessibility_max_score:
+        accessibility_score = accessibility_max_score
+
 
     if hot:
-        accessibility_score = 1.0 - accessibility_score # TODO replace 1.0 with ascribed maximum
-        hybrid_score = 1.0 - hybrid_score # TODO replace 1.0 with ascribed maximum
+        accessibility_score = accessibility_max_score - accessibility_score
+        hybrid_score = accessibility_max_score - hybrid_score # TODO replace with new parameter?
 
-    # TODO add caps for score penalties
     # TODO specify which strands are to be scored in the nucl_hybrid
 
     return(parasitic_score, hybrid_score, accessibility_score)
