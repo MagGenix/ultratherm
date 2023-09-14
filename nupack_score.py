@@ -124,7 +124,7 @@ def nupack_score_temp(
         ValueError: _description_
 
     Returns:
-        tuple[float, float]: (dimer_monomer_factor, score_nucl)
+        tuple[float, float]: (dimer_monomer_factor, accessibility_score)
     """
     #Make NUPACK model
     model_nucl=Model(kelvin=temp + 273.15, material=material)
@@ -151,19 +151,19 @@ def nupack_score_temp(
     if len(results_nucl.complexes[complex_nucl_single].pairs.diagonal) != len(score_region):
         raise ValueError
     
-    score_nucl = 0
+    accessibility_score = 0
     count_scored_nuc = 0
     diagonal = results_nucl.complexes[complex_nucl_single].pairs.diagonal
     for i, x in enumerate(score_region):
         if x:
-            score_nucl += diagonal[i]
+            accessibility_score += diagonal[i]
             count_scored_nuc+=1
-    score_nucl = score_nucl / count_scored_nuc
+    accessibility_score = accessibility_score / count_scored_nuc
 
-    if score_nucl > nucl_max_score:
-        score_nucl = nucl_max_score
+    if accessibility_score > nucl_max_score:
+        accessibility_score = nucl_max_score
 
     if hot:
-        score_nucl = nucl_max_score - score_nucl
+        accessibility_score = nucl_max_score - accessibility_score
 
-    return (dimer_monomer_factor, score_nucl)
+    return (dimer_monomer_factor, accessibility_score)
