@@ -9,7 +9,7 @@ class design_parameters():
     """
     def __init__(
             self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
-            nucl_concentration:float = 1e-6, dimer_max_order_magnitude:float = 2.0,
+            nucl_concentration:float = 1e-6, parasitic_max_order_magnitude:float = 2.0,
             blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA', parallel:bool = True,
             weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1, max_reps:int = 16,
             free_energy_max_score:float=1.0, accessibility_max_score:float=1.0, parasitic_complex_max_score:float=1.0,
@@ -22,7 +22,7 @@ class design_parameters():
             temp_offset (float, optional): The offset temperature for score_region pair probability assessment. See target_temp. Defaults to 5.0.
             thermo_score_temp (int, optional): The temperature at which the ensemble energy is scored. Defaults to 37.
             nucl_concentration (float, optional): The concentration of the nucleic acids. Defaults to 1e-6.
-            dimer_max_order_magnitude (float, optional): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]). Defaults to 2.0.
+            parasitic_max_order_magnitude (float, optional): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]). Defaults to 2.0.
             blacklist (blacklist, optional): A blacklist object. Defaults to blacklist('').
             num_mutants (int, optional): The number of mutants to generate per nucl_acid in the nucl_set. Defaults to 16.
             program (str, optional): 'NUPACK' or 'VIENNA'. Defaults to 'VIENNA'.
@@ -50,7 +50,7 @@ class design_parameters():
         self.thermo_score_temp = thermo_score_temp
 
         self.nucl_concentration = nucl_concentration
-        self.dimer_max_order_magnitude = dimer_max_order_magnitude
+        self.parasitic_max_order_magnitude = parasitic_max_order_magnitude
 
         self.blacklist = blacklist
         self.num_mutants = num_mutants
@@ -120,7 +120,7 @@ class design_parameters():
             'thermo_score_temp':            self.thermo_score_temp,
 
             'nucl_concentration':           self.nucl_concentration,
-            'dimer_max_order_magnitude':    self.dimer_max_order_magnitude,
+            'parasitic_max_order_magnitude':    self.parasitic_max_order_magnitude,
 
             'blacklist':                    self.blacklist.blacklist_path,
             'num_mutants':                  self.num_mutants,

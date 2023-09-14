@@ -52,7 +52,7 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, sequ
         material=material, temp=cold_temp, tube_nucl=tube_nucl,
         unbound_complexes=unbound_complexes, parasitic_complexes=parasitic_complexes,
         hybrid_complex=complex_AB,
-        hot=False, parasitic_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
+        hot=False, parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         score_region_1=score_region_1, score_region_2=score_region_2)
 
     # TODO add the rest of the scoring (hot temp, energy)
@@ -85,9 +85,8 @@ def nupack_score_temp(
     accessibility_score = 1.0
 
     if total_unbound_concentration == 0 and hybrid_concentration == 0: # Worst case - all parasitic, no unbound and no hybrid
-        return(1.0, 1.0, 1.0)
-    
-    if total_parasitic_concentration == 0:
+        parasitic_score = 1.0
+    elif total_parasitic_concentration == 0:
         parasitic_score = 0.0
     else:
         parasitic_score = log10(
@@ -136,4 +135,4 @@ def nupack_score_temp(
     # TODO add caps for score penalties
     # TODO specify which strands are to be scored in the nucl_hybrid
 
-    return(parasitic_score, hybrid_score, accessibility_score)    
+    return(parasitic_score, hybrid_score, accessibility_score)

@@ -55,13 +55,13 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, design_parameter
     scores_cold = nupack_score_temp(score_region, temp=cold_temp, tube_nucl=tube_nucl,
         complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot=False,
         parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
-        dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
+        parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         accessibility_max_score=design_parameters.accessibility_max_score, material=material)
     
     scores_hot = nupack_score_temp(score_region, temp=hot_temp, tube_nucl=tube_nucl,
         complex_nucl_single=complex_nucl_single, complex_nucl_double=complex_nucl_double, hot = True,
         parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
-        dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
+        parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         accessibility_max_score=design_parameters.accessibility_max_score, material=material)
 
     score_energy = nupack_score_energy(temp=design_parameters.thermo_score_temp, energy=design_parameters.target_energy,
@@ -101,7 +101,7 @@ def nupack_score_energy(
     return score_free_energy
 
 def nupack_score_temp(
-        score_region: list, temp: float, dimer_max_order_magnitude:float,
+        score_region: list, temp: float, parasitic_max_order_magnitude:float,
         tube_nucl: Tube, complex_nucl_single: Complex, complex_nucl_double: Complex,
         hot:bool, parasitic_complex_max_score:float, accessibility_max_score:float, material: str
     ) -> tuple[float, float]:
@@ -111,7 +111,7 @@ def nupack_score_temp(
     Args:
         score_region (list): a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
         temp (float): the temperature to score at.
-        dimer_max_order_magnitude (float): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]).
+        parasitic_max_order_magnitude (float): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]).
         tube_nucl (Tube): NUPACK Tube containing the strand to be scored.
         complex_nucl_single (Complex): A defined complex of the monomeric strand to be assessed for concentration.
         complex_nucl_double (Complex): A defined complex of the dimerized strand to be assessed for concentration.
@@ -124,7 +124,7 @@ def nupack_score_temp(
         ValueError: _description_
 
     Returns:
-        tuple[float, float]: (dimer_monomer_factor, accessibility_score)
+        tuple[float, float]: (parasitic_score, accessibility_score)
     """
     #Make NUPACK model
     model_nucl=Model(kelvin=temp + 273.15, material=material)
@@ -138,15 +138,15 @@ def nupack_score_temp(
 
     #Calculate ratio of AA to A and take log10. lower is better
     if nucl_dimer_conc == 0:
-        dimer_monomer_factor=0
+        parasitic_score=0
     elif nucl_monomer_conc == 0:
-        dimer_monomer_factor=1
+        parasitic_score=1
     else:
-        dimer_monomer_factor = log10(nucl_dimer_conc / nucl_monomer_conc) + dimer_max_order_magnitude # +2 means dimer must be 2 factors of 10 less abundant to avoid score penalty
-        if dimer_monomer_factor < 0:
-            dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
-        elif dimer_monomer_factor > parasitic_complex_max_score:
-            dimer_monomer_factor = parasitic_complex_max_score #cap cost of having a poor monomer formation
+        parasitic_score = log10(nucl_dimer_conc / nucl_monomer_conc) + parasitic_max_order_magnitude # +2 means dimer must be 2 factors of 10 less abundant to avoid score penalty
+        if parasitic_score < 0:
+            parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
+        elif parasitic_score > parasitic_complex_max_score:
+            parasitic_score = parasitic_complex_max_score #cap cost of having a poor monomer formation
     
     if len(results_nucl.complexes[complex_nucl_single].pairs.diagonal) != len(score_region):
         raise ValueError
@@ -166,4 +166,4 @@ def nupack_score_temp(
     if hot:
         accessibility_score = accessibility_max_score - accessibility_score
 
-    return (dimer_monomer_factor, accessibility_score)
+    return (parasitic_score, accessibility_score)
