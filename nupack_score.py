@@ -133,14 +133,16 @@ def nupack_score_temp(
     results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pfunc', 'pairs'])
     concentrations_nucl = complex_concentrations(tube=tube_nucl, data = results_nucl)
 
+    nucl_dimer_conc = concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_double]
+    nucl_monomer_conc = concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_single]
+
     #Calculate ratio of AA to A and take log10. lower is better
-    if concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_double] == 0:
+    if nucl_dimer_conc == 0:
         dimer_monomer_factor=0
-    elif concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_single] == 0:
+    elif nucl_monomer_conc == 0:
         dimer_monomer_factor=1
     else:
-        dimer_monomer_factor = log10(concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_double] /
-            concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex_nucl_single]) + dimer_max_order_magnitude #+2 means dimer must be 2 factors of 10 less abundant to avoid score penalty
+        dimer_monomer_factor = log10(nucl_dimer_conc / nucl_monomer_conc) + dimer_max_order_magnitude # +2 means dimer must be 2 factors of 10 less abundant to avoid score penalty
         if dimer_monomer_factor < 0:
             dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
         elif dimer_monomer_factor > max_dimer_monomer_factor:

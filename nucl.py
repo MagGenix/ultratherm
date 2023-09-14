@@ -112,8 +112,9 @@ class nucl_acid():
         """
         if blacklist.is_empty:
             return False
-        if self.sequence in blacklist.blacklist_sequences:
-            return True
+        for blacklisted_sequence in blacklist.blacklist_sequences:
+            if self.sequence.find(blacklisted_sequence) != -1:
+                return True
         return False
 
 class nucl_hybrid():
@@ -156,7 +157,7 @@ class nucl_hybrid():
     def is_blacklisted(self, blacklist: blacklist) -> bool:
         if blacklist.is_empty:
             return False
-        if self.nucl_1.is_blacklisted or self.nucl_2.is_blacklisted:
+        if self.nucl_1.is_blacklisted(blacklist=blacklist) or self.nucl_2.is_blacklisted(blacklist=blacklist):
             return True
         return False
     
@@ -167,7 +168,7 @@ class nucl_set():
 
     DO NOT DIRECTLY MODIFY MEMBERS! They are intended for read-only. Use the above methods for modification.
     """
-    def __init__(self, nucls: list):
+    def __init__(self, nucls: list[Union[nucl_acid, nucl_hybrid]]):
         """Create a new nucl_set.
 
         Args:
