@@ -1,5 +1,5 @@
 from nupack import Tube, Complex, complex_analysis, complex_concentrations, Strand, SetSpec, Model
-from math import log10
+from math import log10, pow
 from params import design_parameters
 import numpy
 
@@ -58,10 +58,41 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
         score_region_1=score_region_1, score_region_2=score_region_2,
         accessibility_max_score=design_parameters.accessibility_max_score, parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         score_strand_1=score_strand_1, score_strand_2=score_strand_2)
+    
+    scores_hot = nupack_score_temp(
+        material=material, temp=cold_temp, tube_nucl=tube_nucl,
+        unbound_complexes=unbound_complexes, parasitic_complexes=parasitic_complexes,
+        hybrid_complex=complex_AB,
+        hot=True, parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
+        score_region_1=score_region_1, score_region_2=score_region_2,
+        accessibility_max_score=design_parameters.accessibility_max_score, parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
+        score_strand_1=score_strand_1, score_strand_2=score_strand_2)
 
-    # TODO add the rest of the scoring (hot temp, energy)
+    score_free_energy = nupack_score_energy(
+        temp=design_parameters.thermo_score_temp, energy=design_parameters.target_energy,
+        tube_nucl=tube_nucl, hybrid_complex=complex_AB, free_energy_max_score=design_parameters.free_energy_max_score,
+        material=material
+    )
 
-    return sum(scores_cold)
+    return sum(scores_cold) + sum(scores_hot) + score_free_energy
+
+def nupack_score_energy(
+        temp: float, energy: float, tube_nucl: Tube, hybrid_complex: Complex, free_energy_max_score:float, material: str
+) -> float:
+    
+    model_nucl=Model(kelvin=temp + 273.15, material=material)
+    results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs'])
+    #concentrations_nucl = complex_concentrations(tube=tube_nucl, data = results_nucl)
+
+    #Changing max value for free energy score since it can make the resulting RNATs terrible at RBS occlusion
+    score_free_energy = (energy - results_nucl.complexes[hybrid_complex].free_energy) / energy
+    if score_free_energy < 0:
+        score_free_energy = 0
+    elif score_free_energy > free_energy_max_score:
+        score_free_energy = free_energy_max_score
+
+    return score_free_energy
+
 def nupack_score_temp(
         material: str, temp:float, tube_nucl: Tube,
         unbound_complexes: list[Complex], parasitic_complexes: list[Complex], hybrid_complex: Complex,
@@ -86,9 +117,9 @@ def nupack_score_temp(
         total_parasitic_concentration+=concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex]
     hybrid_concentration=concentrations_nucl.tubes[tube_nucl].complex_concentrations[hybrid_complex]
 
-    parasitic_score = 1.0
-    hybrid_score = 1.0
-    accessibility_score = 1.0
+    parasitic_score = parasitic_complex_max_score
+    hybrid_score = accessibility_max_score
+    accessibility_score = accessibility_max_score
 
     if total_unbound_concentration == 0 and hybrid_concentration == 0: # Worst case - all parasitic, no unbound and no hybrid
         parasitic_score = parasitic_complex_max_score
@@ -104,18 +135,17 @@ def nupack_score_temp(
             parasitic_score = parasitic_complex_max_score #cap cost of having a poor monomer formation
     
     if hybrid_concentration == 0:
-        hybrid_score = 1.0
+        hybrid_score = accessibility_max_score
     elif total_unbound_concentration == 0:
         hybrid_score = 0.0
     else:
-        hybrid_score = log10(
-            total_unbound_concentration / hybrid_concentration
-        ) + 2 # TODO Need sep. variable!
+        # NOTE - in this implementation, hybrid_score and accessibility_score are given the same caps.
+        # This is because they vary together.
+        hybrid_score = (log10(total_unbound_concentration / hybrid_concentration) + (accessibility_max_score / 2)) * pow(10, 1 + (0.5*accessibility_max_score)) # For min score, needs a change of 10^2
         if hybrid_score < 0:
-            hybrid_score = 0 #0 is the best possible factor, indicates limited dimer formation
+            hybrid_score = 0
         elif hybrid_score > accessibility_max_score:
-            hybrid_score = accessibility_max_score #cap cost of having a poor monomer formation
-
+            hybrid_score = accessibility_max_score #cap cost
 
     pairs_arr = results_nucl.complexes[hybrid_complex].pairs.to_array()
     
@@ -130,7 +160,7 @@ def nupack_score_temp(
     count_scored_nuc_2 = 0
 
     if score_strand_1:
-        for i, x in enumerate(score_region_1):
+        for i, x in enumerate(score_region_1): # NOTE! Higher pair probs mean MORE pairing, not less as in the diagonal!
             if x:
                 total_bound_1 += paired_strand_1[i]
                 count_scored_nuc_1+=1
@@ -144,11 +174,9 @@ def nupack_score_temp(
     if accessibility_score > accessibility_max_score:
         accessibility_score = accessibility_max_score
 
-
     if hot:
-        accessibility_score = accessibility_max_score - accessibility_score
         hybrid_score = accessibility_max_score - hybrid_score # TODO replace with new parameter?
-
-    # TODO specify which strands are to be scored in the nucl_hybrid
+    else:
+        accessibility_score = accessibility_max_score - accessibility_score
 
     return(parasitic_score, hybrid_score, accessibility_score)
