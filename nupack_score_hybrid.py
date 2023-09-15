@@ -8,7 +8,7 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
                         design_parameters:design_parameters) -> float:
     if len(sequence_1) != len(score_region_1) or len(sequence_2) != len(score_region_2):
         raise ValueError
-    if not(is_rna_1 and is_rna_2): # Can only fold hybrids with the same strand types!
+    if is_rna_1 ^ is_rna_2: # Can only fold hybrids with the same strand types!
         raise ValueError
     if is_rna_1 and is_rna_2:
         material = 'rna'
