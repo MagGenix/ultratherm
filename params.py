@@ -60,7 +60,7 @@ class design_parameters():
         self.weight_factor = weight_factor
         self.max_reps = max_reps
 
-        self.free_energy_max_score          = free_energy_max_score
+        self.free_energy_max_score          = free_energy_max_score # TODO cap the costs at 1.0 instead and use these as scales to weight importance? MUCH BETTER IDEA
         self.accessibility_max_score        = accessibility_max_score
         self.parasitic_complex_max_score    = parasitic_complex_max_score
 

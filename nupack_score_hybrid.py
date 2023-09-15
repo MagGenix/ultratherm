@@ -141,7 +141,7 @@ def nupack_score_temp(
     else:
         # NOTE - in this implementation, hybrid_score and accessibility_score are given the same caps.
         # This is because they vary together.
-        hybrid_score = (log10(total_unbound_concentration / hybrid_concentration) + (accessibility_max_score / 2)) * pow(10, 1 + (0.5*accessibility_max_score)) # For min score, needs a change of 10^2
+        hybrid_score = (log10(total_unbound_concentration / hybrid_concentration) + 0.5) * 31.62278 # For min score, needs a change of 10^2
         if hybrid_score < 0:
             hybrid_score = 0
         elif hybrid_score > accessibility_max_score:
