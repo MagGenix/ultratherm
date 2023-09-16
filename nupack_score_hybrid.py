@@ -1,5 +1,5 @@
 from nupack import Tube, Complex, complex_analysis, complex_concentrations, Strand, SetSpec, Model
-from math import log10, pow
+from math import log10
 from params import design_parameters
 import numpy
 

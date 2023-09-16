@@ -145,7 +145,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     
     return (parasitic_score, accessibility_score)
     
-def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float:
+def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float: # TODO collapse this function into vienna_score_temp - we can have more than one fold_compond!
     """Determines the ensemble free energy of a dimerized sequence.
     Generally reserved for usage by vienna_score().
 
