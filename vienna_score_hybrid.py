@@ -1,7 +1,7 @@
 import RNA
-from math import exp, log10
+from math import log10
 from params import design_parameters
-import ctypes
+import numpy
 
 def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, score_strand_1:bool,
                         sequence_2:str, score_region_2:list, is_rna_2:bool, score_strand_2:bool,
@@ -28,11 +28,37 @@ def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
     elif hot_temp > 100:
         hot_temp = 100
     
-    vienna_score_temp(seq1=sequence_1, seq2=sequence_2, is_rna=is_rna, temp=hot_temp)
+    scores_cold = vienna_score_temp(
+        seq1=sequence_1, seq2=sequence_2, is_rna=is_rna, temp=hot_temp,
+        parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
+        accessibility_max_score=design_parameters.accessibility_max_score,
+        parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
+        score_region_1=score_region_1, score_region_2=score_region_2,
+        score_strand_1=score_strand_1, score_strand_2=score_strand_2, hot=False)
 
-    return 6.0
+    scores_hot = vienna_score_temp(
+        seq1=sequence_1, seq2=sequence_2, is_rna=is_rna, temp=hot_temp,
+        parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
+        accessibility_max_score=design_parameters.accessibility_max_score,
+        parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
+        score_region_1=score_region_1, score_region_2=score_region_2,
+        score_strand_1=score_strand_1, score_strand_2=score_strand_2, hot=True)
 
-def vienna_score_temp(seq1: str, seq2: str, is_rna:bool, temp: float):
+    score_free_energy = vienna_score_energy(
+        seq1=sequence_1, seq2=sequence_2,
+        temp=design_parameters.thermo_score_temp,
+        target_energy=design_parameters.target_energy,
+        free_energy_max_score=design_parameters.free_energy_max_score,
+        is_rna=is_rna)
+    
+    return sum(scores_cold) + sum(scores_hot) + score_free_energy
+
+def vienna_score_temp(seq1: str, seq2: str,
+                      is_rna:bool, temp: float,
+                      parasitic_complex_max_score: float, accessibility_max_score: float,
+                      parasitic_max_order_magnitude: float,
+                      score_region_1:list, score_region_2:list,
+                      score_strand_1: bool, score_strand_2:bool, hot:bool) -> tuple[float, float, float]:
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
     else:
@@ -45,7 +71,8 @@ def vienna_score_temp(seq1: str, seq2: str, is_rna:bool, temp: float):
     ab = seq1 + "&" + seq2
     fc_ab = RNA.fold_compound(ab, model)
     (energy_a, energy_b, energy_ab) = fc_ab.pf_dimer()[1:4]
-    bpp = fc_ab.bpp()
+    bpp_tuple = fc_ab.bpp()
+    bpp = numpy.array(bpp_tuple)[1:,1:]
 
     aa = seq1 + "&" + seq1
     fc_aa = RNA.fold_compound(aa, model)
@@ -56,10 +83,82 @@ def vienna_score_temp(seq1: str, seq2: str, is_rna:bool, temp: float):
     energy_bb = fc_bb.pf()[1]
 
     RNA.co_pf_fold("C") # Bug requires pf calculation
-    (ab_final, aa_final, bb_final, a_final, b_final) = RNA.get_concentrations(energy_ab, energy_aa, energy_bb, energy_a, energy_b, 1e-6, 1e-6) # TODO put concentrations here
+    (hybrid_concentration, aa_final, bb_final, a_final, b_final) = RNA.get_concentrations(energy_ab, energy_aa, energy_bb, energy_a, energy_b, 1e-6, 1e-6) # TODO put concentrations here
     # TODO make strand concentration a parameter of nucl_acid
 
-    return 6.0
+    total_unbound_concentration = a_final + b_final
+    total_parasitic_concentration = aa_final + bb_final
+
+    parasitic_score = parasitic_complex_max_score
+    hybrid_score = accessibility_max_score
+    accessibility_score = accessibility_max_score
+
+    if total_unbound_concentration == 0 and hybrid_concentration == 0: # Worst case - all parasitic, no unbound and no hybrid
+        parasitic_score = parasitic_complex_max_score
+    elif total_parasitic_concentration == 0:
+        parasitic_score = 0.0
+    else:
+        parasitic_score = log10(
+            total_parasitic_concentration / (total_unbound_concentration + hybrid_concentration)
+            ) + parasitic_max_order_magnitude
+        if parasitic_score < 0:
+            parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
+        elif parasitic_score > parasitic_complex_max_score:
+            parasitic_score = parasitic_complex_max_score #cap cost of having a poor monomer formation
+    
+    if hybrid_concentration == 0:
+        hybrid_score = accessibility_max_score
+    elif total_unbound_concentration == 0:
+        hybrid_score = 0.0
+    else:
+        # NOTE - in this implementation, hybrid_score and accessibility_score are given the same caps.
+        # This is because they vary together.
+        hybrid_score = (log10(total_unbound_concentration / hybrid_concentration) + 0.5) * 31.62278 # For min score, needs a change of 10^2
+        if hybrid_score < 0:
+            hybrid_score = 0
+        elif hybrid_score > accessibility_max_score:
+            hybrid_score = accessibility_max_score #cap cost
+
+    sub_pairs_arr_1 = bpp[0:len(score_region_1), len(score_region_1):]
+    sub_pairs_arr_2 = bpp[len(score_region_1):, 0:len(score_region_1)]
+
+    sub_pairs_arr = sub_pairs_arr_1
+    
+    for i, row in enumerate(sub_pairs_arr_2):
+        for j, elem in enumerate(row):
+            sub_pairs_arr[j,i] += elem
+
+    paired_strand_1 = numpy.sum(sub_pairs_arr, axis=0)
+    paired_strand_2 = numpy.sum(sub_pairs_arr, axis=1)
+    
+    total_bound_1 = 0.0
+    count_scored_nuc_1 = 0
+
+    total_bound_2 = 0.0
+    count_scored_nuc_2 = 0
+
+    if score_strand_1:
+        for i, x in enumerate(score_region_1): # NOTE! Higher pair probs mean MORE pairing, not less as in the diagonal!
+            if x:
+                total_bound_1 += paired_strand_1[i]
+                count_scored_nuc_1+=1
+    if score_strand_2:
+        for i, x in enumerate(score_region_2):
+            if x:
+                total_bound_2 += paired_strand_2[i]
+                count_scored_nuc_2+=1
+    
+    accessibility_score = (total_bound_1 + total_bound_2) / float(count_scored_nuc_1 + count_scored_nuc_2)
+    if accessibility_score > accessibility_max_score:
+        accessibility_score = accessibility_max_score
+
+    if hot:
+        hybrid_score = accessibility_max_score - hybrid_score
+
+        # TODO penalize ss formation in scored monomeric strand(s) at high temp
+    else:
+        accessibility_score = accessibility_max_score - accessibility_score
+    return (parasitic_score, hybrid_score, accessibility_score)
 
 def vienna_score_energy(seq1:str, seq2:str, temp:float, target_energy: float, free_energy_max_score: float, is_rna: bool) -> float:
     if not is_rna:

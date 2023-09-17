@@ -176,6 +176,39 @@ def nupack_score_temp(
 
     if hot:
         hybrid_score = accessibility_max_score - hybrid_score # TODO replace with new parameter?
+        
+        # penalize ss formation in the scored monomeric strand(s) at high temp
+        monomeric_accessibility_score_1 = 0.0
+        count_scored_nuc_1 = 0
+        monomeric_accessibility_score_2 = 0.0
+        count_scored_nuc_2 = 0
+        
+        if score_strand_1:
+            diagonal = results_nucl.complexes[unbound_complexes[0]].pairs.diagonal
+            for i, x in enumerate(score_region_1):
+                if x:
+                    monomeric_accessibility_score_1 += diagonal[i]
+                    count_scored_nuc_1+=1
+            monomeric_accessibility_score_1 = monomeric_accessibility_score_1 / count_scored_nuc_1
+        
+        if score_strand_2:
+            diagonal = results_nucl.complexes[unbound_complexes[1]].pairs.diagonal
+            for i, x in enumerate(score_region_2):
+                if x:
+                    monomeric_accessibility_score_2 += diagonal[i]
+                    count_scored_nuc_2+=1
+            monomeric_accessibility_score_2 = monomeric_accessibility_score_2 / count_scored_nuc_2
+        
+        if monomeric_accessibility_score_1 > accessibility_max_score:
+            monomeric_accessibility_score_1 = accessibility_max_score
+        if monomeric_accessibility_score_2 > accessibility_max_score:
+            monomeric_accessibility_score_2 = accessibility_max_score
+        
+        monomeric_accessibility_score_1 = accessibility_max_score - monomeric_accessibility_score_1
+        monomeric_accessibility_score_2 = accessibility_max_score - monomeric_accessibility_score_2
+
+        accessibility_score += monomeric_accessibility_score_1 + monomeric_accessibility_score_2
+
     else:
         accessibility_score = accessibility_max_score - accessibility_score
 
