@@ -3,8 +3,8 @@ from math import log10
 from params import design_parameters
 import numpy
 
-def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, score_strand_1:bool,
-                        sequence_2:str, score_region_2:list, is_rna_2:bool, score_strand_2:bool,
+def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, score_strand_1:bool, concentration_1:float,
+                        sequence_2:str, score_region_2:list, is_rna_2:bool, score_strand_2:bool, concentration_2:float,
                         design_parameters:design_parameters) -> float:
     if len(sequence_1) != len(score_region_1) or len(sequence_2) != len(score_region_2):
         raise ValueError
@@ -47,7 +47,7 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
     parasitic_complexes.append(complex_BB)
 
     # TODO make strand concentration a parameter of each nucl_acid and have it passed in as an arg to this fxn
-    tube_nucl = Tube(strands={strand_A:design_parameters.nucl_concentration, strand_B:design_parameters.nucl_concentration},
+    tube_nucl = Tube(strands={strand_A:concentration_1, strand_B:concentration_2},
                      complexes=SetSpec(max_size=2, include=(complex_A, complex_B, complex_AA, complex_AB, complex_BB)), name='tube_nucl')
     
     scores_cold = nupack_score_temp(

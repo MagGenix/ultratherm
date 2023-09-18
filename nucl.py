@@ -15,7 +15,8 @@ from vienna_score_hybrid import vienna_score_hybrid
 class nucl_acid():
     """nucleic acid. Stores its sequence, score, no_mod, no_no_indel, score_region, and whether it is RNA or DNA.
     """
-    def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list, is_rna: bool):
+    def __init__(self, sequence: Seq, no_mod: list, no_indel: list, score_region: list,
+                 is_rna: bool, concentration: float = 1e-6):
         """Create a new nucl_acid.
 
         Args:
@@ -39,11 +40,16 @@ class nucl_acid():
             raise Exception("no_indel length is not equal to seq length")
         if len(score_region) != len(sequence):
             raise Exception("score_region length is not equal to seq length")
+        if concentration <= 0:
+            raise ValueError
+        if concentration > 10: # Cap concentrations at 10M
+            raise ValueError
         self.sequence = sequence
         self.no_mod = no_mod
         self.no_indel = no_indel
         self.score_region = score_region
         self.is_rna = is_rna
+        self.concentration = concentration
 
         #Check that definded RNAs do not contain DNA bases and vice versa
         if self.is_rna and self.sequence.find('T') != -1:
@@ -90,9 +96,9 @@ class nucl_acid():
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
             self.score = 6.0
         elif design_parameters.program == "NUPACK":  
-            self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
+            self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters, concentration=self.concentration)
         elif design_parameters.program == "VIENNA":
-            self.score = vienna_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters)
+            self.score = vienna_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters, concentration=self.concentration)
         else:
             raise Exception("no program specified for scoring")
 
@@ -141,7 +147,9 @@ class nucl_hybrid():
                                              is_rna_2=self.nucl_2.is_rna,
                                              design_parameters=design_parameters,
                                              score_strand_1=self.score_strand_1,
-                                             score_strand_2=self.score_strand_2)
+                                             score_strand_2=self.score_strand_2,
+                                             concentration_1=self.nucl_1.concentration,
+                                             concentration_2=self.nucl_2.concentration)
         elif design_parameters.program == "VIENNA":
             self.score = vienna_score_hybrid(sequence_1=str(self.nucl_1.sequence),
                                              score_region_1=self.nucl_1.score_region,
@@ -151,7 +159,9 @@ class nucl_hybrid():
                                              is_rna_2=self.nucl_2.is_rna,
                                              design_parameters=design_parameters,
                                              score_strand_1=self.score_strand_1,
-                                             score_strand_2=self.score_strand_2)
+                                             score_strand_2=self.score_strand_2,
+                                             concentration_1=self.nucl_1.concentration,
+                                             concentration_2=self.nucl_2.concentration)
         else:
             raise Exception("no program specified for scoring")
 

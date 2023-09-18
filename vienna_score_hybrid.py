@@ -3,8 +3,8 @@ from math import log10
 from params import design_parameters
 import numpy
 
-def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, score_strand_1:bool,
-                        sequence_2:str, score_region_2:list, is_rna_2:bool, score_strand_2:bool,
+def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, score_strand_1:bool, concentration_1:float,
+                        sequence_2:str, score_region_2:list, is_rna_2:bool, score_strand_2:bool, concentration_2:float,
                         design_parameters:design_parameters) -> float:
     if len(sequence_1) != len(score_region_1) or len(sequence_2) != len(score_region_2):
         raise ValueError
@@ -34,7 +34,8 @@ def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
         accessibility_max_score=design_parameters.accessibility_max_score,
         parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         score_region_1=score_region_1, score_region_2=score_region_2,
-        score_strand_1=score_strand_1, score_strand_2=score_strand_2, hot=False)
+        score_strand_1=score_strand_1, score_strand_2=score_strand_2, hot=False,
+        concentration_1=concentration_1, concentration_2=concentration_2)
 
     scores_hot = vienna_score_temp(
         seq1=sequence_1, seq2=sequence_2, is_rna=is_rna, temp=hot_temp,
@@ -42,7 +43,8 @@ def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
         accessibility_max_score=design_parameters.accessibility_max_score,
         parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         score_region_1=score_region_1, score_region_2=score_region_2,
-        score_strand_1=score_strand_1, score_strand_2=score_strand_2, hot=True)
+        score_strand_1=score_strand_1, score_strand_2=score_strand_2, hot=True,
+        concentration_1=concentration_1, concentration_2=concentration_2)
 
     score_free_energy = vienna_score_energy(
         seq1=sequence_1, seq2=sequence_2,
@@ -58,7 +60,8 @@ def vienna_score_temp(seq1: str, seq2: str,
                       parasitic_complex_max_score: float, accessibility_max_score: float,
                       parasitic_max_order_magnitude: float,
                       score_region_1:list, score_region_2:list,
-                      score_strand_1: bool, score_strand_2:bool, hot:bool) -> tuple[float, float, float]:
+                      score_strand_1: bool, score_strand_2:bool, hot:bool,
+                      concentration_1:float, concentration_2:float) -> tuple[float, float, float]:
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
     else:
@@ -83,7 +86,7 @@ def vienna_score_temp(seq1: str, seq2: str,
     energy_bb = fc_bb.pf()[1]
 
     RNA.co_pf_fold("C") # Bug requires pf calculation
-    (hybrid_concentration, aa_final, bb_final, a_final, b_final) = RNA.get_concentrations(energy_ab, energy_aa, energy_bb, energy_a, energy_b, 1e-6, 1e-6) # TODO put concentrations here
+    (hybrid_concentration, aa_final, bb_final, a_final, b_final) = RNA.get_concentrations(energy_ab, energy_aa, energy_bb, energy_a, energy_b, concentration_1, concentration_2) # TODO put concentrations here
     # TODO make strand concentration a parameter of nucl_acid
 
     total_unbound_concentration = a_final + b_final
@@ -209,7 +212,7 @@ def vienna_score_temp(seq1: str, seq2: str,
 
     else:
         accessibility_score = accessibility_max_score - accessibility_score
-        
+
     return (parasitic_score, hybrid_score, accessibility_score)
 
 def vienna_score_energy(seq1:str, seq2:str, temp:float, target_energy: float, free_energy_max_score: float, is_rna: bool) -> float:

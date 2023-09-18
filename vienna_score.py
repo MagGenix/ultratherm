@@ -2,7 +2,7 @@ import RNA
 from math import exp, log10
 from params import design_parameters
 
-def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters:design_parameters) -> float:
+def vienna_score(sequence:str, score_region:list, is_rna:bool, concentration: float, design_parameters:design_parameters) -> float:
     """Scores a sequence (using ViennaRNA) on score region accessibility, free energy, and dimer formation.
 
     Args:
@@ -37,12 +37,12 @@ def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters
         hot_temp = 100
 
     scores_hot = vienna_score_temp(seq=sequence, score_region=score_region, temp=hot_temp,
-        nucl_concentration=design_parameters.nucl_concentration,
+        nucl_concentration=concentration,
         parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         accessibility_max_score=design_parameters.accessibility_max_score, hot=True, is_rna=is_rna)
     scores_cold = vienna_score_temp(seq=sequence, score_region=score_region, temp=cold_temp,
-        nucl_concentration=design_parameters.nucl_concentration,
+        nucl_concentration=concentration,
         parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         accessibility_max_score=design_parameters.accessibility_max_score, hot=False, is_rna=is_rna)
