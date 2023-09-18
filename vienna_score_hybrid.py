@@ -154,10 +154,62 @@ def vienna_score_temp(seq1: str, seq2: str,
 
     if hot:
         hybrid_score = accessibility_max_score - hybrid_score
+        monomeric_accessibility_score_1 = 0.0
+        count_scored_nuc_1 = 0
+        monomeric_accessibility_score_2 = 0.0
+        count_scored_nuc_2 = 0
+        
+        if score_strand_1:
+            fc_1 = RNA.fold_compound(seq1, model)
+            basepair_probs_diagonal = list()
+            bpp = fc_1.bpp()
+            for i in range(1, len(seq1) + 1):
+                basepair_probs_diagonal.append(0.0)
+                for j in range(1, len(seq1) + 1):
+                    basepair_probs_diagonal[i - 1] += bpp[i][j] + bpp[j][i]
+            for i in range(len(basepair_probs_diagonal)):
+                basepair_probs_diagonal[i] = 1 - basepair_probs_diagonal[i]
+            monomeric_accessibility_score_1 = 0
+            count_scored_nuc_1 = 0
+            for i, x in enumerate(score_region_1):
+                if x:
+                    monomeric_accessibility_score_1 += basepair_probs_diagonal[i]
+                    count_scored_nuc_1+=1
+            
+            monomeric_accessibility_score_1 = monomeric_accessibility_score_1 / count_scored_nuc_1
+        
+        if score_strand_2:
+            fc_2 = RNA.fold_compound(seq2, model)
+            basepair_probs_diagonal = list()
+            bpp = fc_2.bpp()
+            for i in range(1, len(seq2) + 1):
+                basepair_probs_diagonal.append(0.0)
+                for j in range(1, len(seq2) + 1):
+                    basepair_probs_diagonal[i - 1] += bpp[i][j] + bpp[j][i]
+            for i in range(len(basepair_probs_diagonal)):
+                basepair_probs_diagonal[i] = 1 - basepair_probs_diagonal[i]
+            monomeric_accessibility_score_2 = 0
+            count_scored_nuc_2 = 0
+            for i, x in enumerate(score_region_2):
+                if x:
+                    monomeric_accessibility_score_2 += basepair_probs_diagonal[i]
+                    count_scored_nuc_2+=1
+            
+            monomeric_accessibility_score_2 = monomeric_accessibility_score_2 / count_scored_nuc_2
+        
+        if monomeric_accessibility_score_1 > accessibility_max_score:
+            monomeric_accessibility_score_1 = accessibility_max_score
+        if monomeric_accessibility_score_2 > accessibility_max_score:
+            monomeric_accessibility_score_2 = accessibility_max_score
+        
+        monomeric_accessibility_score_1 = accessibility_max_score - monomeric_accessibility_score_1
+        monomeric_accessibility_score_2 = accessibility_max_score - monomeric_accessibility_score_2
 
-        # TODO penalize ss formation in scored monomeric strand(s) at high temp
+        accessibility_score += monomeric_accessibility_score_1 + monomeric_accessibility_score_2
+
     else:
         accessibility_score = accessibility_max_score - accessibility_score
+        
     return (parasitic_score, hybrid_score, accessibility_score)
 
 def vienna_score_energy(seq1:str, seq2:str, temp:float, target_energy: float, free_energy_max_score: float, is_rna: bool) -> float:

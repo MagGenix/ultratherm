@@ -3,7 +3,6 @@ from blist import blacklist
 from Bio.Seq import Seq
 from params import design_parameters, read_parameters
 from des import design
-from vienna_score import vienna_score
 
 from signal import signal, SIGPIPE, SIG_IGN
 
