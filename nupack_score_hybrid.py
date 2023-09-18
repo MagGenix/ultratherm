@@ -46,7 +46,6 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
     parasitic_complexes.append(complex_AA)
     parasitic_complexes.append(complex_BB)
 
-    # TODO make strand concentration a parameter of each nucl_acid and have it passed in as an arg to this fxn
     tube_nucl = Tube(strands={strand_A:concentration_1, strand_B:concentration_2},
                      complexes=SetSpec(max_size=2, include=(complex_A, complex_B, complex_AA, complex_AB, complex_BB)), name='tube_nucl')
     

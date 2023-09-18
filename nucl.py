@@ -297,7 +297,7 @@ class nucl_set():
                     score = nucl.score
                 # Combine and represent the nucl_hybrid so it can be printed to one FASTQ record
                 elif type(nucl) == nucl_hybrid:
-                    no_mod =        nucl.nucl_1.no_mod +        [-1] + nucl.nucl_2.no_mod # TODO fix this fucking shit
+                    no_mod =        nucl.nucl_1.no_mod +        [-1] + nucl.nucl_2.no_mod
                     no_indel =      nucl.nucl_1.no_indel +      [-1] + nucl.nucl_2.no_mod
                     score_region =  nucl.nucl_2.score_region +  [-1] + nucl.nucl_2.score_region
                     
@@ -354,7 +354,6 @@ class nucl_set():
             ValueError: _description_
             ValueError: _description_
         """
-        # TODO implement reading for nucl_hybrid's
         #If any other characters are encountered, an error should be raised.
         for record in SeqIO.parse(path, "fastq"):
             quals = record.letter_annotations["phred_quality"]
