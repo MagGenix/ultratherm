@@ -32,6 +32,7 @@ def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
         seq1=sequence_1, seq2=sequence_2, is_rna=is_rna, temp=hot_temp,
         parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         accessibility_max_score=design_parameters.accessibility_max_score,
+        hybrid_max_score=design_parameters.hybrid_max_score,
         parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         score_region_1=score_region_1, score_region_2=score_region_2,
         score_strand_1=score_strand_1, score_strand_2=score_strand_2, hot=False,
@@ -41,6 +42,7 @@ def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
         seq1=sequence_1, seq2=sequence_2, is_rna=is_rna, temp=hot_temp,
         parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         accessibility_max_score=design_parameters.accessibility_max_score,
+        hybrid_max_score=design_parameters.hybrid_max_score,
         parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         score_region_1=score_region_1, score_region_2=score_region_2,
         score_strand_1=score_strand_1, score_strand_2=score_strand_2, hot=True,
@@ -57,7 +59,7 @@ def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
 
 def vienna_score_temp(seq1: str, seq2: str,
                       is_rna:bool, temp: float,
-                      parasitic_complex_max_score: float, accessibility_max_score: float,
+                      parasitic_complex_max_score: float, accessibility_max_score: float, hybrid_max_score: float,
                       parasitic_max_order_magnitude: float,
                       score_region_1:list, score_region_2:list,
                       score_strand_1: bool, score_strand_2:bool, hot:bool,
@@ -91,12 +93,12 @@ def vienna_score_temp(seq1: str, seq2: str,
     total_unbound_concentration = a_final + b_final
     total_parasitic_concentration = aa_final + bb_final
 
-    parasitic_score = parasitic_complex_max_score
-    hybrid_score = accessibility_max_score
-    accessibility_score = accessibility_max_score
+    parasitic_score = 1.0
+    hybrid_score = 1.0
+    accessibility_score = 1.0
 
     if total_unbound_concentration == 0 and hybrid_concentration == 0: # Worst case - all parasitic, no unbound and no hybrid
-        parasitic_score = parasitic_complex_max_score
+        parasitic_score = 1.0
     elif total_parasitic_concentration == 0:
         parasitic_score = 0.0
     else:
@@ -105,11 +107,11 @@ def vienna_score_temp(seq1: str, seq2: str,
             ) + parasitic_max_order_magnitude
         if parasitic_score < 0:
             parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
-        elif parasitic_score > parasitic_complex_max_score:
-            parasitic_score = parasitic_complex_max_score #cap cost of having a poor monomer formation
+        elif parasitic_score > 1.0:
+            parasitic_score = 1.0 #cap cost of having a poor monomer formation
     
     if hybrid_concentration == 0:
-        hybrid_score = accessibility_max_score
+        hybrid_score = 1.0
     elif total_unbound_concentration == 0:
         hybrid_score = 0.0
     else:
@@ -118,8 +120,8 @@ def vienna_score_temp(seq1: str, seq2: str,
         hybrid_score = (log10(total_unbound_concentration / hybrid_concentration) + 0.5) * 31.62278 # For min score, needs a change of 10^2
         if hybrid_score < 0:
             hybrid_score = 0
-        elif hybrid_score > accessibility_max_score:
-            hybrid_score = accessibility_max_score #cap cost
+        elif hybrid_score > 1.0:
+            hybrid_score = 1.0 #cap cost
 
     sub_pairs_arr_1 = bpp[0:len(score_region_1), len(score_region_1):]
     sub_pairs_arr_2 = bpp[len(score_region_1):, 0:len(score_region_1)]
@@ -151,67 +153,36 @@ def vienna_score_temp(seq1: str, seq2: str,
                 count_scored_nuc_2+=1
     
     accessibility_score = (total_bound_1 + total_bound_2) / float(count_scored_nuc_1 + count_scored_nuc_2)
-    if accessibility_score > accessibility_max_score:
-        accessibility_score = accessibility_max_score
+    if accessibility_score > 1.0:
+        accessibility_score = 1.0
 
     if hot:
-        hybrid_score = accessibility_max_score - hybrid_score
+        hybrid_score = 1.0 - hybrid_score
         monomeric_accessibility_score_1 = 0.0
-        count_scored_nuc_1 = 0
         monomeric_accessibility_score_2 = 0.0
-        count_scored_nuc_2 = 0
-        
+
         if score_strand_1:
-            fc_1 = RNA.fold_compound(seq1, model)
-            basepair_probs_diagonal = list()
-            bpp = fc_1.bpp()
-            for i in range(1, len(seq1) + 1):
-                basepair_probs_diagonal.append(0.0)
-                for j in range(1, len(seq1) + 1):
-                    basepair_probs_diagonal[i - 1] += bpp[i][j] + bpp[j][i]
-            for i in range(len(basepair_probs_diagonal)):
-                basepair_probs_diagonal[i] = 1 - basepair_probs_diagonal[i]
-            monomeric_accessibility_score_1 = 0
-            count_scored_nuc_1 = 0
-            for i, x in enumerate(score_region_1):
-                if x:
-                    monomeric_accessibility_score_1 += basepair_probs_diagonal[i]
-                    count_scored_nuc_1+=1
-            
-            monomeric_accessibility_score_1 = monomeric_accessibility_score_1 / count_scored_nuc_1
+            monomeric_accessibility_score_1 = vienna_score_monomeric_accessibility(seq=seq1, model=model, score_region=score_region_1)
         
         if score_strand_2:
-            fc_2 = RNA.fold_compound(seq2, model)
-            basepair_probs_diagonal = list()
-            bpp = fc_2.bpp()
-            for i in range(1, len(seq2) + 1):
-                basepair_probs_diagonal.append(0.0)
-                for j in range(1, len(seq2) + 1):
-                    basepair_probs_diagonal[i - 1] += bpp[i][j] + bpp[j][i]
-            for i in range(len(basepair_probs_diagonal)):
-                basepair_probs_diagonal[i] = 1 - basepair_probs_diagonal[i]
-            monomeric_accessibility_score_2 = 0
-            count_scored_nuc_2 = 0
-            for i, x in enumerate(score_region_2):
-                if x:
-                    monomeric_accessibility_score_2 += basepair_probs_diagonal[i]
-                    count_scored_nuc_2+=1
-            
-            monomeric_accessibility_score_2 = monomeric_accessibility_score_2 / count_scored_nuc_2
+            monomeric_accessibility_score_2 = vienna_score_monomeric_accessibility(seq=seq2, model=model, score_region=score_region_2)
         
-        if monomeric_accessibility_score_1 > accessibility_max_score:
-            monomeric_accessibility_score_1 = accessibility_max_score
-        if monomeric_accessibility_score_2 > accessibility_max_score:
-            monomeric_accessibility_score_2 = accessibility_max_score
+        if monomeric_accessibility_score_1 > 1.0:
+            monomeric_accessibility_score_1 = 1.0
+        if monomeric_accessibility_score_2 > 1.0:
+            monomeric_accessibility_score_2 = 1.0
         
-        monomeric_accessibility_score_1 = accessibility_max_score - monomeric_accessibility_score_1
-        monomeric_accessibility_score_2 = accessibility_max_score - monomeric_accessibility_score_2
+        monomeric_accessibility_score_1 = 1.0 - monomeric_accessibility_score_1
+        monomeric_accessibility_score_2 = 1.0 - monomeric_accessibility_score_2
 
         accessibility_score += monomeric_accessibility_score_1 + monomeric_accessibility_score_2
 
     else:
-        accessibility_score = accessibility_max_score - accessibility_score
+        accessibility_score = 1.0 - accessibility_score
 
+    parasitic_score = parasitic_complex_max_score * parasitic_score
+    hybrid_score = hybrid_max_score * hybrid_score
+    accessibility_score = accessibility_max_score * accessibility_score
     return (parasitic_score, hybrid_score, accessibility_score)
 
 def vienna_score_energy(seq1:str, seq2:str, temp:float, target_energy: float, free_energy_max_score: float, is_rna: bool) -> float:
@@ -230,6 +201,30 @@ def vienna_score_energy(seq1:str, seq2:str, temp:float, target_energy: float, fr
     score_free_energy = (target_energy - ensemble_energy) / target_energy
     if score_free_energy < 0:
         score_free_energy = 0
-    elif score_free_energy > free_energy_max_score:
-        score_free_energy = free_energy_max_score
+    elif score_free_energy > 1.0:
+        score_free_energy = 1.0
+    
+    score_free_energy = free_energy_max_score * score_free_energy
     return score_free_energy
+
+def vienna_score_monomeric_accessibility(seq: str, model: RNA.md, score_region:list):
+    fc = RNA.fold_compound(seq, model)
+    basepair_probs_diagonal = list()
+    fc.pf()
+    bpp = fc.bpp()
+    for i in range(1, len(seq) + 1):
+        basepair_probs_diagonal.append(0.0)
+        for j in range(1, len(seq) + 1):
+            basepair_probs_diagonal[i - 1] += bpp[i][j] + bpp[j][i]
+    for i in range(len(basepair_probs_diagonal)):
+        basepair_probs_diagonal[i] = 1 - basepair_probs_diagonal[i]
+    monomeric_accessibility_score = 0
+    count_scored_nuc = 0
+    for i, x in enumerate(score_region):
+        if x:
+            monomeric_accessibility_score += basepair_probs_diagonal[i]
+            count_scored_nuc+=1
+    
+    monomeric_accessibility_score = monomeric_accessibility_score / count_scored_nuc
+
+    return monomeric_accessibility_score

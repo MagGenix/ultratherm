@@ -114,8 +114,8 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
             count_scored_nuc+=1
     accessibility_score = accessibility_score / count_scored_nuc
 
-    if accessibility_score > accessibility_max_score:
-        accessibility_score = accessibility_max_score
+    if accessibility_score > 1.0:
+        accessibility_score = 1.0
 
     dimer_energy = vienna_dimer_energy(seq=seq, temp=temp, is_rna=is_rna)
 
@@ -137,12 +137,15 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     parasitic_score = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * nucl_concentration) + parasitic_max_order_magnitude
     if parasitic_score < 0:
         parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
-    elif parasitic_score > parasitic_complex_max_score:
-        parasitic_score = parasitic_complex_max_score #cap cost of having a poor monomer formation
+    elif parasitic_score > 1.0:
+        parasitic_score = 1.0 #cap cost of having a poor monomer formation
 
     if hot:
-        accessibility_score = accessibility_max_score - accessibility_score
+        accessibility_score = 1.0 - accessibility_score
     
+    parasitic_score = parasitic_complex_max_score * parasitic_score
+    accessibility_score = accessibility_max_score * accessibility_score
+
     return (parasitic_score, accessibility_score)
     
 def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float: # TODO collapse this function into vienna_score_temp - we can have more than one fold_compond!
@@ -197,6 +200,8 @@ def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_m
     score_free_energy = (target_energy - ensemble_energy) / target_energy
     if score_free_energy < 0:
         score_free_energy = 0
-    elif score_free_energy > free_energy_max_score:
-        score_free_energy = free_energy_max_score
+    elif score_free_energy > 1.0:
+        score_free_energy = 1.0
+    
+    score_free_energy = free_energy_max_score * score_free_energy
     return score_free_energy

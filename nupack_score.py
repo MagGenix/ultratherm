@@ -95,8 +95,10 @@ def nupack_score_energy(
     score_free_energy = (energy - results_nucl.complexes[complex_nucl_single].free_energy) / energy
     if score_free_energy < 0:
         score_free_energy = 0
-    elif score_free_energy > free_energy_max_score:
-        score_free_energy = free_energy_max_score
+    elif score_free_energy > 1.0:
+        score_free_energy = 1.0
+
+    score_free_energy = free_energy_max_score * score_free_energy
 
     return score_free_energy
 
@@ -145,8 +147,8 @@ def nupack_score_temp(
         parasitic_score = log10(nucl_dimer_conc / nucl_monomer_conc) + parasitic_max_order_magnitude # +2 means dimer must be 2 factors of 10 less abundant to avoid score penalty
         if parasitic_score < 0:
             parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
-        elif parasitic_score > parasitic_complex_max_score:
-            parasitic_score = parasitic_complex_max_score #cap cost of having a poor monomer formation
+        elif parasitic_score > 1.0:
+            parasitic_score = 1.0 #cap cost of having a poor monomer formation
     
     if len(results_nucl.complexes[complex_nucl_single].pairs.diagonal) != len(score_region):
         raise ValueError
@@ -160,10 +162,12 @@ def nupack_score_temp(
             count_scored_nuc+=1
     accessibility_score = accessibility_score / count_scored_nuc
 
-    if accessibility_score > accessibility_max_score:
-        accessibility_score = accessibility_max_score
+    if accessibility_score > 1.0:
+        accessibility_score = 1.0
 
     if hot:
-        accessibility_score = accessibility_max_score - accessibility_score
+        accessibility_score = 1.0 - accessibility_score
 
+    parasitic_score = parasitic_complex_max_score * parasitic_score
+    accessibility_score = accessibility_max_score * accessibility_score
     return (parasitic_score, accessibility_score)

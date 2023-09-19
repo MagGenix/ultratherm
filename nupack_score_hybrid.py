@@ -55,7 +55,7 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
         hybrid_complex=complex_AB,
         hot=False, parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         score_region_1=score_region_1, score_region_2=score_region_2,
-        accessibility_max_score=design_parameters.accessibility_max_score, parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
+        accessibility_max_score=design_parameters.accessibility_max_score, parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,hybrid_max_score=design_parameters.hybrid_max_score,
         score_strand_1=score_strand_1, score_strand_2=score_strand_2)
     
     scores_hot = nupack_score_temp(
@@ -64,7 +64,7 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
         hybrid_complex=complex_AB,
         hot=True, parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         score_region_1=score_region_1, score_region_2=score_region_2,
-        accessibility_max_score=design_parameters.accessibility_max_score, parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
+        accessibility_max_score=design_parameters.accessibility_max_score, parasitic_complex_max_score=design_parameters.parasitic_complex_max_score, hybrid_max_score=design_parameters.hybrid_max_score,
         score_strand_1=score_strand_1, score_strand_2=score_strand_2)
 
     score_free_energy = nupack_score_energy(
@@ -87,16 +87,17 @@ def nupack_score_energy(
     score_free_energy = (energy - results_nucl.complexes[hybrid_complex].free_energy) / energy
     if score_free_energy < 0:
         score_free_energy = 0
-    elif score_free_energy > free_energy_max_score:
-        score_free_energy = free_energy_max_score
+    elif score_free_energy > 1.0:
+        score_free_energy = 1.0
 
+    score_free_energy = free_energy_max_score * score_free_energy
     return score_free_energy
 
 def nupack_score_temp(
         material: str, temp:float, tube_nucl: Tube,
         unbound_complexes: list[Complex], parasitic_complexes: list[Complex], hybrid_complex: Complex,
         hot: bool, parasitic_max_order_magnitude:float, score_region_1:list, score_region_2:list,
-        accessibility_max_score: float, parasitic_complex_max_score: float,
+        accessibility_max_score: float, parasitic_complex_max_score: float, hybrid_max_score: float,
         score_strand_1: bool, score_strand_2: bool
 ) -> tuple[float, float, float]:
     
@@ -116,12 +117,12 @@ def nupack_score_temp(
         total_parasitic_concentration+=concentrations_nucl.tubes[tube_nucl].complex_concentrations[complex]
     hybrid_concentration=concentrations_nucl.tubes[tube_nucl].complex_concentrations[hybrid_complex]
 
-    parasitic_score = parasitic_complex_max_score
-    hybrid_score = accessibility_max_score
-    accessibility_score = accessibility_max_score
+    parasitic_score = 1.0
+    hybrid_score = 1.0
+    accessibility_score = 1.0
 
     if total_unbound_concentration == 0 and hybrid_concentration == 0: # Worst case - all parasitic, no unbound and no hybrid
-        parasitic_score = parasitic_complex_max_score
+        parasitic_score = 1.0
     elif total_parasitic_concentration == 0:
         parasitic_score = 0.0
     else:
@@ -130,11 +131,11 @@ def nupack_score_temp(
             ) + parasitic_max_order_magnitude
         if parasitic_score < 0:
             parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
-        elif parasitic_score > parasitic_complex_max_score:
-            parasitic_score = parasitic_complex_max_score #cap cost of having a poor monomer formation
+        elif parasitic_score > 1.0:
+            parasitic_score = 1.0 #cap cost of having a poor monomer formation
     
     if hybrid_concentration == 0:
-        hybrid_score = accessibility_max_score
+        hybrid_score = 1.0
     elif total_unbound_concentration == 0:
         hybrid_score = 0.0
     else:
@@ -143,8 +144,8 @@ def nupack_score_temp(
         hybrid_score = (log10(total_unbound_concentration / hybrid_concentration) + 0.5) * 31.62278 # For min score, needs a change of 10^2
         if hybrid_score < 0:
             hybrid_score = 0
-        elif hybrid_score > accessibility_max_score:
-            hybrid_score = accessibility_max_score #cap cost
+        elif hybrid_score > 1.0:
+            hybrid_score = 1.0 #cap cost
 
     pairs_arr = results_nucl.complexes[hybrid_complex].pairs.to_array()
     
@@ -170,11 +171,11 @@ def nupack_score_temp(
                 count_scored_nuc_2+=1
     
     accessibility_score = (total_bound_1 + total_bound_2) / float(count_scored_nuc_1 + count_scored_nuc_2)
-    if accessibility_score > accessibility_max_score:
-        accessibility_score = accessibility_max_score
+    if accessibility_score > 1.0:
+        accessibility_score = 1.0
 
     if hot:
-        hybrid_score = accessibility_max_score - hybrid_score # TODO replace with new parameter?
+        hybrid_score = 1.0 - hybrid_score # TODO replace with new parameter?
         
         # penalize ss formation in the scored monomeric strand(s) at high temp
         monomeric_accessibility_score_1 = 0.0
@@ -198,17 +199,21 @@ def nupack_score_temp(
                     count_scored_nuc_2+=1
             monomeric_accessibility_score_2 = monomeric_accessibility_score_2 / count_scored_nuc_2
         
-        if monomeric_accessibility_score_1 > accessibility_max_score:
-            monomeric_accessibility_score_1 = accessibility_max_score
-        if monomeric_accessibility_score_2 > accessibility_max_score:
-            monomeric_accessibility_score_2 = accessibility_max_score
+        if monomeric_accessibility_score_1 > 1.0:
+            monomeric_accessibility_score_1 = 1.0
+        if monomeric_accessibility_score_2 > 1.0:
+            monomeric_accessibility_score_2 = 1.0
         
-        monomeric_accessibility_score_1 = accessibility_max_score - monomeric_accessibility_score_1
-        monomeric_accessibility_score_2 = accessibility_max_score - monomeric_accessibility_score_2
+        monomeric_accessibility_score_1 = 1.0 - monomeric_accessibility_score_1
+        monomeric_accessibility_score_2 = 1.0 - monomeric_accessibility_score_2
 
         accessibility_score += monomeric_accessibility_score_1 + monomeric_accessibility_score_2
 
     else:
-        accessibility_score = accessibility_max_score - accessibility_score
+        accessibility_score = 1.0 - accessibility_score
 
+
+    parasitic_score = parasitic_complex_max_score * parasitic_score
+    hybrid_score = hybrid_max_score * hybrid_score
+    accessibility_score = accessibility_max_score * accessibility_score
     return(parasitic_score, hybrid_score, accessibility_score)
