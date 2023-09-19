@@ -299,7 +299,7 @@ class nucl_set():
                 elif type(nucl) == nucl_hybrid:
                     no_mod =        nucl.nucl_1.no_mod +        [-1] + nucl.nucl_2.no_mod
                     no_indel =      nucl.nucl_1.no_indel +      [-1] + nucl.nucl_2.no_mod
-                    score_region =  nucl.nucl_2.score_region +  [-1] + nucl.nucl_2.score_region
+                    score_region =  nucl.nucl_1.score_region +  [-1] + nucl.nucl_2.score_region
                     
                     if nucl.nucl_1.is_rna:
                         offset1 = 79

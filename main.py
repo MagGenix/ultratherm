@@ -68,10 +68,10 @@ def test():
             no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
             score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
             is_rna=True)
-    new_nucl2 = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
-            no_indel =      [0]*20+[1]*17,
-            no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
-            score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
+    new_nucl2 = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNN'),
+            no_indel =      [0]*20+[1]*14,
+            no_mod =        [0]*20+[1]*8+[0]*6,
+            score_region =  [0]*20+[1]*8+[0]*6,
             is_rna=True)
     new_nucl_dimer = nucl_hybrid(new_nucl1, new_nucl2)
     new_nucl_dimer.fitness_score(design_parameters=des_params)
