@@ -93,10 +93,6 @@ def vienna_score_temp(seq1: str, seq2: str,
     total_unbound_concentration = a_final + b_final
     total_parasitic_concentration = aa_final + bb_final
 
-    parasitic_score = 1.0
-    hybrid_score = 1.0
-    accessibility_score = 1.0
-
     if total_unbound_concentration == 0 and hybrid_concentration == 0: # Worst case - all parasitic, no unbound and no hybrid
         parasitic_score = 1.0
     elif total_parasitic_concentration == 0:
@@ -153,8 +149,6 @@ def vienna_score_temp(seq1: str, seq2: str,
                 count_scored_nuc_2+=1
     
     accessibility_score = (total_bound_1 + total_bound_2) / float(count_scored_nuc_1 + count_scored_nuc_2)
-    if accessibility_score > 1.0:
-        accessibility_score = 1.0
 
     if hot:
         hybrid_score = 1.0 - hybrid_score
@@ -162,23 +156,21 @@ def vienna_score_temp(seq1: str, seq2: str,
         monomeric_accessibility_score_2 = 0.0
 
         if score_strand_1:
-            monomeric_accessibility_score_1 = vienna_score_monomeric_accessibility(seq=seq1, model=model, score_region=score_region_1)
+            (monomeric_accessibility_score_1, count_scored_nuc_1) = vienna_score_monomeric_accessibility(seq=seq1, model=model, score_region=score_region_1)
         
         if score_strand_2:
-            monomeric_accessibility_score_2 = vienna_score_monomeric_accessibility(seq=seq2, model=model, score_region=score_region_2)
+            (monomeric_accessibility_score_2, count_scored_nuc_2) = vienna_score_monomeric_accessibility(seq=seq2, model=model, score_region=score_region_2)
         
-        if monomeric_accessibility_score_1 > 1.0:
-            monomeric_accessibility_score_1 = 1.0
-        if monomeric_accessibility_score_2 > 1.0:
-            monomeric_accessibility_score_2 = 1.0
-        
-        monomeric_accessibility_score_1 = 1.0 - monomeric_accessibility_score_1
-        monomeric_accessibility_score_2 = 1.0 - monomeric_accessibility_score_2
+        monomeric_accessibility_score = (monomeric_accessibility_score_1 + monomeric_accessibility_score_2) / (count_scored_nuc_1 + count_scored_nuc_2)
+        monomeric_accessibility_score = 1.0 - monomeric_accessibility_score
 
-        accessibility_score += monomeric_accessibility_score_1 + monomeric_accessibility_score_2
+        accessibility_score += monomeric_accessibility_score
 
     else:
         accessibility_score = 1.0 - accessibility_score
+
+    if accessibility_score > 1.0:
+        accessibility_score = 1.0
 
     parasitic_score = parasitic_complex_max_score * parasitic_score
     hybrid_score = hybrid_max_score * hybrid_score
@@ -225,6 +217,4 @@ def vienna_score_monomeric_accessibility(seq: str, model: RNA.md, score_region:l
             monomeric_accessibility_score += basepair_probs_diagonal[i]
             count_scored_nuc+=1
     
-    monomeric_accessibility_score = monomeric_accessibility_score / count_scored_nuc
-
-    return monomeric_accessibility_score
+    return (monomeric_accessibility_score, count_scored_nuc)

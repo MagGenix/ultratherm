@@ -38,7 +38,7 @@ def test():
     #     target_energy=-12.0, free_energy_max_score=1.0 , accessibility_max_score=1.0, parasitic_complex_max_score=1.0), is_rna=True)
     # print(score)
 
-    des_params = design_parameters(blacklist=blist, target_temp=55, temp_offset=4, program="VIENNA",
+    des_params = design_parameters(blacklist=blist, target_temp=55, temp_offset=4, program="NUPACK",
         weights=[8, 8, 8, 8, 10, 10, 16], weight_factor=2, num_mutants=8, target_energy=-8.0, # based on FourU Hairpin 2
         free_energy_max_score=0.9 , accessibility_max_score=0.9, parasitic_complex_max_score=0.9, thermo_score_temp=36)
     
