@@ -76,9 +76,7 @@ def vienna_score_temp(seq1: str, seq2: str,
     ab = seq1 + "&" + seq2
     fc_ab = RNA.fold_compound(ab, model)
     (energy_a, energy_b, energy_ab) = fc_ab.pf_dimer()[1:4]
-    bpp_tuple = fc_ab.bpp()
-    bpp = numpy.array(bpp_tuple)[1:,1:]
-
+    
     aa = seq1 + "&" + seq1
     fc_aa = RNA.fold_compound(aa, model)
     energy_aa = fc_aa.pf()[1]
@@ -136,6 +134,9 @@ def vienna_score_temp(seq1: str, seq2: str,
         accessibility_score = 1.0 - monomeric_accessibility_score
 
     else:
+        bpp_tuple = fc_ab.bpp()
+        bpp = numpy.array(bpp_tuple)[1:,1:]
+
         sub_pairs_arr_1 = bpp[0:len(score_region_1), len(score_region_1):]
         sub_pairs_arr_2 = bpp[len(score_region_1):, 0:len(score_region_1)]
 
