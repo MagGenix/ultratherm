@@ -1,10 +1,8 @@
 # Ultratherm
-Used for design of DNA/RNA temperature sensitive structures, including DNA thermometers, RNA thermometers, and DNA:RNA thermosensitive heteroduplexes.
-
-*Note: so far, nupack and vienna folding of non-pseudoknotted DNA and RNA thermosensitive structures has been implemented. Homo/heteroduplex folding is to come.*
+Used for design of DNA/RNA temperature sensitive structures, including DNA thermometers, RNA thermometers, and DNA:DNA or RNA:RNA thermosensitive duplexes.
 
 Design is structure-agnostic. Scoring is performed either with NUPACK or Vienna.
-NUPACK will not perform pseudoknot structure prediction and cannot fold heteroduplices.
+NUPACK will not perform pseudoknot structure prediction.
 
 ## Installing
 Use the environment.yml to make an appropriately-named conda env (prefer mamba).
