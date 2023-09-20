@@ -90,6 +90,15 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
         parallel_pool.terminate()
 
 def mutate_and_score(nucl: Union[nucl_acid, nucl_hybrid], design_parameters: design_parameters):
+    """_summary_
+
+    Args:
+        nucl (Union[nucl_acid, nucl_hybrid]): _description_
+        design_parameters (design_parameters): _description_
+
+    Returns:
+        _type_: _description_
+    """
     new_nucl = mutate(nucl = nucl, design_parameters = design_parameters)
     new_nucl.fitness_score(design_parameters = design_parameters)
     return new_nucl

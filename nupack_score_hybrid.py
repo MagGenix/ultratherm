@@ -6,6 +6,30 @@ import numpy
 def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, score_strand_1:bool, concentration_1:float,
                         sequence_2:str, score_region_2:list, is_rna_2:bool, score_strand_2:bool, concentration_2:float,
                         design_parameters:design_parameters) -> float:
+    """_summary_
+
+    Args:
+        sequence_1 (str): the sequence of strand 1.
+        score_region_1 (list): for strand 1, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        is_rna_1 (bool): whether or not strand 1 is RNA.
+        score_strand_1 (bool): whether or not to calculate accessibility scores using strand 1.
+        concentration_1 (float): the concentration of strand 1.
+        sequence_2 (str): the sequence of strand 2.
+        score_region_2 (list): for strand 2, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        is_rna_2 (bool): whether or not strand 2 is RNA.
+        score_strand_2 (bool): whether or not to calculate accessibility scores using strand 2.
+        concentration_2 (float): the concentration of strand 2.
+        design_parameters (design_parameters): The design parameters.
+
+    Raises:
+        ValueError: _description_
+        ValueError: _description_
+        Exception: _description_
+        Exception: _description_
+
+    Returns:
+        float: The total score.
+    """
     if len(sequence_1) != len(score_region_1) or len(sequence_2) != len(score_region_2):
         raise ValueError
     if is_rna_1 ^ is_rna_2: # Can only fold hybrids with the same strand types!
@@ -78,6 +102,19 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
 def nupack_score_energy(
         temp: float, energy: float, tube_nucl: Tube, hybrid_complex: Complex, free_energy_max_score:float, material: str
 ) -> float:
+    """_summary_
+
+    Args:
+        temp (float): the temperature to score at.
+        energy (float): the target free energy in kcal/mol.
+        tube_nucl (Tube): NUPACK Tube containing the strand to be scored.
+        hybrid_complex (Complex): the complex of strand 1 and strand 2.
+        free_energy_max_score (float): the maximum score penalty for having a free energy greater than target.
+        material (str): 'dna' or 'rna'.
+
+    Returns:
+        float: score_free_energy
+    """
     
     model_nucl=Model(kelvin=temp + 273.15, material=material)
     results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs'])
@@ -100,6 +137,31 @@ def nupack_score_temp(
         accessibility_max_score: float, parasitic_complex_max_score: float, hybrid_max_score: float,
         score_strand_1: bool, score_strand_2: bool
 ) -> tuple[float, float, float]:
+    """_summary_
+
+    Args:
+        material (str): 'rna' or 'dna'.
+        temp (float): the temperature to score at.
+        tube_nucl (Tube): NUPACK Tube containing the strand to be scored.
+        unbound_complexes (list[Complex]): the complexes of monomeric strands 1 and 2 (A, B)
+        parasitic_complexes (list[Complex]): the complexes 11 and 22 (AA, BB)
+        hybrid_complex (Complex): the complex 12 (AB)
+        hot (bool): whether to invert the hybrid score and assess monomeric accessibility, or do not invert hybrid score and assess hybrid accessibility.
+        parasitic_max_order_magnitude (float): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]).
+        score_region_1 (list): for strand 1, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        score_region_2 (list): for strand 2, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        accessibility_max_score (float): The maximum score penalty for score region accessibility.
+        parasitic_complex_max_score (float): The maximum score penalty for dimer formation.
+        hybrid_max_score (float): The maximum score penalty for AB formation / lack thereof.
+        score_strand_1 (bool): whether or not to calculate accessibility scores using strand 1.
+        score_strand_2 (bool): whether or not to calculate accessibility scores using strand 2.
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        tuple[float, float, float]: (parasitic_score, hybrid_score, accessibility_score)
+    """
     
     if len(hybrid_complex.strands[0]) != len(score_region_1) or len(hybrid_complex.strands[1]) != len(score_region_2):
         raise ValueError

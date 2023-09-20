@@ -10,6 +10,7 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, concentration: f
         sequence (str): the nucleic acid sequence.
         score_region (list): a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
         is_rna (bool): whether the sequence is RNA or DNA.
+        concentration (float): The concentration of the strand to be analyzed.
         design_parameters (design_parameters): The design parameters.
 
     Raises:

@@ -6,6 +6,30 @@ import numpy
 def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, score_strand_1:bool, concentration_1:float,
                         sequence_2:str, score_region_2:list, is_rna_2:bool, score_strand_2:bool, concentration_2:float,
                         design_parameters:design_parameters) -> float:
+    """_summary_
+
+    Args:
+        sequence_1 (str): the sequence of strand 1.
+        score_region_1 (list): for strand 1, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        is_rna_1 (bool): whether or not strand 1 is RNA.
+        score_strand_1 (bool): whether or not to calculate accessibility scores using strand 1.
+        concentration_1 (float): the concentration of strand 1.
+        sequence_2 (str): the sequence of strand 2.
+        score_region_2 (list): for strand 2, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        is_rna_2 (bool): whether or not strand 2 is RNA.
+        score_strand_2 (bool): whether or not to calculate accessibility scores using strand 2.
+        concentration_2 (float): the concentration of strand 2.
+        design_parameters (design_parameters): The design parameters.
+
+    Raises:
+        ValueError: _description_
+        ValueError: _description_
+        Exception: _description_
+        Exception: _description_
+
+    Returns:
+        float: The total score.
+    """
     if len(sequence_1) != len(score_region_1) or len(sequence_2) != len(score_region_2):
         raise ValueError
     if is_rna_1 ^ is_rna_2: # Can only fold hybrids with the same strand types!
@@ -64,6 +88,28 @@ def vienna_score_temp(seq1: str, seq2: str,
                       score_region_1:list, score_region_2:list,
                       score_strand_1: bool, score_strand_2:bool, hot:bool,
                       concentration_1:float, concentration_2:float) -> tuple[float, float, float]:
+    """_summary_
+
+    Args:
+        seq1 (str): the sequence of strand 1.
+        seq2 (str): the sequence of strand 2.
+        is_rna (bool): whether or not strand 1 is RNA.
+        temp (float): the temperature to score at.
+        parasitic_complex_max_score (float): The maximum score penalty for dimer formation.
+        accessibility_max_score (float): The maximum score penalty for score region accessibility.
+        hybrid_max_score (float): The maximum score penalty for AB formation / lack thereof.
+        parasitic_max_order_magnitude (float): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]).
+        score_region_1 (list): for strand 1, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        score_region_2 (list): for strand 2, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+        score_strand_1 (bool): whether or not to calculate accessibility scores using strand 1.
+        score_strand_2 (bool): whether or not to calculate accessibility scores using strand 2.
+        hot (bool): whether to invert the hybrid score and assess monomeric accessibility, or do not invert hybrid score and assess hybrid accessibility.
+        concentration_1 (float): Concentration of strand 1.
+        concentration_2 (float): Concentration of strand 2.
+
+    Returns:
+        tuple[float, float, float]: _description_
+    """
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
     else:
@@ -178,6 +224,19 @@ def vienna_score_temp(seq1: str, seq2: str,
     return (parasitic_score, hybrid_score, accessibility_score)
 
 def vienna_score_energy(seq1:str, seq2:str, temp:float, target_energy: float, free_energy_max_score: float, is_rna: bool) -> float:
+    """_summary_
+
+    Args:
+        seq1 (str): the sequence of strand 1.
+        seq2 (str): the sequence of strand 2.
+        temp (float): the temperature to score at.
+        target_energy (float): the target free energy in kcal/mol.
+        free_energy_max_score (float): the maximum score penalty for having a free energy greater than target.
+        is_rna (bool): whether the nucleic acid is RNA or DNA.
+
+    Returns:
+        float: score_free_energy
+    """
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
     else:
@@ -199,7 +258,17 @@ def vienna_score_energy(seq1:str, seq2:str, temp:float, target_energy: float, fr
     score_free_energy = free_energy_max_score * score_free_energy
     return score_free_energy
 
-def vienna_score_monomeric_accessibility(seq: str, model: RNA.md, score_region:list):
+def vienna_score_monomeric_accessibility(seq: str, model: RNA.md, score_region:list) -> tuple[float, float]:
+    """_summary_
+
+    Args:
+        seq (str): the strand sequence.
+        model (RNA.md): A ViennaRNA model including the temperature to fold at.
+        score_region (list): for the strand, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
+
+    Returns:
+        tuple[float,float]: (monomeric_accessibility_score, count_scored_nuc)
+    """
     fc = RNA.fold_compound(seq, model)
     basepair_probs_diagonal = list()
     fc.pf()

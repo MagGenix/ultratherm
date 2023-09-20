@@ -24,8 +24,8 @@ class nucl_acid():
             no_mod (list): A list() of 0 and 1 (ints), where 1 denotes nucleotides that CANNOT be modified (neither indels nor substitutions).
             no_indel (list): A list() of 0 and 1 (ints), where 1 denotes nucleotides that CANNOT have indel mutations adjacent to them.
             score_region (list): A list() of 0 and 1 (ints), where 1 denotes nucleotides that will be scored for high pair probability at temp - offset and low pair probability at temp + offset.
-            design_parameters (design_parameters): the design parameters.
             is_rna (bool): whether the nucleic acid is DNA or RNA.
+            concentration (float): the concentration of the nucl_acid in solution. Defaults to 1e-6.
 
         Raises:
             Exception: _description_
@@ -125,6 +125,17 @@ class nucl_acid():
 
 class nucl_hybrid():
     def __init__(self, nucl_1: nucl_acid, nucl_2:nucl_acid, score_strand_1: bool = True, score_strand_2: bool = True):
+        """_summary_
+
+        Args:
+            nucl_1 (nucl_acid): the first nucl_acid in the hybrid.
+            nucl_2 (nucl_acid): the second nucl_acid in the hybrid.
+            score_strand_1 (bool, optional): Whether or not to score strand 1 for accessibility. Defaults to True.
+            score_strand_2 (bool, optional): Whether or not to score strand 2 for accessibility. Defaults to True.
+
+        Raises:
+            ValueError: _description_
+        """
         self.nucl_1 = nucl_1
         self.nucl_2 = nucl_2
         self.score = None
@@ -192,7 +203,7 @@ class nucl_set():
         """Create a new nucl_set.
 
         Args:
-            nucls (list): a list of nucl_acid and/or nucl_hybrid.
+            nucls (list[Union[nucl_acid, nucl_hybrid]]): a list of nucl_acid and/or nucl_hybrid.
 
         Raises:
             TypeError: A member of the list was not a nucl_acid.
@@ -213,12 +224,12 @@ class nucl_set():
             as_string = as_string + str(nucl) + "\n"
         return as_string
 
-    def replace(self, index:int, new_nucl_acid:nucl_acid) -> None:
+    def replace(self, index:int, new_nucl:Union[nucl_acid, nucl_hybrid]) -> None:
         """Replace a nucl_acid in the nucl_set.
 
         Args:
-            index (int): the index of the nucl_acid in nucls[].
-            new_nucl_acid (nucl_acid): a new nucl_acid object to insert at the index.
+            index (int): the index of the nucl_acid or nucl_hybrid in nucls[].
+            new_nucl (Union[nucl_acid, nucl_hybrid]): a new nucl_acid or nucl_hybrid object to insert at the index.
 
         Raises:
             IndexError: _description_
@@ -231,17 +242,17 @@ class nucl_set():
         if index > len(self) - 1:
             raise IndexError
         
-        if new_nucl_acid.score == None:
+        if new_nucl.score == None:
             raise ValueError # scores array MUST support comparison!
         
-        self.nucls[index] = new_nucl_acid
-        self.scores[index] = new_nucl_acid.score
+        self.nucls[index] = new_nucl
+        self.scores[index] = new_nucl.score
 
     def append(self, new_nucl: Union[nucl_acid, nucl_hybrid]) -> None:
         """Append a nucl_acid or nucl_hybrid to the end of the nucl_set.
 
         Args:
-            new_nucl_acid (nucl_acid): a nucl_acid object to append.
+            new_nucl_acid (Union[nucl_acid, nucl_hybrid]): a nucl_acid or nucl_hybrid object to append.
         """
         if new_nucl.score == None:
             raise ValueError # scores array MUST support comparison!
@@ -254,7 +265,18 @@ class nucl_set():
 
         Args:
             index (int): the index of the nucl_acid object in nucls[] to be removed.
+        
+        Raises:
+            IndexError: _description_
+            IndexError: _description_
         """
+        if index < 0:
+            raise IndexError
+        
+        #nucl_set is zero-indexed!
+        if index > len(self) - 1:
+            raise IndexError
+        
         del self.nucls[index]
         del self.scores[index]
 
@@ -263,6 +285,9 @@ class nucl_set():
 
         Args:
             path (str): Path to save the file. If no directory specified will save to source directory.
+        
+        Raises:
+            TypeError: _description_
         """
         #raises IOError if path is invalid, overwrites existing files
         #This saves to a .fastq, where the quality scores are used instead for bitwise indicating nomod, noindel, scoreregion
@@ -419,14 +444,15 @@ def mutate(nucl: Union[nucl_acid, nucl_hybrid], design_parameters:design_paramet
     """Mutates a nucl_acid given design parameters and returns a mutated, scored nucl_acid. Does not modify the original.
 
     Args:
-        nucl (nucl_acid): the nucl_acid to make a mutant of.
+        nucl (Union[nucl_acid, nucl_hybrid]): the nucl_acid or nucl_hybrid to make a mutant of.
         design_parameters (design_parameters): the design parameters.
 
     Raises:
         ValueError: _description_
+        TypeError: _description_
 
     Returns:
-        nucl_acid: a new nucl_acid.
+        Union[nucl_acid, nucl_hybrid]: a new nucl_acid or nucl_hybrid.
     """
     #I'm trying to make this function as fast as possible since it will be called once per every single
     #nucleotide in a sequence to generate one variant.
