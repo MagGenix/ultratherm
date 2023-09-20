@@ -173,8 +173,8 @@ def nupack_score_temp(
         pairs_arr = results_nucl.complexes[hybrid_complex].pairs.to_array()
         
         sub_pairs_arr = pairs_arr[0:len(score_region_1), len(score_region_1):]
-        paired_strand_1 = numpy.sum(sub_pairs_arr, axis=0)
-        paired_strand_2 = numpy.sum(sub_pairs_arr, axis=1)
+        paired_strand_1 = numpy.sum(sub_pairs_arr, axis=1)
+        paired_strand_2 = numpy.sum(sub_pairs_arr, axis=0)
         
         total_bound_1 = 0.0
         count_scored_nuc_1 = 0

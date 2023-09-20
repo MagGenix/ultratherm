@@ -146,8 +146,8 @@ def vienna_score_temp(seq1: str, seq2: str,
             for j, elem in enumerate(row):
                 sub_pairs_arr[j,i] += elem
 
-        paired_strand_1 = numpy.sum(sub_pairs_arr, axis=0)
-        paired_strand_2 = numpy.sum(sub_pairs_arr, axis=1)
+        paired_strand_1 = numpy.sum(sub_pairs_arr, axis=1)
+        paired_strand_2 = numpy.sum(sub_pairs_arr, axis=0)
         
         total_bound_1 = 0.0
         count_scored_nuc_1 = 0
