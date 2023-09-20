@@ -142,32 +142,7 @@ def nupack_score_temp(
             hybrid_score = 0
         elif hybrid_score > 1.0:
             hybrid_score = 1.0 #cap cost
-
-    pairs_arr = results_nucl.complexes[hybrid_complex].pairs.to_array()
     
-    sub_pairs_arr = pairs_arr[0:len(score_region_1), len(score_region_1):]
-    paired_strand_1 = numpy.sum(sub_pairs_arr, axis=0)
-    paired_strand_2 = numpy.sum(sub_pairs_arr, axis=1)
-    
-    total_bound_1 = 0.0
-    count_scored_nuc_1 = 0
-
-    total_bound_2 = 0.0
-    count_scored_nuc_2 = 0
-
-    if score_strand_1:
-        for i, x in enumerate(score_region_1): # NOTE! Higher pair probs mean MORE pairing, not less as in the diagonal!
-            if x:
-                total_bound_1 += paired_strand_1[i]
-                count_scored_nuc_1+=1
-    if score_strand_2:
-        for i, x in enumerate(score_region_2):
-            if x:
-                total_bound_2 += paired_strand_2[i]
-                count_scored_nuc_2+=1
-    
-    accessibility_score = (total_bound_1 + total_bound_2) / float(count_scored_nuc_1 + count_scored_nuc_2)
-
     if hot:
         hybrid_score = 1.0 - hybrid_score
         
@@ -191,15 +166,36 @@ def nupack_score_temp(
                     monomeric_accessibility_score_2 += diagonal[i]
                     count_scored_nuc_2+=1
         
-        monomeric_accessibility_score = (monomeric_accessibility_score_1 + monomeric_accessibility_score_2) / (count_scored_nuc_1 + count_scored_nuc_2)
-        monomeric_accessibility_score = 1.0 - monomeric_accessibility_score
-
-        accessibility_score += monomeric_accessibility_score
+        accessibility_score = (monomeric_accessibility_score_1 + monomeric_accessibility_score_2) / (count_scored_nuc_1 + count_scored_nuc_2)
+        accessibility_score = 1.0 - accessibility_score
 
     else:
+        pairs_arr = results_nucl.complexes[hybrid_complex].pairs.to_array()
+        
+        sub_pairs_arr = pairs_arr[0:len(score_region_1), len(score_region_1):]
+        paired_strand_1 = numpy.sum(sub_pairs_arr, axis=0)
+        paired_strand_2 = numpy.sum(sub_pairs_arr, axis=1)
+        
+        total_bound_1 = 0.0
+        count_scored_nuc_1 = 0
+
+        total_bound_2 = 0.0
+        count_scored_nuc_2 = 0
+
+        if score_strand_1:
+            for i, x in enumerate(score_region_1): # NOTE! Higher pair probs mean MORE pairing, not less as in the diagonal!
+                if x:
+                    total_bound_1 += paired_strand_1[i]
+                    count_scored_nuc_1+=1
+        if score_strand_2:
+            for i, x in enumerate(score_region_2):
+                if x:
+                    total_bound_2 += paired_strand_2[i]
+                    count_scored_nuc_2+=1
+        
+        accessibility_score = (total_bound_1 + total_bound_2) / float(count_scored_nuc_1 + count_scored_nuc_2)
         accessibility_score = 1.0 - accessibility_score
     
-
     if accessibility_score > 1.0:
         accessibility_score = 1.0
     
