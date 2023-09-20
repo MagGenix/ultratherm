@@ -175,7 +175,7 @@ vienna_score_hybrid    </h1>
 </span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="sd">        concentration_2 (float): Concentration of strand 2.</span>
 </span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="sd">    Returns:</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">        tuple[float, float, float]: _description_</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">        tuple[float, float, float]: (parasitic_score, hybrid_score, accessibility_score)</span>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_rna</span><span class="p">:</span>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="n">RNA</span><span class="o">.</span><span class="n">params_load_DNA_Mathews1999</span><span class="p">()</span>
@@ -523,7 +523,7 @@ vienna_score_hybrid    </h1>
 </span><span id="vienna_score_temp-109"><a href="#vienna_score_temp-109"><span class="linenos">109</span></a><span class="sd">        concentration_2 (float): Concentration of strand 2.</span>
 </span><span id="vienna_score_temp-110"><a href="#vienna_score_temp-110"><span class="linenos">110</span></a>
 </span><span id="vienna_score_temp-111"><a href="#vienna_score_temp-111"><span class="linenos">111</span></a><span class="sd">    Returns:</span>
-</span><span id="vienna_score_temp-112"><a href="#vienna_score_temp-112"><span class="linenos">112</span></a><span class="sd">        tuple[float, float, float]: _description_</span>
+</span><span id="vienna_score_temp-112"><a href="#vienna_score_temp-112"><span class="linenos">112</span></a><span class="sd">        tuple[float, float, float]: (parasitic_score, hybrid_score, accessibility_score)</span>
 </span><span id="vienna_score_temp-113"><a href="#vienna_score_temp-113"><span class="linenos">113</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="vienna_score_temp-114"><a href="#vienna_score_temp-114"><span class="linenos">114</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_rna</span><span class="p">:</span>
 </span><span id="vienna_score_temp-115"><a href="#vienna_score_temp-115"><span class="linenos">115</span></a>        <span class="n">RNA</span><span class="o">.</span><span class="n">params_load_DNA_Mathews1999</span><span class="p">()</span>
@@ -665,7 +665,7 @@ vienna_score_hybrid    </h1>
 <h6 id="returns">Returns:</h6>
 
 <blockquote>
-  <p>tuple[float, float, float]: _description_</p>
+  <p>tuple[float, float, float]: (parasitic_score, hybrid_score, accessibility_score)</p>
 </blockquote>
 </div>
 

@@ -150,15 +150,15 @@ des    </h1>
 </span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>        <span class="n">parallel_pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>        <span class="n">parallel_pool</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
 </span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="k">def</span> <span class="nf">mutate_and_score</span><span class="p">(</span><span class="n">nucl</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">nucl_acid</span><span class="p">,</span> <span class="n">nucl_hybrid</span><span class="p">],</span> <span class="n">design_parameters</span><span class="p">:</span> <span class="n">design_parameters</span><span class="p">):</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;_summary_</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="k">def</span> <span class="nf">mutate_and_score</span><span class="p">(</span><span class="n">nucl</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">nucl_acid</span><span class="p">,</span> <span class="n">nucl_hybrid</span><span class="p">],</span> <span class="n">design_parameters</span><span class="p">:</span> <span class="n">design_parameters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">nucl_acid</span><span class="p">,</span> <span class="n">nucl_hybrid</span><span class="p">]:</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Useful for parallelization in design(). Accepts a nucl_acid or nucl_hybrid and returns a mutated, scored nucl_acid or nucl_hybrid respectively.</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="sd">    Args:</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="sd">        nucl (Union[nucl_acid, nucl_hybrid]): _description_</span>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="sd">        design_parameters (design_parameters): _description_</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="sd">        nucl (Union[nucl_acid, nucl_hybrid]): nucl_acid or nucl_hybrid to mutate.</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="sd">        design_parameters (design_parameters): the design parameters.</span>
 </span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="sd">    Returns:</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="sd">        _type_: _description_</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="sd">        Union[nucl_acid, nucl_hybrid]: new_nucl</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="n">new_nucl</span> <span class="o">=</span> <span class="n">mutate</span><span class="p">(</span><span class="n">nucl</span> <span class="o">=</span> <span class="n">nucl</span><span class="p">,</span> <span class="n">design_parameters</span> <span class="o">=</span> <span class="n">design_parameters</span><span class="p">)</span>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="n">new_nucl</span><span class="o">.</span><span class="n">fitness_score</span><span class="p">(</span><span class="n">design_parameters</span> <span class="o">=</span> <span class="n">design_parameters</span><span class="p">)</span>
@@ -284,21 +284,21 @@ If max_reps is hit and the weights cannot be decremented, the loop ends.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">mutate_and_score</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">nucl</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n"><a href="nucl.html#nucl_acid">nucl.nucl_acid</a></span><span class="p">,</span> <span class="n"><a href="nucl.html#nucl_hybrid">nucl.nucl_hybrid</a></span><span class="p">]</span>,</span><span class="param">	<span class="n">design_parameters</span><span class="p">:</span> <span class="n"><a href="params.html#design_parameters">params.design_parameters</a></span></span><span class="return-annotation">):</span></span>
+        <span class="name">mutate_and_score</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">nucl</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n"><a href="nucl.html#nucl_acid">nucl.nucl_acid</a></span><span class="p">,</span> <span class="n"><a href="nucl.html#nucl_hybrid">nucl.nucl_hybrid</a></span><span class="p">]</span>,</span><span class="param">	<span class="n">design_parameters</span><span class="p">:</span> <span class="n"><a href="params.html#design_parameters">params.design_parameters</a></span></span><span class="return-annotation">) -> <span class="n">Union</span><span class="p">[</span><span class="n"><a href="nucl.html#nucl_acid">nucl.nucl_acid</a></span><span class="p">,</span> <span class="n"><a href="nucl.html#nucl_hybrid">nucl.nucl_hybrid</a></span><span class="p">]</span>:</span></span>
 
                 <label class="view-source-button" for="mutate_and_score-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#mutate_and_score"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="mutate_and_score-93"><a href="#mutate_and_score-93"><span class="linenos"> 93</span></a><span class="k">def</span> <span class="nf">mutate_and_score</span><span class="p">(</span><span class="n">nucl</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">nucl_acid</span><span class="p">,</span> <span class="n">nucl_hybrid</span><span class="p">],</span> <span class="n">design_parameters</span><span class="p">:</span> <span class="n">design_parameters</span><span class="p">):</span>
-</span><span id="mutate_and_score-94"><a href="#mutate_and_score-94"><span class="linenos"> 94</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;_summary_</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="mutate_and_score-93"><a href="#mutate_and_score-93"><span class="linenos"> 93</span></a><span class="k">def</span> <span class="nf">mutate_and_score</span><span class="p">(</span><span class="n">nucl</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">nucl_acid</span><span class="p">,</span> <span class="n">nucl_hybrid</span><span class="p">],</span> <span class="n">design_parameters</span><span class="p">:</span> <span class="n">design_parameters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">nucl_acid</span><span class="p">,</span> <span class="n">nucl_hybrid</span><span class="p">]:</span>
+</span><span id="mutate_and_score-94"><a href="#mutate_and_score-94"><span class="linenos"> 94</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Useful for parallelization in design(). Accepts a nucl_acid or nucl_hybrid and returns a mutated, scored nucl_acid or nucl_hybrid respectively.</span>
 </span><span id="mutate_and_score-95"><a href="#mutate_and_score-95"><span class="linenos"> 95</span></a>
 </span><span id="mutate_and_score-96"><a href="#mutate_and_score-96"><span class="linenos"> 96</span></a><span class="sd">    Args:</span>
-</span><span id="mutate_and_score-97"><a href="#mutate_and_score-97"><span class="linenos"> 97</span></a><span class="sd">        nucl (Union[nucl_acid, nucl_hybrid]): _description_</span>
-</span><span id="mutate_and_score-98"><a href="#mutate_and_score-98"><span class="linenos"> 98</span></a><span class="sd">        design_parameters (design_parameters): _description_</span>
+</span><span id="mutate_and_score-97"><a href="#mutate_and_score-97"><span class="linenos"> 97</span></a><span class="sd">        nucl (Union[nucl_acid, nucl_hybrid]): nucl_acid or nucl_hybrid to mutate.</span>
+</span><span id="mutate_and_score-98"><a href="#mutate_and_score-98"><span class="linenos"> 98</span></a><span class="sd">        design_parameters (design_parameters): the design parameters.</span>
 </span><span id="mutate_and_score-99"><a href="#mutate_and_score-99"><span class="linenos"> 99</span></a>
 </span><span id="mutate_and_score-100"><a href="#mutate_and_score-100"><span class="linenos">100</span></a><span class="sd">    Returns:</span>
-</span><span id="mutate_and_score-101"><a href="#mutate_and_score-101"><span class="linenos">101</span></a><span class="sd">        _type_: _description_</span>
+</span><span id="mutate_and_score-101"><a href="#mutate_and_score-101"><span class="linenos">101</span></a><span class="sd">        Union[nucl_acid, nucl_hybrid]: new_nucl</span>
 </span><span id="mutate_and_score-102"><a href="#mutate_and_score-102"><span class="linenos">102</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="mutate_and_score-103"><a href="#mutate_and_score-103"><span class="linenos">103</span></a>    <span class="n">new_nucl</span> <span class="o">=</span> <span class="n">mutate</span><span class="p">(</span><span class="n">nucl</span> <span class="o">=</span> <span class="n">nucl</span><span class="p">,</span> <span class="n">design_parameters</span> <span class="o">=</span> <span class="n">design_parameters</span><span class="p">)</span>
 </span><span id="mutate_and_score-104"><a href="#mutate_and_score-104"><span class="linenos">104</span></a>    <span class="n">new_nucl</span><span class="o">.</span><span class="n">fitness_score</span><span class="p">(</span><span class="n">design_parameters</span> <span class="o">=</span> <span class="n">design_parameters</span><span class="p">)</span>
@@ -306,19 +306,19 @@ If max_reps is hit and the weights cannot be decremented, the loop ends.</p>
 </span></pre></div>
 
 
-            <div class="docstring"><p>_summary_</p>
+            <div class="docstring"><p>Useful for parallelization in design(). Accepts a nucl_acid or nucl_hybrid and returns a mutated, scored nucl_acid or nucl_hybrid respectively.</p>
 
 <h6 id="arguments">Arguments:</h6>
 
 <ul>
-<li><strong>nucl (Union[nucl_acid, nucl_hybrid]):</strong>  _description_</li>
-<li><strong>design_parameters (design_parameters):</strong>  _description_</li>
+<li><strong>nucl (Union[nucl_acid, nucl_hybrid]):</strong>  nucl_acid or nucl_hybrid to mutate.</li>
+<li><strong>design_parameters (design_parameters):</strong>  the design parameters.</li>
 </ul>
 
 <h6 id="returns">Returns:</h6>
 
 <blockquote>
-  <p>_type_: _description_</p>
+  <p>Union[nucl_acid, nucl_hybrid]: new_nucl</p>
 </blockquote>
 </div>
 

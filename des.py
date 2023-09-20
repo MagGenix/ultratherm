@@ -89,15 +89,15 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
         parallel_pool.close()
         parallel_pool.terminate()
 
-def mutate_and_score(nucl: Union[nucl_acid, nucl_hybrid], design_parameters: design_parameters):
-    """_summary_
+def mutate_and_score(nucl: Union[nucl_acid, nucl_hybrid], design_parameters: design_parameters) -> Union[nucl_acid, nucl_hybrid]:
+    """Useful for parallelization in design(). Accepts a nucl_acid or nucl_hybrid and returns a mutated, scored nucl_acid or nucl_hybrid respectively.
 
     Args:
-        nucl (Union[nucl_acid, nucl_hybrid]): _description_
-        design_parameters (design_parameters): _description_
+        nucl (Union[nucl_acid, nucl_hybrid]): nucl_acid or nucl_hybrid to mutate.
+        design_parameters (design_parameters): the design parameters.
 
     Returns:
-        _type_: _description_
+        Union[nucl_acid, nucl_hybrid]: new_nucl
     """
     new_nucl = mutate(nucl = nucl, design_parameters = design_parameters)
     new_nucl.fitness_score(design_parameters = design_parameters)

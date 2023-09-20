@@ -108,7 +108,7 @@ def vienna_score_temp(seq1: str, seq2: str,
         concentration_2 (float): Concentration of strand 2.
 
     Returns:
-        tuple[float, float, float]: _description_
+        tuple[float, float, float]: (parasitic_score, hybrid_score, accessibility_score)
     """
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
