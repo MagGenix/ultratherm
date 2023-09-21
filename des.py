@@ -1,8 +1,9 @@
-from nucl import nucl_set, mutate
+from nucl import nucl_set, mutate, nucl_acid, nucl_hybrid
 from params import design_parameters
 import time
 import os
 import multiprocessing
+from typing import Union
 
 def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
     """A design loop that retains the best nucl_acid's and decrements mutation weights as it runs
@@ -48,10 +49,11 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
         
         if parallel_pool != None:
             for nucl in nucl_pool.nucls:
-                list_old_nucl = [(nucl, design_parameters)] * design_parameters.num_mutants
-                new_mutants = parallel_pool.starmap(func=mutate, iterable=list_old_nucl)
+                list_nucl = [(nucl, design_parameters)] * design_parameters.num_mutants
                 
-                for mutant in new_mutants:
+                list_new_nucl = parallel_pool.starmap(func=mutate_and_score, iterable=list_nucl)
+                
+                for mutant in list_new_nucl:
                     nucl_pool.append(mutant)
                     
                 for i in range(0, design_parameters.num_mutants):
@@ -86,3 +88,17 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
     if parallel_pool != None:
         parallel_pool.close()
         parallel_pool.terminate()
+
+def mutate_and_score(nucl: Union[nucl_acid, nucl_hybrid], design_parameters: design_parameters) -> Union[nucl_acid, nucl_hybrid]:
+    """Useful for parallelization in design(). Accepts a nucl_acid or nucl_hybrid and returns a mutated, scored nucl_acid or nucl_hybrid respectively.
+
+    Args:
+        nucl (Union[nucl_acid, nucl_hybrid]): nucl_acid or nucl_hybrid to mutate.
+        design_parameters (design_parameters): the design parameters.
+
+    Returns:
+        Union[nucl_acid, nucl_hybrid]: new_nucl
+    """
+    new_nucl = mutate(nucl = nucl, design_parameters = design_parameters)
+    new_nucl.fitness_score(design_parameters = design_parameters)
+    return new_nucl

@@ -2,13 +2,14 @@ import RNA
 from math import exp, log10
 from params import design_parameters
 
-def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters:design_parameters) -> float:
+def vienna_score(sequence:str, score_region:list, is_rna:bool, concentration: float, design_parameters:design_parameters) -> float:
     """Scores a sequence (using ViennaRNA) on score region accessibility, free energy, and dimer formation.
 
     Args:
         sequence (str): the nucleic acid sequence.
         score_region (list): a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
         is_rna (bool): whether the sequence is RNA or DNA.
+        concentration (float): The concentration of the strand to be analyzed.
         design_parameters (design_parameters): The design parameters.
 
     Raises:
@@ -37,15 +38,15 @@ def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters
         hot_temp = 100
 
     scores_hot = vienna_score_temp(seq=sequence, score_region=score_region, temp=hot_temp,
-        nucl_concentration=design_parameters.nucl_concentration,
-        dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
-        max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
-        nucl_max_score=design_parameters.nucl_max_score, hot=True, is_rna=is_rna)
+        nucl_concentration=concentration,
+        parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
+        parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
+        accessibility_max_score=design_parameters.accessibility_max_score, hot=True, is_rna=is_rna)
     scores_cold = vienna_score_temp(seq=sequence, score_region=score_region, temp=cold_temp,
-        nucl_concentration=design_parameters.nucl_concentration,
-        dimer_max_order_magnitude=design_parameters.dimer_max_order_magnitude,
-        max_dimer_monomer_factor=design_parameters.max_dimer_monomer_factor,
-        nucl_max_score=design_parameters.nucl_max_score, hot=False, is_rna=is_rna)
+        nucl_concentration=concentration,
+        parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
+        parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
+        accessibility_max_score=design_parameters.accessibility_max_score, hot=False, is_rna=is_rna)
 
     score_energy = vienna_score_energy(seq=sequence, temp=design_parameters.thermo_score_temp,
         target_energy=design_parameters.target_energy,
@@ -53,8 +54,8 @@ def vienna_score(sequence:str, score_region:list, is_rna:bool, design_parameters
 
     return score_energy + sum(scores_hot) + sum(scores_cold)
 
-# Returns (float: score_nucl, float: ensemble_energy)
-def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentration:float, dimer_max_order_magnitude:float, max_dimer_monomer_factor: float, nucl_max_score: float, hot: bool, is_rna: bool) -> tuple[float, float]:
+# Returns (float: accessibility_score, float: ensemble_energy)
+def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentration:float, parasitic_max_order_magnitude:float, parasitic_complex_max_score: float, accessibility_max_score: float, hot: bool, is_rna: bool) -> tuple[float, float]:
     """Generate a tuple containing the dimerization score and the score region accessibility score respectively.
     Generally reserved for usage by vienna_score().
 
@@ -63,9 +64,9 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
         score_region (list): a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
         temp (float): the temperature to score at.
         nucl_concentration (float): the concentration of the monomeric nucleic acid (provide the initial concentration).
-        dimer_max_order_magnitude (float): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]).
-        max_dimer_monomer_factor (float): The maximum score penalty for dimer formation.
-        nucl_max_score (float): The maximum score penalty for score region accessibility.
+        parasitic_max_order_magnitude (float): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]).
+        parasitic_complex_max_score (float): The maximum score penalty for dimer formation.
+        accessibility_max_score (float): The maximum score penalty for score region accessibility.
         hot (bool): whether to invert the score region accessibility score.
         is_rna (bool): whether the nucleic acid is RNA or DNA.
 
@@ -73,7 +74,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
         ValueError: _description_
 
     Returns:
-        tuple[float, float]: (dimer_monomer_factor, score_nucl)
+        tuple[float, float]: (parasitic_score, accessibility_score)
     """
     # If DNA needed, needs to be selected before RNA.md() called!
     # NOTE - threadsafety WARNING!
@@ -106,16 +107,16 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     for i in range(len(basepair_probs_diagonal)):
         basepair_probs_diagonal[i] = 1 - basepair_probs_diagonal[i]
     
-    score_nucl = 0
+    accessibility_score = 0
     count_scored_nuc = 0
     for i, x in enumerate(score_region):
         if x:
-            score_nucl += basepair_probs_diagonal[i]
+            accessibility_score += basepair_probs_diagonal[i]
             count_scored_nuc+=1
-    score_nucl = score_nucl / count_scored_nuc
+    accessibility_score = accessibility_score / count_scored_nuc
 
-    if score_nucl > nucl_max_score:
-        score_nucl = nucl_max_score
+    if accessibility_score > 1.0:
+        accessibility_score = 1.0
 
     dimer_energy = vienna_dimer_energy(seq=seq, temp=temp, is_rna=is_rna)
 
@@ -129,23 +130,26 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     # delG = -RT lnQ --> Q = e^(-delG / RT)
     # Q = [DIMER] / [MONOMER]^2
     # [DIMER] / [MONOMER] = Q * [MONOMER]
-    # log10(Q*[MONOMER]) + dimer_max_order_magnitude to produce dimer_monomer_factor
+    # log10(Q*[MONOMER]) + parasitic_max_order_magnitude to produce parasitic_score
     # NOTE! This assumes that the FINAL concentration of the [MONOMER] is as provided, not the INITIAL.
     # This means it will not correct [MONOMER] for [DIMER], so it is an approximation for small [DIMER].
     # If this is only used for scoring this is appropriate,
-    # as for [DIMER] > [MONOMER] * 10^(1-dimer_max_order_magnitude) the score is the max score.
-    dimer_monomer_factor = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * nucl_concentration) + dimer_max_order_magnitude
-    if dimer_monomer_factor < 0:
-        dimer_monomer_factor = 0 #0 is the best possible factor, indicates limited dimer formation
-    elif dimer_monomer_factor > max_dimer_monomer_factor:
-        dimer_monomer_factor = max_dimer_monomer_factor #cap cost of having a poor monomer formation
+    # as for [DIMER] > [MONOMER] * 10^(1-parasitic_max_order_magnitude) the score is the max score.
+    parasitic_score = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * nucl_concentration) + parasitic_max_order_magnitude
+    if parasitic_score < 0:
+        parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
+    elif parasitic_score > 1.0:
+        parasitic_score = 1.0 #cap cost of having a poor monomer formation
 
     if hot:
-        score_nucl = nucl_max_score - score_nucl
+        accessibility_score = 1.0 - accessibility_score
     
-    return (dimer_monomer_factor, score_nucl)
+    parasitic_score = parasitic_complex_max_score * parasitic_score
+    accessibility_score = accessibility_max_score * accessibility_score
+
+    return (parasitic_score, accessibility_score)
     
-def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float:
+def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float: # TODO collapse this function into vienna_score_temp - we can have more than one fold_compond!
     """Determines the ensemble free energy of a dimerized sequence.
     Generally reserved for usage by vienna_score().
 
@@ -197,6 +201,8 @@ def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_m
     score_free_energy = (target_energy - ensemble_energy) / target_energy
     if score_free_energy < 0:
         score_free_energy = 0
-    elif score_free_energy > free_energy_max_score:
-        score_free_energy = free_energy_max_score
+    elif score_free_energy > 1.0:
+        score_free_energy = 1.0
+    
+    score_free_energy = free_energy_max_score * score_free_energy
     return score_free_energy
