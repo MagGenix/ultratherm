@@ -56,7 +56,6 @@ def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
         seq1=sequence_1, seq2=sequence_2, is_rna=is_rna, temp=hot_temp,
         parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         accessibility_max_score=design_parameters.accessibility_max_score,
-        hybrid_max_score=design_parameters.hybrid_max_score,
         parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         score_region_1=score_region_1, score_region_2=score_region_2,
         score_strand_1=score_strand_1, score_strand_2=score_strand_2, hot=False,
@@ -66,7 +65,6 @@ def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
         seq1=sequence_1, seq2=sequence_2, is_rna=is_rna, temp=hot_temp,
         parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         accessibility_max_score=design_parameters.accessibility_max_score,
-        hybrid_max_score=design_parameters.hybrid_max_score,
         parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         score_region_1=score_region_1, score_region_2=score_region_2,
         score_strand_1=score_strand_1, score_strand_2=score_strand_2, hot=True,
@@ -83,11 +81,11 @@ def vienna_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
 
 def vienna_score_temp(seq1: str, seq2: str,
                       is_rna:bool, temp: float,
-                      parasitic_complex_max_score: float, accessibility_max_score: float, hybrid_max_score: float,
+                      parasitic_complex_max_score: float, accessibility_max_score: float,
                       parasitic_max_order_magnitude: float,
                       score_region_1:list, score_region_2:list,
                       score_strand_1: bool, score_strand_2:bool, hot:bool,
-                      concentration_1:float, concentration_2:float) -> tuple[float, float, float]:
+                      concentration_1:float, concentration_2:float) -> tuple[float, float]:
     """_summary_
 
     Args:
@@ -97,7 +95,6 @@ def vienna_score_temp(seq1: str, seq2: str,
         temp (float): the temperature to score at.
         parasitic_complex_max_score (float): The maximum score penalty for dimer formation.
         accessibility_max_score (float): The maximum score penalty for score region accessibility.
-        hybrid_max_score (float): The maximum score penalty for AB formation / lack thereof.
         parasitic_max_order_magnitude (float): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]).
         score_region_1 (list): for strand 1, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
         score_region_2 (list): for strand 2, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
@@ -149,22 +146,8 @@ def vienna_score_temp(seq1: str, seq2: str,
             parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
         elif parasitic_score > 1.0:
             parasitic_score = 1.0 #cap cost of having a poor monomer formation
-    
-    if hybrid_concentration == 0:
-        hybrid_score = 1.0
-    elif total_unbound_concentration == 0:
-        hybrid_score = 0.0
-    else:
-        # NOTE - in this implementation, hybrid_score and accessibility_score are given the same caps.
-        # This is because they vary together.
-        hybrid_score = (log10(total_unbound_concentration / hybrid_concentration) + 0.5) * 31.62278 # For min score, needs a change of 10^2
-        if hybrid_score < 0:
-            hybrid_score = 0
-        elif hybrid_score > 1.0:
-            hybrid_score = 1.0 #cap cost
 
     if hot:
-        hybrid_score = 1.0 - hybrid_score
         monomeric_accessibility_score_1 = 0.0
         monomeric_accessibility_score_2 = 0.0
         count_scored_nuc_1 = 0
@@ -219,9 +202,8 @@ def vienna_score_temp(seq1: str, seq2: str,
         accessibility_score = 1.0
 
     parasitic_score = parasitic_complex_max_score * parasitic_score
-    hybrid_score = hybrid_max_score * hybrid_score
     accessibility_score = accessibility_max_score * accessibility_score
-    return (parasitic_score, hybrid_score, accessibility_score)
+    return (parasitic_score, accessibility_score)
 
 def vienna_score_energy(seq1:str, seq2:str, temp:float, target_energy: float, free_energy_max_score: float, is_rna: bool) -> float:
     """_summary_

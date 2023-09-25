@@ -12,7 +12,7 @@ class design_parameters():
             parasitic_max_order_magnitude:float = 2.0,
             blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA', parallel:bool = True,
             weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1, max_reps:int = 16,
-            free_energy_max_score:float=1.0, accessibility_max_score:float=1.0, parasitic_complex_max_score:float=1.0, hybrid_max_score:float = 1.0
+            free_energy_max_score:float=1.0, accessibility_max_score:float=1.0, parasitic_complex_max_score:float=1.0,
         ):
         """Create a new design_parameters object. THIS IS THE ONLY FUNCTION WITH DEFAULTS!
 
@@ -32,7 +32,6 @@ class design_parameters():
             free_energy_max_score (float, optional): The maximum score penalty for having a free energy greater than target. Defaults to 1.0.
             accessibility_max_score (float, optional): The maximum score penalty for score region accessibility. Defaults to 1.0.
             parasitic_complex_max_score (float, optional): The maximum score penalty for dimer formation. Defaults to 1.0.
-            hybrid_max_score (float, optional): The maximum score penalty for poor hybrid dissociation. Defaults to 1.0.
 
         Raises:
             ValueError: _description_
@@ -63,15 +62,12 @@ class design_parameters():
         self.free_energy_max_score          = free_energy_max_score
         self.accessibility_max_score        = accessibility_max_score
         self.parasitic_complex_max_score    = parasitic_complex_max_score
-        self.hybrid_max_score               = hybrid_max_score
 
         if free_energy_max_score < 0:
             raise ValueError
         if accessibility_max_score < 0:
             raise ValueError
         if parasitic_complex_max_score < 0:
-            raise ValueError
-        if hybrid_max_score < 0:
             raise ValueError
 
         if target_energy >= 0:
@@ -136,7 +132,6 @@ class design_parameters():
             'free_energy_max_score':        self.free_energy_max_score,
             'accessibility_max_score':      self.accessibility_max_score,
             'parasitic_complex_max_score':  self.parasitic_complex_max_score,
-            'hybrid_max_score':             self.hybrid_max_score
         }
 
         stream = open(path, 'w')

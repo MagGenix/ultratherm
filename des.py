@@ -62,7 +62,7 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
         else:
             for nucl in nucl_pool.nucls:
                 for i in range(0, design_parameters.num_mutants):
-                    nucl_pool.append(mutate(nucl=nucl, design_parameters=design_parameters))
+                    nucl_pool.append(mutate_and_score(nucl=nucl, design_parameters=design_parameters))
                 
                 for i in range(0, design_parameters.num_mutants):
                     nucl_pool.remove(nucl_pool.scores.index(max(nucl_pool.scores)))

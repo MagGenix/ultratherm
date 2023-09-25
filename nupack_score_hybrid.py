@@ -79,7 +79,7 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
         hybrid_complex=complex_AB,
         hot=False, parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         score_region_1=score_region_1, score_region_2=score_region_2,
-        accessibility_max_score=design_parameters.accessibility_max_score, parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,hybrid_max_score=design_parameters.hybrid_max_score,
+        accessibility_max_score=design_parameters.accessibility_max_score, parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         score_strand_1=score_strand_1, score_strand_2=score_strand_2)
     
     scores_hot = nupack_score_temp(
@@ -88,7 +88,7 @@ def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, scor
         hybrid_complex=complex_AB,
         hot=True, parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         score_region_1=score_region_1, score_region_2=score_region_2,
-        accessibility_max_score=design_parameters.accessibility_max_score, parasitic_complex_max_score=design_parameters.parasitic_complex_max_score, hybrid_max_score=design_parameters.hybrid_max_score,
+        accessibility_max_score=design_parameters.accessibility_max_score, parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         score_strand_1=score_strand_1, score_strand_2=score_strand_2)
 
     score_free_energy = nupack_score_energy(
@@ -134,9 +134,9 @@ def nupack_score_temp(
         material: str, temp:float, tube_nucl: Tube,
         unbound_complexes: list[Complex], parasitic_complexes: list[Complex], hybrid_complex: Complex,
         hot: bool, parasitic_max_order_magnitude:float, score_region_1:list, score_region_2:list,
-        accessibility_max_score: float, parasitic_complex_max_score: float, hybrid_max_score: float,
+        accessibility_max_score: float, parasitic_complex_max_score: float,
         score_strand_1: bool, score_strand_2: bool
-) -> tuple[float, float, float]:
+) -> tuple[float, float]:
     """_summary_
 
     Args:
@@ -152,7 +152,6 @@ def nupack_score_temp(
         score_region_2 (list): for strand 2, a list of 0 or 1 (int) indicating which region to be assessed for accessibility.
         accessibility_max_score (float): The maximum score penalty for score region accessibility.
         parasitic_complex_max_score (float): The maximum score penalty for dimer formation.
-        hybrid_max_score (float): The maximum score penalty for AB formation / lack thereof.
         score_strand_1 (bool): whether or not to calculate accessibility scores using strand 1.
         score_strand_2 (bool): whether or not to calculate accessibility scores using strand 2.
 
@@ -192,22 +191,7 @@ def nupack_score_temp(
         elif parasitic_score > 1.0:
             parasitic_score = 1.0 #cap cost of having a poor monomer formation
     
-    if hybrid_concentration == 0:
-        hybrid_score = 1.0
-    elif total_unbound_concentration == 0:
-        hybrid_score = 0.0
-    else:
-        # NOTE - in this implementation, hybrid_score and accessibility_score are given the same caps.
-        # This is because they vary together.
-        hybrid_score = (log10(total_unbound_concentration / hybrid_concentration) + 0.5) * 31.62278 # For min score, needs a change of 10^2
-        if hybrid_score < 0:
-            hybrid_score = 0
-        elif hybrid_score > 1.0:
-            hybrid_score = 1.0 #cap cost
-    
     if hot:
-        hybrid_score = 1.0 - hybrid_score
-        
         # penalize ss formation in the scored monomeric strand(s) at high temp
         monomeric_accessibility_score_1 = 0.0
         count_scored_nuc_1 = 0
@@ -262,6 +246,5 @@ def nupack_score_temp(
         accessibility_score = 1.0
     
     parasitic_score = parasitic_complex_max_score * parasitic_score
-    hybrid_score = hybrid_max_score * hybrid_score
     accessibility_score = accessibility_max_score * accessibility_score
-    return (parasitic_score, hybrid_score, accessibility_score)
+    return (parasitic_score, accessibility_score)
