@@ -6,8 +6,8 @@ from des import design
 
 from signal import signal, SIGPIPE, SIG_IGN
 
-# NOTE Customize this!
-def main():
+# NOTE Customize these!
+def rna_thermometer_prok():
     signal(SIGPIPE, SIG_IGN) # Ignore broken pipe (usually ssh) and continue program
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
@@ -30,7 +30,54 @@ def main():
     #Start design loop
     design(design_parameters=des_params, nucl_pool=nucl_pool)
 
-def main_2():
+def rna_thermometer_euk_shunt():
+    signal(SIGPIPE, SIG_IGN) # Ignore broken pipe (usually ssh) and continue program
+    #Configure design parameters
+    blist = blacklist(path="blacklist.fasta")
+    des_params = design_parameters(blacklist=blist, target_temp=52, program='VIENNA',
+        num_mutants=8, target_energy=-38.0, # based on FourU Hairpin 2
+        weights=[32, 32, 32, 32, 32, 32, 16]
+        )
+
+    #Create nucleotide set
+    nucl_pool = nucl_set(nucls = [])
+    for i in range(0, 2):
+        new_nucl = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNGNNAUGGNNNNNNNNNNNNNNNNNNNN'),
+            no_indel =      [0]*20+[1]*7+[0]*20,
+            no_mod =        [0]*20+[1]*1+[0]*2+[1]*4+[0]*20,
+            score_region =  [0]*20+[1]*7+[0]*20,
+            is_rna=True)
+        new_nucl.fitness_score(design_parameters=des_params)
+        nucl_pool.append(new_nucl=new_nucl)
+
+    #Start design loop
+    design(design_parameters=des_params, nucl_pool=nucl_pool)
+
+def rna_thermometer_euk_fiveprime():
+    signal(SIGPIPE, SIG_IGN) # Ignore broken pipe (usually ssh) and continue program
+    #Configure design parameters
+    blist = blacklist(path="blacklist.fasta")
+    des_params = design_parameters(blacklist=blist, target_temp=52, program='VIENNA',
+        num_mutants=8, target_energy=-9.75, # based on FourU Hairpin 2
+        weights=[32, 32, 32, 32, 32, 32, 16]
+        )
+
+    #Create nucleotide set
+    nucl_pool = nucl_set(nucls = [])
+    for i in range(0, 2):
+        new_nucl = nucl_acid(sequence=Seq('GGGNNNNNNNNNNNNNNNNNNNN'),
+            no_indel =      [1]*3+[0]*20,
+            no_mod =        [1]*3+[0]*20,
+            score_region =  [1]*3+[0]*20,
+            is_rna=True)
+        new_nucl.fitness_score(design_parameters=des_params)
+        nucl_pool.append(new_nucl=new_nucl)
+
+    #Start design loop
+    design(design_parameters=des_params, nucl_pool=nucl_pool)
+
+
+def heteroduplex():
     signal(SIGPIPE, SIG_IGN) # Ignore broken pipe (usually ssh) and continue program
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
@@ -46,12 +93,12 @@ def main_2():
             no_indel =      [0]*20,
             no_mod =        [0]*20,
             score_region =  [0]*20,
-            is_rna=True)
+            is_rna=True) # Limitation - heteroduplices not supported. Standard is to model as RNA
         new_nucl_2 = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNN'),
             no_indel =      [0]*20,
             no_mod =        [0]*20,
             score_region =  [0]*20,
-            is_rna=True)
+            is_rna=True) # Limitation - heteroduplices not supported. Standard is to model as RNA
         new_nucl = nucl_hybrid(new_nucl_1, new_nucl_2, True, False)
         new_nucl.fitness_score(design_parameters=des_params)
         nucl_pool.append(new_nucl=new_nucl)
@@ -124,6 +171,9 @@ def test():
 
 #####
 if __name__ == '__main__':
-    #main()
-    main_2()
+    #rna_thermometer_prok()
+    #rna_thermometer_euk_shunt()
+    #rna_thermometer_euk_fiveprime()
+    heteroduplex()
     #test()
+    pass
