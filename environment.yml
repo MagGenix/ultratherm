@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - python=3.9
+  - python=3.10
   - numpy
   - scipy
   - pandas
@@ -12,4 +12,4 @@ dependencies:
   - pip
   - pip:
     # NOTE: bioconda viennarna does not work! Use PyPi
-    - viennarna
+    - viennarna>=2.6.4

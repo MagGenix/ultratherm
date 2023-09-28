@@ -135,11 +135,14 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     # This means it will not correct [MONOMER] for [DIMER], so it is an approximation for small [DIMER].
     # If this is only used for scoring this is appropriate,
     # as for [DIMER] > [MONOMER] * 10^(1-parasitic_max_order_magnitude) the score is the max score.
-    parasitic_score = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * nucl_concentration) + parasitic_max_order_magnitude
-    if parasitic_score < 0:
-        parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
-    elif parasitic_score > 1.0:
-        parasitic_score = 1.0 #cap cost of having a poor monomer formation
+    if delta_g == 0:
+        parasitic_score = 1.0
+    else:
+        parasitic_score = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * nucl_concentration) + parasitic_max_order_magnitude
+        if parasitic_score < 0:
+            parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
+        elif parasitic_score > 1.0:
+            parasitic_score = 1.0 #cap cost of having a poor monomer formation
 
     if hot:
         accessibility_score = 1.0 - accessibility_score
