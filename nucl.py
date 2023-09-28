@@ -124,14 +124,14 @@ class nucl_acid():
         return False
 
 class nucl_hybrid():
-    def __init__(self, nucl_1: nucl_acid, nucl_2:nucl_acid, score_strand_1: bool = True, score_strand_2: bool = True):
+    def __init__(self, nucl_1: nucl_acid, nucl_2:nucl_acid, score_strand_1: bool, score_strand_2: bool):
         """_summary_
 
         Args:
             nucl_1 (nucl_acid): the first nucl_acid in the hybrid.
             nucl_2 (nucl_acid): the second nucl_acid in the hybrid.
-            score_strand_1 (bool, optional): Whether or not to score strand 1 for accessibility. Defaults to True.
-            score_strand_2 (bool, optional): Whether or not to score strand 2 for accessibility. Defaults to True.
+            score_strand_1 (bool, optional): Whether or not to score strand 1 for accessibility.
+            score_strand_2 (bool, optional): Whether or not to score strand 2 for accessibility.
 
         Raises:
             ValueError: _description_
@@ -436,7 +436,7 @@ class nucl_set():
                 nucls[0].fitness_score(design_parameters=design_parameters)
                 self.append(new_nucl=nucls[0])
             elif len(strands) == 2:
-                new_hybrid = nucl_hybrid(nucls[0], nucls[1])
+                new_hybrid = nucl_hybrid(nucls[0], nucls[1], True, True) # TODO change this!
                 new_hybrid.fitness_score(design_parameters=design_parameters)
                 self.append(new_hybrid)
 
@@ -461,7 +461,7 @@ def mutate(nucl: Union[nucl_acid, nucl_hybrid], design_parameters:design_paramet
     if type(nucl) == nucl_hybrid:
         nucl1 = mutate(nucl.nucl_1, design_parameters=design_parameters)
         nucl2 = mutate(nucl.nucl_2, design_parameters=design_parameters)
-        return nucl_hybrid(nucl_1=nucl1, nucl_2=nucl2) # type: ignore
+        return nucl_hybrid(nucl_1=nucl1, nucl_2=nucl2, score_strand_1=nucl.score_strand_1, score_strand_2=nucl.score_strand_2) # type: ignore
     
     elif type(nucl) == nucl_acid:
         if len(nucl.no_mod) != len(nucl.sequence) or len(nucl.no_indel) != len(nucl.score_region) or len(nucl.no_mod) != len(nucl.no_indel):
