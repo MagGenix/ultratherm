@@ -34,7 +34,7 @@ def rna_thermometer_euk_fiveprime():
     signal(SIGPIPE, SIG_IGN) # Ignore broken pipe (usually ssh) and continue program
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
-    des_params = design_parameters(blacklist=blist, target_temp=62, program='VIENNA', # TODO fix target temp?
+    des_params = design_parameters(blacklist=blist, target_temp=62, program='VIENNA',
         num_mutants=8, target_energy=-13.15,
         weights=[32, 32, 32, 32, 32, 32, 16]
         )
