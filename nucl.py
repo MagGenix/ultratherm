@@ -309,38 +309,22 @@ class nucl_set():
                     no_mod = nucl.no_mod
                     no_indel = nucl.no_indel
                     score_region = nucl.score_region
+                    score_this = [1] * len(nucl)
+                    is_rna = [int(nucl.is_rna)] * len(nucl)
                     
                     sequence = nucl.sequence
-
                     length = len(nucl)
-
-                    if nucl.is_rna:
-                        offset = [79] * length
-                    else:
-                        offset = [15] * length
-
                     score = nucl.score
                 # Combine and represent the nucl_hybrid so it can be printed to one FASTQ record
                 elif type(nucl) == nucl_hybrid:
                     no_mod =        nucl.nucl_1.no_mod +        [-1] + nucl.nucl_2.no_mod
-                    no_indel =      nucl.nucl_1.no_indel +      [-1] + nucl.nucl_2.no_mod
+                    no_indel =      nucl.nucl_1.no_indel +      [-1] + nucl.nucl_2.no_indel
                     score_region =  nucl.nucl_1.score_region +  [-1] + nucl.nucl_2.score_region
-                    
-                    if nucl.nucl_1.is_rna:
-                        offset1 = 79
-                    else:
-                        offset1 = 15
-                    
-                    if nucl.nucl_2.is_rna:
-                        offset2 = 79
-                    else:
-                        offset2 = 15
-                    
+                    is_rna =        [int(nucl.nucl_1.is_rna)]   * len(nucl.nucl_1)  + [-1] + [int(nucl.nucl_2.is_rna)]  * len(nucl.nucl_2)
+                    score_this =    [int(nucl.score_strand_1)]  * len(nucl.nucl_1)  + [-1] + [int(nucl.score_strand_2)] * len(nucl.nucl_2)
+
                     sequence = nucl.nucl_1.sequence + "&" + nucl.nucl_2.sequence
-
                     length = len(nucl.nucl_1) + 1 + len(nucl.nucl_2)
-                    offset = [offset1] * len(nucl.nucl_1) + [-1] + [offset2] * len(nucl.nucl_2)
-
                     score = nucl.score
                     
                 # Element was not a nucl_acid or nucl_hybrid!
@@ -352,17 +336,12 @@ class nucl_set():
                     if no_mod[j] == -1:
                         quals.append(5) # The '&' character, denoting a hybrid of 2 strands
                         continue
-                    bitString = str(no_mod[j]) + str(no_indel[j]) + str(score_region[j])
+                    bitString = str(score_this[j]) + str(is_rna[j]) + str(score_region[j]) + str(no_indel[j]) + str(no_mod[j])
                     bitsAsInt = int(bitString, 2)
-                    quals.append(bitsAsInt + offset[j])
+                    quals.append(bitsAsInt + 31) # 31 is the offset between PHRED qual scores and the first SPSS character
                 record = SeqRecord(seq=sequence, id=str(i), description=str(score))
                 record.letter_annotations["phred_quality"] = quals
                 SeqIO.write(record, handle=handle, format='fastq')
-
-                # TODO do these variables need to be cleared every time ? ? ?
-                del quals
-                del record
-                del nucl
 
     def read(self, path:str, design_parameters:design_parameters) -> None:
         """Reads an SPSS formatted .fastq file and appends its nucl_acid's to the nucl_set.
@@ -403,40 +382,33 @@ class nucl_set():
                 strand_seq =    strand[0]
                 strand_quals =  strand[1]
 
-                if max(strand_quals) > 86 or min(strand_quals) < 15:
-                    raise ValueError("NOT SPSS")
-                elif max(strand_quals) > 22: # Either RNA or invalid
-                    if max(strand_quals) < 79:
-                        raise ValueError("NOT SPSS")
-                    if min(strand_quals) < 79:
-                        raise ValueError("NOT SPSS")
-                    offset = 79
-                    is_rna = True
-                elif min(strand_quals) <  79: # Either DNA or invalid
-                    if min(strand_quals) > 22:
-                        raise ValueError("NOT SPSS")
-                    if max(strand_quals) > 22:
-                        raise ValueError("NOT SPSS")
-                    offset = 15
-                    is_rna = False
-                else:
+                if max(strand_quals) >= 63 or min(strand_quals) < 31: # 31 is the offset between PHRED qual scores and the first SPSS character
                     raise ValueError("NOT SPSS")
                 no_mod = list()
                 no_indel = list()
                 score_region = list()
+                is_rna = list()
+                score_this = list()
                 for qual in strand_quals:
-                    #Convert qual score to int. Backfill 0s to make 3 bit int
-                    bits_string = str(bin(qual - offset))[2:].zfill(3)
-                    no_mod.append(int(bits_string[0] == '1'))
-                    no_indel.append(int(bits_string[1] == '1'))
+                    #Convert qual score to int. Backfill 0s to make 5 bit int
+                    bits_string = str(bin(qual - 31))[2:].zfill(5) # 31 is the offset between PHRED qual scores and the first SPSS character
+                    no_mod.append(int(bits_string[4] == '1'))
+                    no_indel.append(int(bits_string[3] == '1'))
                     score_region.append(int(bits_string[2] == '1'))
+                    is_rna.append(int(bits_string[1] == '1'))
+                    score_this.append(int(bits_string[0] == '1'))
                 
-                nucls.append(nucl_acid(sequence=strand_seq, no_mod=no_mod, no_indel=no_indel, score_region=score_region, is_rna=is_rna))
+                if score_this != [0] * len(score_this) and score_this != [1] * len(score_this):
+                    raise ValueError
+                if is_rna != [0] * len(is_rna) and is_rna != [1] * len(is_rna):
+                    raise ValueError
+
+                nucls.append((nucl_acid(sequence=strand_seq, no_mod=no_mod, no_indel=no_indel, score_region=score_region, is_rna=bool(is_rna[0])), bool(score_this[0])))
             if len(strands) == 1:
-                nucls[0].fitness_score(design_parameters=design_parameters)
-                self.append(new_nucl=nucls[0])
+                nucls[0][0].fitness_score(design_parameters=design_parameters)
+                self.append(new_nucl=nucls[0][0])
             elif len(strands) == 2:
-                new_hybrid = nucl_hybrid(nucls[0], nucls[1], True, True) # TODO change this!
+                new_hybrid = nucl_hybrid(nucls[0][0], nucls[1][0], nucls[0][1], nucls[1][1])
                 new_hybrid.fitness_score(design_parameters=design_parameters)
                 self.append(new_hybrid)
 
