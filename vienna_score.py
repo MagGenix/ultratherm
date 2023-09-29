@@ -86,7 +86,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 1
-    model.gquad = 1
+    #model.gquad = 1 # ViennaRNA [Bug]: pf_dimer bpp matrix contains values >> 1 #209
     fc = RNA.fold_compound(seq, model)
     monomer_energy = fc.pf()[1]
     
@@ -171,7 +171,7 @@ def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float: # TODO coll
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 0
-    model.gquad = 1
+    #model.gquad = 1 # ViennaRNA [Bug]: pf_dimer bpp matrix contains values >> 1 #209
     fc = RNA.fold_compound(seq + "&" + seq, model)
     dimer_energy = fc.pf()[1]
     return dimer_energy
@@ -197,7 +197,7 @@ def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_m
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 0
-    model.gquad = 1
+    #model.gquad = 1 # ViennaRNA [Bug]: pf_dimer bpp matrix contains values >> 1 #209
     fc = RNA.fold_compound(seq, model)
     ensemble_energy = fc.pf()[1]
 

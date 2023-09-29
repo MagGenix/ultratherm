@@ -114,7 +114,7 @@ def vienna_score_temp(seq1: str, seq2: str,
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 1
-    model.gquad = 1
+    #model.gquad = 1 # ViennaRNA [Bug]: pf_dimer bpp matrix contains values >> 1 #209
 
     ab = seq1 + "&" + seq2
     fc_ab = RNA.fold_compound(ab, model)
@@ -226,7 +226,7 @@ def vienna_score_energy(seq1:str, seq2:str, temp:float, target_energy: float, fr
     model = RNA.md()
     model.temperature = temp
     model.compute_bpp = 0
-    model.gquad = 1
+    #model.gquad = 1 # ViennaRNA [Bug]: pf_dimer bpp matrix contains values >> 1 #209
     seq = seq1 + "&" + seq2
     fc = RNA.fold_compound(seq, model)
     ensemble_energy = fc.pf()[1]
