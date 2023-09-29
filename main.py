@@ -18,7 +18,7 @@ def rna_thermometer_prok():
 
     #Create nucleotide set
     nucl_pool = nucl_set(nucls = [])
-    for i in range(0, 2):
+    for i in range(0, 8):
         new_nucl = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
             no_indel =      [0]*20+[1]*17,
             no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
@@ -41,7 +41,7 @@ def rna_thermometer_euk_fiveprime():
 
     #Create nucleotide set
     nucl_pool = nucl_set(nucls = [])
-    for i in range(0, 2):
+    for i in range(0, 8):
         new_nucl = nucl_acid(sequence=Seq('GAANNNNNNNNNNNNNNNNNNNN'), # Optimal for non-5'capped mRNAs (i.e. T7)
             no_indel =      [1]*3+[0]*20,
             no_mod =        [1]*3+[0]*20,
@@ -76,7 +76,7 @@ def heteroduplex():
             no_mod =        [0]*20,
             score_region =  [0]*20,
             is_rna=True) # Limitation - heteroduplices not supported. Standard is to model as RNA
-        new_nucl = nucl_hybrid(new_nucl_1, new_nucl_2, True, False)
+        new_nucl = nucl_hybrid(new_nucl_1, new_nucl_2, True, True)
         new_nucl.fitness_score(design_parameters=des_params)
         nucl_pool.append(new_nucl=new_nucl)
 
