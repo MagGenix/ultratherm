@@ -260,6 +260,19 @@ class nucl_set():
         self.nucls.append(new_nucl)
         self.scores.append(new_nucl.score)
 
+    def pop(self, index:int = -1) ->Union[nucl_acid, nucl_hybrid]:
+        if index >= len(self) or index < -1:
+            raise IndexError
+        if index == -1:
+            index = len(self) - 1
+        
+        temp = self.nucls[index]
+
+        del self.nucls[index]   # This deletes the pointer in the list, not the actual nucl_acid or nucl_hybrid object!
+        del self.scores[index]
+
+        return temp
+
     def remove(self, index:int) -> None:
         """Remove a nucl_acid from the nucl_set.
 
