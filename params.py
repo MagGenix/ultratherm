@@ -11,7 +11,7 @@ class design_parameters():
             self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
             parasitic_max_order_magnitude:float = 2.0,
             blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA', parallel:bool = True,
-            weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1, max_reps:int = 16,
+            weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1, max_reps:int = 32,
             free_energy_max_score:float=1.0, accessibility_max_score:float=1.0, parasitic_complex_max_score:float=1.0,
         ):
         """Create a new design_parameters object. THIS IS THE ONLY FUNCTION WITH DEFAULTS!
