@@ -13,6 +13,7 @@ class design_parameters():
             blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA', parallel:bool = True,
             weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1, max_reps:int = 32,
             free_energy_max_score:float=1.0, accessibility_max_score:float=1.0, parasitic_complex_max_score:float=1.0,
+            optimization_rate:float = 5.0
         ):
         """Create a new design_parameters object. THIS IS THE ONLY FUNCTION WITH DEFAULTS!
 
@@ -32,6 +33,7 @@ class design_parameters():
             free_energy_max_score (float, optional): The maximum score penalty for having a free energy greater than target. Defaults to 1.0.
             accessibility_max_score (float, optional): The maximum score penalty for score region accessibility. Defaults to 1.0.
             parasitic_complex_max_score (float, optional): The maximum score penalty for dimer formation. Defaults to 1.0.
+            optimization_rate (float, optional): A representation of how quickly to remove suboptimal structures from the pool, 1 meaning slowest and >10 meaning very fast. Minimum 0.0. Maximum 14.0. Defaults to 5.0.
 
         Raises:
             ValueError: _description_
@@ -62,12 +64,17 @@ class design_parameters():
         self.free_energy_max_score          = free_energy_max_score
         self.accessibility_max_score        = accessibility_max_score
         self.parasitic_complex_max_score    = parasitic_complex_max_score
+        
+        self.optimization_rate              = optimization_rate
 
         if free_energy_max_score < 0:
             raise ValueError
         if accessibility_max_score < 0:
             raise ValueError
         if parasitic_complex_max_score < 0:
+            raise ValueError
+        
+        if optimization_rate <= 0.0 or optimization_rate >=14: # 14.78 will hit float32 limit
             raise ValueError
 
         if target_energy >= 0:
@@ -132,6 +139,8 @@ class design_parameters():
             'free_energy_max_score':        self.free_energy_max_score,
             'accessibility_max_score':      self.accessibility_max_score,
             'parasitic_complex_max_score':  self.parasitic_complex_max_score,
+            
+            'optimization_rate':            self.optimization_rate
         }
 
         stream = open(path, 'w')

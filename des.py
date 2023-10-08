@@ -76,7 +76,7 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
 
         num_nucls_to_delete = len(nucl_pool) - nucl_pool_size + len(best_nucls)
 
-        weights_list = [math.e**x for x in nucl_pool.scores] # Concave up function and derivative always > 0, higher scores always more likely to be deleted
+        weights_list = [math.e**(design_parameters.optimization_rate * x) for x in nucl_pool.scores] # Concave up function and derivative always > 0, higher scores always more likely to be deleted
 
         for i in range(0, num_nucls_to_delete):
             elem_to_delete = random.choices(nucl_pool.nucls, weights=weights_list)[0]
