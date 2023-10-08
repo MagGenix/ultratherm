@@ -34,6 +34,8 @@ class nucl_acid():
             ValueError: _description_
             ValueError: _description_
         """
+        if len(sequence) == 0:
+            raise ValueError
         if len(no_mod) != len(sequence):
             raise Exception("no_mod length is not equal to seq length")
         if len(no_indel) != len(sequence):
@@ -508,6 +510,9 @@ def mutate(nucl: Union[nucl_acid, nucl_hybrid], design_parameters:design_paramet
 
             # Deletion is faster than insertion so I've moved it here for now
             if selection == 5:
+                if len(sequence) == 1: # Do not create 0-length sequences!
+                    continue
+
                 del sequence[i]
 
                 #The other arrays need to be the same size!

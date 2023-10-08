@@ -54,7 +54,9 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
         if parallel_pool != None:
             for nucl in nucl_pool.nucls:
                 list_nucl = [(nucl, design_parameters)] * design_parameters.num_mutants
-                list_new_nucl = parallel_pool.starmap(func=mutate_and_score, iterable=list_nucl)
+                parallel_results = parallel_pool.starmap(func=mutate_and_score, iterable=list_nucl)
+                for result in parallel_results:
+                    list_new_nucl.append(result)
 
         else:
             for nucl in nucl_pool.nucls:
@@ -74,7 +76,7 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
 
         num_nucls_to_delete = len(nucl_pool) - nucl_pool_size + len(best_nucls)
 
-        weights_list = [math.e**x for x in nucl_pool.scores]
+        weights_list = [math.e**x for x in nucl_pool.scores] # Concave up function and derivative always > 0, higher scores always more likely to be deleted
 
         for i in range(0, num_nucls_to_delete):
             elem_to_delete = random.choices(nucl_pool.nucls, weights=weights_list)[0]
