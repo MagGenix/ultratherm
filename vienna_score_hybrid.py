@@ -130,6 +130,7 @@ def vienna_score_temp(seq1: str, seq2: str,
 
     RNA.co_pf_fold("C") # Bug requires pf calculation
     (hybrid_concentration, aa_final, bb_final, a_final, b_final) = RNA.get_concentrations(energy_ab, energy_aa, energy_bb, energy_a, energy_b, concentration_1, concentration_2)
+    RNA.free_co_pf_arrays() # Both the co_pf_fold and free_co_pf_arrays functions are deprecated!
 
     total_unbound_concentration = a_final + b_final
     total_parasitic_concentration = aa_final + bb_final
