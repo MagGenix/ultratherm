@@ -76,7 +76,7 @@ def heteroduplex():
             no_mod =        [0]*20,
             score_region =  [0]*20,
             is_rna=True) # Limitation - heteroduplices not supported. Standard is to model as RNA
-        new_nucl = nucl_hybrid(new_nucl_1, new_nucl_2, True, True)
+        new_nucl = nucl_hybrid(new_nucl_1, new_nucl_2, True, False)
         new_nucl.fitness_score(design_parameters=des_params)
         nucl_pool.append(new_nucl=new_nucl)
 

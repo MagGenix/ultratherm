@@ -230,7 +230,8 @@ def vienna_score_energy(seq1:str, seq2:str, temp:float, target_energy: float, fr
     #model.gquad = 1 # ViennaRNA [Bug]: pf_dimer bpp matrix contains values >> 1 #209
     seq = seq1 + "&" + seq2
     fc = RNA.fold_compound(seq, model)
-    ensemble_energy = fc.pf()[1]
+    (energy_a, energy_b, energy_ab) = fc.pf_dimer()[1:4]
+    ensemble_energy = energy_ab - (energy_a + energy_b)
 
     score_free_energy = (target_energy - ensemble_energy) / target_energy
     if score_free_energy < 0:
