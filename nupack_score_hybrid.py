@@ -190,14 +190,18 @@ def nupack_score_temp(
         parasitic_score = 0.0
     else:
         parasitic_score = log10(
-            total_parasitic_concentration / (total_unbound_concentration + hybrid_concentration) # TODO should this be either hybrid conc or monomer conc?
+            total_parasitic_concentration / (total_unbound_concentration + hybrid_concentration)
             ) + parasitic_max_order_magnitude
         if parasitic_score < 0:
             parasitic_score = 0 #0 is the best possible factor, indicates limited dimer formation
         elif parasitic_score > 1.0:
             parasitic_score = 1.0 #cap cost of having a poor monomer formation
     
-    if hot:
+    if total_unbound_concentration == 0 and hot:
+        accessibility_score = 1.0
+    if hybrid_concentration == 0 and not(hot):
+        accessibility_score = 1.0
+    elif hot:
         # penalize ss formation in the scored monomeric strand(s) at high temp
         # TODO should this also include a correction for monomeric strand presence?
         monomeric_accessibility_score_1 = 0.0
@@ -220,15 +224,12 @@ def nupack_score_temp(
                     count_scored_nuc_2+=1
         
         accessibility_score = (monomeric_accessibility_score_1 + monomeric_accessibility_score_2) / (count_scored_nuc_1 + count_scored_nuc_2)
+        #accessibility_score *= total_unbound_concentration / (total_unbound_concentration + hybrid_concentration)
         accessibility_score = 1.0 - accessibility_score
-
     else:
         pairs_arr = results_nucl.complexes[hybrid_complex].pairs.to_array()
 
         sub_pairs_arr = pairs_arr[0:len(score_region_1), len(score_region_1):]
-        prob_scaling_factor = hybrid_concentration / (total_unbound_concentration + hybrid_concentration) # Correction applied to NUPACK sub_pairs_arr because Vienna pf_dimer array includes A, AB, B
-        sub_pairs_arr = sub_pairs_arr * prob_scaling_factor
-
         paired_strand_1 = numpy.sum(sub_pairs_arr, axis=1)
         paired_strand_2 = numpy.sum(sub_pairs_arr, axis=0)
         
@@ -250,6 +251,7 @@ def nupack_score_temp(
                     count_scored_nuc_2+=1
         
         accessibility_score = (total_bound_1 + total_bound_2) / float(count_scored_nuc_1 + count_scored_nuc_2)
+        #accessibility_score *= hybrid_concentration / (total_unbound_concentration + hybrid_concentration)
         accessibility_score = 1.0 - accessibility_score
     
     if accessibility_score > 1.0:

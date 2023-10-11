@@ -148,7 +148,11 @@ def vienna_score_temp(seq1: str, seq2: str,
         elif parasitic_score > 1.0:
             parasitic_score = 1.0 #cap cost of having a poor monomer formation
 
-    if hot:
+    if total_unbound_concentration == 0 and hot:
+        accessibility_score = 1.0
+    if hybrid_concentration == 0 and not(hot):
+        accessibility_score = 1.0
+    elif hot:
         monomeric_accessibility_score_1 = 0.0
         monomeric_accessibility_score_2 = 0.0
         count_scored_nuc_1 = 0
@@ -161,8 +165,8 @@ def vienna_score_temp(seq1: str, seq2: str,
             (monomeric_accessibility_score_2, count_scored_nuc_2) = vienna_score_monomeric_accessibility(seq=seq2, model=model, score_region=score_region_2)
         
         monomeric_accessibility_score = (monomeric_accessibility_score_1 + monomeric_accessibility_score_2) / (count_scored_nuc_1 + count_scored_nuc_2)
+        #monomeric_accessibility_score *= total_unbound_concentration / (total_unbound_concentration + hybrid_concentration)
         accessibility_score = 1.0 - monomeric_accessibility_score
-
     else:
         bpp_tuple = fc_ab.bpp()
         bpp = numpy.array(bpp_tuple)[1:,1:]
@@ -197,6 +201,8 @@ def vienna_score_temp(seq1: str, seq2: str,
                     count_scored_nuc_2+=1
         
         accessibility_score = (total_bound_1 + total_bound_2) / float(count_scored_nuc_1 + count_scored_nuc_2)
+        #accessibility_score *= hybrid_concentration / (total_unbound_concentration + hybrid_concentration)
+        
         accessibility_score = 1.0 - accessibility_score
 
     if accessibility_score > 1.0:
