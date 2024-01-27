@@ -36,7 +36,7 @@ def rna_thermometer_euk_fiveprime():
     blist = blacklist(path="blacklist.fasta")
     des_params = design_parameters(blacklist=blist, target_temp=62, program='VIENNA',
         num_mutants=8, target_energy=-13.15,
-        weights=[32, 32, 32, 32, 32, 32, 16]
+        weights=[32, 32, 32, 32, 32, 32, 16], optimization_rate=10
         )
 
     #Create nucleotide set
@@ -60,23 +60,23 @@ def heteroduplex():
     blist = blacklist(path="blacklist.fasta")
     des_params = design_parameters(blacklist=blist, target_temp=62, program='VIENNA',
         num_mutants=8, target_energy=-13.15,
-        weights=[32, 32, 32, 32, 32, 32, 16]
+        weights=[32, 32, 32, 32, 32, 32, 16], optimization_rate=10
         )
 
     #Create nucleotide set
     nucl_pool = nucl_set(nucls = [])
     for i in range(0, 8):
-        new_nucl_1 = nucl_acid(sequence=Seq('GAANNNNNNNNNNNNNNNNNNNN'), # Optimal for non-5'capped mRNAs (i.e. T7)
-            no_indel =      [1]*3+[0]*20,
-            no_mod =        [1]*3+[0]*20,
-            score_region =  [1]*3+[0]*20,
+        new_nucl_1 = nucl_acid(sequence=Seq('GAANNNNNNNNNNNNNNNNN'), # Optimal for non-5'capped mRNAs (i.e. T7)
+            no_indel =      [1]*3+[0]*17,
+            no_mod =        [1]*3+[0]*17,
+            score_region =  [1]*3+[0]*17,
             is_rna=True) # Limitation - heteroduplices not supported. Standard is to model as RNA
         new_nucl_2 = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNN'),
             no_indel =      [0]*20,
             no_mod =        [0]*20,
             score_region =  [0]*20,
             is_rna=True) # Limitation - heteroduplices not supported. Standard is to model as RNA
-        new_nucl = nucl_hybrid(new_nucl_1, new_nucl_2, True, True)
+        new_nucl = nucl_hybrid(new_nucl_1, new_nucl_2, True, False)
         new_nucl.fitness_score(design_parameters=des_params)
         nucl_pool.append(new_nucl=new_nucl)
 
@@ -93,6 +93,6 @@ def heteroduplex():
 #####
 if __name__ == '__main__':
     #rna_thermometer_prok()
-    #rna_thermometer_euk_fiveprime()
-    heteroduplex()
+    rna_thermometer_euk_fiveprime()
+    #heteroduplex()
     pass

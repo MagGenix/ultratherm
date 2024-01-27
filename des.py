@@ -4,6 +4,8 @@ import time
 import os
 import multiprocessing
 from typing import Union
+import random
+import math
 
 def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
     """A design loop that retains the best nucl_acid's and decrements mutation weights as it runs
@@ -47,25 +49,43 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
             else:
                 break
         
+        nucl_pool_size = len(nucl_pool)
+        list_new_nucl = list()
         if parallel_pool != None:
             for nucl in nucl_pool.nucls:
                 list_nucl = [(nucl, design_parameters)] * design_parameters.num_mutants
-                
-                list_new_nucl = parallel_pool.starmap(func=mutate_and_score, iterable=list_nucl)
-                
-                for mutant in list_new_nucl:
-                    nucl_pool.append(mutant)
-                    
-                for i in range(0, design_parameters.num_mutants):
-                    nucl_pool.remove(nucl_pool.scores.index(max(nucl_pool.scores)))
+                parallel_results = parallel_pool.starmap(func=mutate_and_score, iterable=list_nucl)
+                for result in parallel_results:
+                    list_new_nucl.append(result)
 
         else:
             for nucl in nucl_pool.nucls:
                 for i in range(0, design_parameters.num_mutants):
-                    nucl_pool.append(mutate_and_score(nucl=nucl, design_parameters=design_parameters))
-                
-                for i in range(0, design_parameters.num_mutants):
-                    nucl_pool.remove(nucl_pool.scores.index(max(nucl_pool.scores)))
+                    list_new_nucl.append(mutate_and_score(nucl=nucl, design_parameters=design_parameters))
+        
+        for mutant in list_new_nucl:
+            nucl_pool.append(mutant)
+        
+        best_nucls = list()
+        num_best_nucls = int(nucl_pool_size * 0.15) # Top ~15%
+        if num_best_nucls == 0:
+            num_best_nucls = 1
+        for i in range(0, num_best_nucls): # Only necessarily retain top ~15% of scores (elitist GA)
+            best_nucl = nucl_pool.pop(nucl_pool.scores.index(min(nucl_pool.scores)))
+            best_nucls.append(best_nucl)
+
+        num_nucls_to_delete = len(nucl_pool) - nucl_pool_size + len(best_nucls)
+
+        weights_list = [math.e**(design_parameters.optimization_rate * x) for x in nucl_pool.scores] # Concave up function and derivative always > 0, higher scores always more likely to be deleted
+
+        for i in range(0, num_nucls_to_delete):
+            elem_to_delete = random.choices(nucl_pool.nucls, weights=weights_list)[0]
+            index = nucl_pool.nucls.index(elem_to_delete)
+            nucl_pool.remove(index)
+            weights_list.pop(index)
+
+        for nucl in best_nucls:
+            nucl_pool.append(nucl)
 
         current_min = min(nucl_pool.scores)
         

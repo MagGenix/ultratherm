@@ -130,6 +130,7 @@ def vienna_score_temp(seq1: str, seq2: str,
 
     RNA.co_pf_fold("C") # Bug requires pf calculation
     (hybrid_concentration, aa_final, bb_final, a_final, b_final) = RNA.get_concentrations(energy_ab, energy_aa, energy_bb, energy_a, energy_b, concentration_1, concentration_2)
+    RNA.free_co_pf_arrays() # Both the co_pf_fold and free_co_pf_arrays functions are deprecated!
 
     total_unbound_concentration = a_final + b_final
     total_parasitic_concentration = aa_final + bb_final
@@ -147,7 +148,11 @@ def vienna_score_temp(seq1: str, seq2: str,
         elif parasitic_score > 1.0:
             parasitic_score = 1.0 #cap cost of having a poor monomer formation
 
-    if hot:
+    if total_unbound_concentration == 0 and hot:
+        accessibility_score = 1.0
+    if hybrid_concentration == 0 and not(hot):
+        accessibility_score = 1.0
+    elif hot:
         monomeric_accessibility_score_1 = 0.0
         monomeric_accessibility_score_2 = 0.0
         count_scored_nuc_1 = 0
@@ -160,8 +165,8 @@ def vienna_score_temp(seq1: str, seq2: str,
             (monomeric_accessibility_score_2, count_scored_nuc_2) = vienna_score_monomeric_accessibility(seq=seq2, model=model, score_region=score_region_2)
         
         monomeric_accessibility_score = (monomeric_accessibility_score_1 + monomeric_accessibility_score_2) / (count_scored_nuc_1 + count_scored_nuc_2)
+        #monomeric_accessibility_score *= total_unbound_concentration / (total_unbound_concentration + hybrid_concentration)
         accessibility_score = 1.0 - monomeric_accessibility_score
-
     else:
         bpp_tuple = fc_ab.bpp()
         bpp = numpy.array(bpp_tuple)[1:,1:]
@@ -196,6 +201,8 @@ def vienna_score_temp(seq1: str, seq2: str,
                     count_scored_nuc_2+=1
         
         accessibility_score = (total_bound_1 + total_bound_2) / float(count_scored_nuc_1 + count_scored_nuc_2)
+        #accessibility_score *= hybrid_concentration / (total_unbound_concentration + hybrid_concentration)
+        
         accessibility_score = 1.0 - accessibility_score
 
     if accessibility_score > 1.0:
@@ -229,7 +236,8 @@ def vienna_score_energy(seq1:str, seq2:str, temp:float, target_energy: float, fr
     #model.gquad = 1 # ViennaRNA [Bug]: pf_dimer bpp matrix contains values >> 1 #209
     seq = seq1 + "&" + seq2
     fc = RNA.fold_compound(seq, model)
-    ensemble_energy = fc.pf()[1]
+    (energy_a, energy_b, energy_ab) = fc.pf_dimer()[1:4]
+    ensemble_energy = energy_ab - (energy_a + energy_b)
 
     score_free_energy = (target_energy - ensemble_energy) / target_energy
     if score_free_energy < 0:
