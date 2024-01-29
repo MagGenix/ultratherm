@@ -48,11 +48,11 @@ def vienna_score(sequence:str, score_region:list, is_rna:bool, concentration: fl
         parasitic_complex_max_score=design_parameters.parasitic_complex_max_score,
         accessibility_max_score=design_parameters.accessibility_max_score, hot=False, is_rna=is_rna)
 
-    score_energy = vienna_score_energy(seq=sequence, temp=design_parameters.thermo_score_temp,
-        target_energy=design_parameters.target_energy,
-        free_energy_max_score=design_parameters.free_energy_max_score, is_rna=is_rna)
+    scores_energy = vienna_score_energy(seq=sequence, temp=design_parameters.thermo_score_temp,
+        target_energy=design_parameters.target_energy, max_hairpins=design_parameters.max_hairpins,
+        free_energy_max_score=design_parameters.free_energy_max_score, num_hairpins_max_score=design_parameters.num_hairpins_max_score, is_rna=is_rna)
 
-    return score_energy + sum(scores_hot) + sum(scores_cold)
+    return sum(scores_energy) + sum(scores_hot) + sum(scores_cold)
 
 # Returns (float: accessibility_score, float: ensemble_energy)
 def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentration:float, parasitic_max_order_magnitude:float, parasitic_complex_max_score: float, accessibility_max_score: float, hot: bool, is_rna: bool) -> tuple[float, float]:
@@ -135,7 +135,7 @@ def vienna_score_temp(seq:str, score_region:list, temp: float, nucl_concentratio
     # This means it will not correct [MONOMER] for [DIMER], so it is an approximation for small [DIMER].
     # If this is only used for scoring this is appropriate,
     # as for [DIMER] > [MONOMER] * 10^(1-parasitic_max_order_magnitude) the score is the max score.
-    if delta_g == 0:
+    if delta_g >= 0:
         parasitic_score = 1.0
     else:
         parasitic_score = log10(exp((delta_g * -4184) / (8.31446261815324 * (273.15 + temp)) ) * nucl_concentration) + parasitic_max_order_magnitude
@@ -176,7 +176,7 @@ def vienna_dimer_energy(seq:str, temp:float, is_rna: bool) -> float: # TODO coll
     dimer_energy = fc.pf()[1]
     return dimer_energy
 
-def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_max_score: float, is_rna: bool) -> float:
+def vienna_score_energy(seq:str, temp:float, target_energy: float, max_hairpins:int, free_energy_max_score: float, num_hairpins_max_score:float, is_rna: bool) -> tuple[float, float]:
     """Generate a free energy score for a sequence at a given temperature.
     Generally reserved for usage by vienna_score().
 
@@ -184,7 +184,9 @@ def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_m
         seq (str): the nucleic acid sequence.
         temp (float): the temperature to score at.
         target_energy (float): the target free energy in kcal/mol.
+        max_hairpins (int): the maximum number of acceptable hairpins in the ensemble centroid structure.
         free_energy_max_score (float): the maximum score penalty for having a free energy greater than target.
+        num_hairpins_max_score (float): the maximum score penalty for having more hairpins in the ensemble centroid than the desired max.
         is_rna (bool): whether the nucleic acid is RNA or DNA.
 
     Returns:
@@ -196,10 +198,33 @@ def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_m
         RNA.params_load_RNA_Turner2004() # Default parameters for Vienna
     model = RNA.md()
     model.temperature = temp
-    model.compute_bpp = 0
+    #model.compute_bpp = 0 # comment out to enable centroid calculation
     #model.gquad = 1 # ViennaRNA [Bug]: pf_dimer bpp matrix contains values >> 1 #209
     fc = RNA.fold_compound(seq, model)
     ensemble_energy = fc.pf()[1]
+    #(structure, mfe) = fc.mfe()
+    # Using centroid, not mfe! centroid better resembles the overall structure of the ensemble
+    structure = fc.centroid()[0]
+
+    # Calculate number of hairpins in the dot-bracket structure
+    pair_sum = 0
+    num_hairpins = 0
+
+    for char in structure:
+        if char == ".":
+            continue
+
+        if char == "(":
+            if pair_sum == 0:
+                num_hairpins+=1
+            pair_sum += 1
+        elif char == ")":
+            pair_sum -= 1
+
+    if num_hairpins > max_hairpins:
+        num_hairpins_score = num_hairpins_max_score
+    else:
+        num_hairpins_score = 0
 
     score_free_energy = (target_energy - ensemble_energy) / target_energy
     if score_free_energy < 0:
@@ -208,4 +233,4 @@ def vienna_score_energy(seq:str, temp:float, target_energy: float, free_energy_m
         score_free_energy = 1.0
     
     score_free_energy = free_energy_max_score * score_free_energy
-    return score_free_energy
+    return (score_free_energy, num_hairpins_score)

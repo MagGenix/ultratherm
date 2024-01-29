@@ -8,11 +8,11 @@ class design_parameters():
     """Stores parameters used in nucleic acid design.
     """
     def __init__(
-            self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:int=37,
+            self, target_energy:float, target_temp: float, temp_offset: float = 5.0, thermo_score_temp:float=37, max_hairpins:int=1,
             parasitic_max_order_magnitude:float = 2.0,
             blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA', parallel:bool = True,
             weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1, max_reps:int = 32,
-            free_energy_max_score:float=1.0, accessibility_max_score:float=1.0, parasitic_complex_max_score:float=1.0,
+            free_energy_max_score:float=1.0, accessibility_max_score:float=1.0, parasitic_complex_max_score:float=1.0, num_hairpins_max_score:float=1.0,
             optimization_rate:float = 5.0
         ):
         """Create a new design_parameters object. THIS IS THE ONLY FUNCTION WITH DEFAULTS!
@@ -22,6 +22,7 @@ class design_parameters():
             target_temp (float): Target temp for 50% pairing of the score_region. At target_temp - temp_offset, pairing should be 0% and 100% at target_temp + temp_offset.
             temp_offset (float, optional): The offset temperature for score_region pair probability assessment. See target_temp. Defaults to 5.0.
             thermo_score_temp (int, optional): The temperature at which the ensemble energy is scored. Defaults to 37.
+            max_hairpins (int, optional): the maximum number of acceptable hairpins in the ensemble centroid structure.
             parasitic_max_order_magnitude (float, optional): The threshold at which to penalize dimer formation, as -log10([DIMER] / [MONOMER]). Defaults to 2.0.
             blacklist (blacklist, optional): A blacklist object. Defaults to blacklist('').
             num_mutants (int, optional): The number of mutants to generate per nucl_acid in the nucl_set. Defaults to 16.
@@ -33,6 +34,7 @@ class design_parameters():
             free_energy_max_score (float, optional): The maximum score penalty for having a free energy greater than target. Defaults to 1.0.
             accessibility_max_score (float, optional): The maximum score penalty for score region accessibility. Defaults to 1.0.
             parasitic_complex_max_score (float, optional): The maximum score penalty for dimer formation. Defaults to 1.0.
+            num_hairpins_max_score (float, optional): the maximum score penalty for having more hairpins in the ensemble centroid than the desired max.
             optimization_rate (float, optional): A representation of how quickly to remove suboptimal structures from the pool, 1 meaning slowest and >10 meaning very fast. Minimum 0.0. Maximum 14.0. Defaults to 5.0.
 
         Raises:
@@ -50,6 +52,7 @@ class design_parameters():
         self.target_temp = target_temp
         self.temp_offset = temp_offset
         self.thermo_score_temp = thermo_score_temp
+        self.max_hairpins = max_hairpins
 
         self.parasitic_max_order_magnitude = parasitic_max_order_magnitude
 
@@ -64,14 +67,20 @@ class design_parameters():
         self.free_energy_max_score          = free_energy_max_score
         self.accessibility_max_score        = accessibility_max_score
         self.parasitic_complex_max_score    = parasitic_complex_max_score
+        self.num_hairpins_max_score         = num_hairpins_max_score
         
         self.optimization_rate              = optimization_rate
+
+        if max_hairpins < 0:
+            raise ValueError
 
         if free_energy_max_score < 0:
             raise ValueError
         if accessibility_max_score < 0:
             raise ValueError
         if parasitic_complex_max_score < 0:
+            raise ValueError
+        if num_hairpins_max_score < 0:
             raise ValueError
         
         if optimization_rate <= 0.0 or optimization_rate >=14: # 14.78 will hit float32 limit
@@ -124,6 +133,7 @@ class design_parameters():
             'target_temp':                  self.target_temp,
             'temp_offset':                  self.temp_offset,
             'thermo_score_temp':            self.thermo_score_temp,
+            'max_hairpins':                 self.max_hairpins,
 
             'parasitic_max_order_magnitude':    self.parasitic_max_order_magnitude,
 
@@ -139,6 +149,7 @@ class design_parameters():
             'free_energy_max_score':        self.free_energy_max_score,
             'accessibility_max_score':      self.accessibility_max_score,
             'parasitic_complex_max_score':  self.parasitic_complex_max_score,
+            'num_hairpins_max_score':       self.num_hairpins_max_score,
             
             'optimization_rate':            self.optimization_rate
         }
