@@ -7,9 +7,8 @@ from typing import Union
 
 from params import design_parameters
 from blist import blacklist
-from nupack_score import nupack_score
+
 from vienna_score import vienna_score
-from nupack_score_hybrid import nupack_score_hybrid
 from vienna_score_hybrid import vienna_score_hybrid
 
 class nucl_acid():
@@ -97,7 +96,8 @@ class nucl_acid():
         """
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
             self.score = 6.0
-        elif design_parameters.program == "NUPACK":  
+        elif design_parameters.program == "NUPACK":
+            from nupack_score import nupack_score
             self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters, concentration=self.concentration)
         elif design_parameters.program == "VIENNA":
             self.score = vienna_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters, concentration=self.concentration)
@@ -152,6 +152,7 @@ class nucl_hybrid():
             self.score = 6.0
         
         elif design_parameters.program == "NUPACK":  
+            from nupack_score_hybrid import nupack_score_hybrid
             self.score = nupack_score_hybrid(sequence_1=str(self.nucl_1.sequence),
                                              score_region_1=self.nucl_1.score_region,
                                              is_rna_1=self.nucl_1.is_rna,

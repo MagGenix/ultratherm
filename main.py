@@ -4,11 +4,8 @@ from Bio.Seq import Seq
 from params import design_parameters, read_parameters
 from des import design
 
-from signal import signal, SIGPIPE, SIG_IGN
-
 # NOTE Customize these!
 def rna_thermometer_prok():
-    signal(SIGPIPE, SIG_IGN) # Ignore broken pipe (usually ssh) and continue program
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
     des_params = design_parameters(blacklist=blist, target_temp=52, program='VIENNA',
@@ -18,7 +15,7 @@ def rna_thermometer_prok():
 
     #Create nucleotide set
     nucl_pool = nucl_set(nucls = [])
-    for i in range(0, 8):
+    for i in range(0, 16):
         new_nucl = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
             no_indel =      [0]*20+[1]*17,
             no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
@@ -31,7 +28,6 @@ def rna_thermometer_prok():
     design(design_parameters=des_params, nucl_pool=nucl_pool)
 
 def rna_thermometer_euk_fiveprime():
-    signal(SIGPIPE, SIG_IGN) # Ignore broken pipe (usually ssh) and continue program
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
     des_params = design_parameters(blacklist=blist, target_temp=62, program='VIENNA',
@@ -55,7 +51,6 @@ def rna_thermometer_euk_fiveprime():
 
 
 def heteroduplex():
-    signal(SIGPIPE, SIG_IGN) # Ignore broken pipe (usually ssh) and continue program
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
     des_params = design_parameters(blacklist=blist, target_temp=62, program='VIENNA',
@@ -92,7 +87,7 @@ def heteroduplex():
 
 #####
 if __name__ == '__main__':
-    #rna_thermometer_prok()
-    rna_thermometer_euk_fiveprime()
+    rna_thermometer_prok()
+    #rna_thermometer_euk_fiveprime()
     #heteroduplex()
     pass
