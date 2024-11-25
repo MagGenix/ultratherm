@@ -8,7 +8,7 @@ from des import design
 def rna_thermometer_prok():
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
-    des_params = design_parameters(blacklist=blist, target_temp=42, program='NUPACK',
+    des_params = design_parameters(blacklist=blist, target_temp=42, program='VIENNA',
         num_mutants=8, target_energy=-6, # based on http://dx.doi.org/10.1101/017269
         weights=[32, 32, 32, 32, 32, 32, 16],
         thermo_score_temp=30,

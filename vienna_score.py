@@ -191,6 +191,7 @@ def vienna_score_energy(seq:str, temp:float, target_energy: float, max_hairpins:
 
     Returns:
         float: score_free_energy
+        float: num_hairpins_score
     """
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
