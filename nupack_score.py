@@ -88,8 +88,7 @@ def nupack_score_energy(
         material (str): 'dna' or 'rna'.
 
     Returns:
-        float: score_free_energy
-        float: num_hairpins_score
+        tuple[float, float]: (score_free_energy, num_hairpins_score)
     """
     model_nucl=Model(kelvin=temp + 273.15, material=material)
     results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs', 'mfe'])

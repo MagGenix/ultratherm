@@ -190,8 +190,7 @@ def vienna_score_energy(seq:str, temp:float, target_energy: float, max_hairpins:
         is_rna (bool): whether the nucleic acid is RNA or DNA.
 
     Returns:
-        float: score_free_energy
-        float: num_hairpins_score
+        tuple[float, float]: (score_free_energy, num_hairpins_score)
     """
     if not is_rna:
         RNA.params_load_DNA_Mathews1999()
