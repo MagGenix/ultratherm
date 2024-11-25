@@ -20,6 +20,7 @@ python3 -m pip install -U nupack -f ./nupack-4.0.1.8/package
 ```
 
 As of NUPACK 4.0 and ViennaRNA 2.6.4 Python >=3.8 is required (a standard installation will use 3.10).
+*Note: NUPACK 4.x is not distributed with Windows wheels, so using NUPACK as an Ultratherm solver on Windows is not guaranteed. You may consider using WSL or compiling NUPACK from source.*
 
 **Operation is not guaranteed with any other version of Python!**
 

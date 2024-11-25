@@ -3,7 +3,7 @@ from math import exp, log10
 from params import design_parameters
 
 def vienna_score(sequence:str, score_region:list, is_rna:bool, concentration: float, design_parameters:design_parameters) -> float:
-    """Scores a sequence (using ViennaRNA) on score region accessibility, free energy, and dimer formation.
+    """Scores a sequence (using ViennaRNA) on score region accessibility, free energy, hairpin count (using Boltzmann ensemble centroid structure) and dimer formation.
 
     Args:
         sequence (str): the nucleic acid sequence.
