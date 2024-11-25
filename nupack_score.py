@@ -4,7 +4,7 @@ from math import log10
 from params import design_parameters
 
 def nupack_score(sequence:str, score_region:list, is_rna: bool, concentration: float, design_parameters:design_parameters) -> float:
-    """Scores a sequence (using NUPACK) on score region accessibility, free energy, and dimer formation.
+    """Scores a sequence (using NUPACK) on score region accessibility, free energy, hairpin count(using mfe structure) and dimer formation.
 
     Args:
         sequence (str): the nucleic acid sequence.
@@ -65,35 +65,58 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, concentration: f
         parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         accessibility_max_score=design_parameters.accessibility_max_score, material=material)
 
-    score_energy = nupack_score_energy(temp=design_parameters.thermo_score_temp, energy=design_parameters.target_energy,
+    scores_energy = nupack_score_energy(temp=design_parameters.thermo_score_temp, energy=design_parameters.target_energy, max_hairpins=design_parameters.max_hairpins,
         tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single,
-        free_energy_max_score=design_parameters.free_energy_max_score, material=material)
+        free_energy_max_score=design_parameters.free_energy_max_score, num_hairpins_max_score=design_parameters.num_hairpins_max_score, material=material)
 
-    return score_energy + sum(scores_cold) + sum(scores_hot)
+    return sum(scores_energy) + sum(scores_cold) + sum(scores_hot)
 
 def nupack_score_energy(
-        temp: float, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float, material: str
-    ) -> float:
+        temp: float, energy: float, max_hairpins: int, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float, num_hairpins_max_score: float, material: str
+    ) -> tuple[float, float]:
     """Generate a free energy score for a sequence at a given temperature.
     Generally reserved for usage by nupack_score().
     
     Args:
         temp (float): the temperature to score at.
         energy (float): the target free energy in kcal/mol.
+        max_hairpins (int): the maximum number of acceptable hairpins in the MFE structure.
         tube_nucl (Tube): NUPACK Tube containing the strand to be scored.
         complex_nucl_single (Complex): A defined complex of the monomeric strand to be assessed for concentration.
         free_energy_max_score (float): the maximum score penalty for having a free energy greater than target.
+        num_hairpins_max_score (float): the maximum score penalty for having more hairpins in the MFE structure than the desired max.
         material (str): 'dna' or 'rna'.
 
     Returns:
-        float: score_free_energy
+        tuple[float, float]: (score_free_energy, num_hairpins_score)
     """
     model_nucl=Model(kelvin=temp + 273.15, material=material)
-    results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs'])
+    results_nucl = complex_analysis(complexes = tube_nucl, model=model_nucl, compute=['pairs', 'mfe'])
     #concentrations_nucl = complex_concentrations(tube=tube_nucl, data = results_nucl)
 
+    results_nucl_complex_single = results_nucl.complexes[complex_nucl_single]
+    
+    mfe_structure = str(results_nucl_complex_single.mfe[0].structure)
+    pair_sum = 0
+    num_hairpins = 0
+
+    for char in mfe_structure:
+        if char == ".":
+            continue
+        if char == "(":
+            if pair_sum == 0:
+                num_hairpins+=1
+            pair_sum += 1
+        elif char == ")":
+            pair_sum -= 1
+
+    if num_hairpins > max_hairpins:
+        num_hairpins_score = num_hairpins_max_score
+    else:
+        num_hairpins_score = 0
+    
     #Changing max value for free energy score since it can make the resulting RNATs terrible at RBS occlusion
-    score_free_energy = (energy - results_nucl.complexes[complex_nucl_single].free_energy) / energy
+    score_free_energy = (energy - results_nucl_complex_single.free_energy) / energy
     if score_free_energy < 0:
         score_free_energy = 0
     elif score_free_energy > 1.0:
@@ -101,7 +124,7 @@ def nupack_score_energy(
 
     score_free_energy = free_energy_max_score * score_free_energy
 
-    return score_free_energy
+    return (score_free_energy, num_hairpins_score)
 
 def nupack_score_temp(
         score_region: list, temp: float, parasitic_max_order_magnitude:float,

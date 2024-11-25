@@ -8,18 +8,25 @@ from des import design
 def rna_thermometer_prok():
     #Configure design parameters
     blist = blacklist(path="blacklist.fasta")
-    des_params = design_parameters(blacklist=blist, target_temp=52, program='VIENNA',
-        num_mutants=8, target_energy=-9.75, # based on FourU Hairpin 2
-        weights=[32, 32, 32, 32, 32, 32, 16]
+    des_params = design_parameters(blacklist=blist, target_temp=42, program='VIENNA',
+        num_mutants=8, target_energy=-6, # based on http://dx.doi.org/10.1101/017269
+        weights=[32, 32, 32, 32, 32, 32, 16],
+        thermo_score_temp=30,
+        max_reps=16,
+        max_hairpins=1,
+        accessibility_max_score=3,
+        parasitic_complex_max_score=0,
+        optimization_rate=3,
+        temp_offset=10
         )
 
     #Create nucleotide set
     nucl_pool = nucl_set(nucls = [])
-    for i in range(0, 16):
-        new_nucl = nucl_acid(sequence=Seq('NNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUG'),
-            no_indel =      [0]*20+[1]*17,
-            no_mod =        [0]*20+[1]*8+[0]*6+[1]*3,
-            score_region =  [0]*20+[1]*8+[0]*6+[0]*3,
+    for i in range(0, 64):
+        new_nucl = nucl_acid(sequence=Seq('GNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNUAAGGAGGNNNNNNAUGAGUAAAGGC'),
+            no_indel =      [0]+[0]*40+[1]*26,
+            no_mod =        [1]+[0]*40+[1]*8+[0]*6+[1]*12,
+            score_region =  [0]+[0]*40+[1]*8+[0]*6+[0]*12,
             is_rna=True)
         new_nucl.fitness_score(design_parameters=des_params)
         nucl_pool.append(new_nucl=new_nucl)
