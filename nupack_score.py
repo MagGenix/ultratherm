@@ -65,14 +65,14 @@ def nupack_score(sequence:str, score_region:list, is_rna: bool, concentration: f
         parasitic_max_order_magnitude=design_parameters.parasitic_max_order_magnitude,
         accessibility_max_score=design_parameters.accessibility_max_score, material=material)
 
-    score_energy = nupack_score_energy(temp=design_parameters.thermo_score_temp, energy=design_parameters.target_energy,
+    scores_energy = nupack_score_energy(temp=design_parameters.thermo_score_temp, energy=design_parameters.target_energy,
         tube_nucl=tube_nucl, complex_nucl_single=complex_nucl_single,
         free_energy_max_score=design_parameters.free_energy_max_score, material=material)
 
-    return score_energy + sum(scores_cold) + sum(scores_hot)
+    return sum(scores_energy) + sum(scores_cold) + sum(scores_hot)
 
 def nupack_score_energy(
-        temp: float, energy: float, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float, material: str
+        temp: float, energy: float, max_hairpins: int, tube_nucl: Tube, complex_nucl_single: Complex, free_energy_max_score:float, num_hairpins_max_score: float, material: str
     ) -> float:
     """Generate a free energy score for a sequence at a given temperature.
     Generally reserved for usage by nupack_score().
@@ -80,9 +80,11 @@ def nupack_score_energy(
     Args:
         temp (float): the temperature to score at.
         energy (float): the target free energy in kcal/mol.
+        max_hairpins (int): the maximum number of acceptable hairpins.
         tube_nucl (Tube): NUPACK Tube containing the strand to be scored.
         complex_nucl_single (Complex): A defined complex of the monomeric strand to be assessed for concentration.
         free_energy_max_score (float): the maximum score penalty for having a free energy greater than target.
+        num_hairpins_max_score (float): the maximum score penalty for having more hairpins than the desired max.
         material (str): 'dna' or 'rna'.
 
     Returns:
