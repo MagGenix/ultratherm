@@ -1,3 +1,6 @@
+import sys
+sys.path.append('src')
+
 from nucl import nucl_acid, nucl_set, nucl_hybrid
 from blist import blacklist
 from Bio.Seq import Seq

@@ -1,7 +1,6 @@
 from nucl import nucl_set, mutate, nucl_acid, nucl_hybrid
 from params import design_parameters
 import time
-import os
 import multiprocessing
 from typing import Union
 import random
@@ -38,10 +37,8 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
         print('')
 
         if iter_count == 0:
-            if not os.path.exists("RESULTS"):
-                os.makedirs('RESULTS')
-            design_parameters.save("RESULTS/" + 'PARAMS_' + time.asctime().replace(":", "_") + '.yml')
-            nucl_pool.save("RESULTS/" + "START_" + time.asctime().replace(":", "_") + '.fastq')
+            design_parameters.save(design_parameters.result_save_path + 'PARAMS_' + time.asctime().replace(":", "_") + '.yml')
+            nucl_pool.save(design_parameters.result_save_path + "START_" + time.asctime().replace(":", "_") + '.fastq')
         if current_rep == design_parameters.max_reps:
             if design_parameters.can_decrement_weights():
                 design_parameters.decrement_weights()
@@ -98,12 +95,12 @@ def design(design_parameters:design_parameters, nucl_pool:nucl_set) -> None:
         iter_count+=1
         # TODO consider making the number of rounds to save an intermediate file a parameter
         if iter_count % 50 == 0:
-            nucl_pool.save("RESULTS/" + "MID_" +time.asctime().replace(":", "_") + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
+            nucl_pool.save(design_parameters.result_save_path + "MID_" +time.asctime().replace(":", "_") + "_w" + str(min(design_parameters.weights[0:6])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
 
         prev_min = current_min # type: ignore
     
 
-    nucl_pool.save("RESULTS/" + "END_" +time.asctime().replace(":", "_") + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
+    nucl_pool.save(design_parameters.result_save_path + "END_" +time.asctime().replace(":", "_") + "_w" + str(min(design_parameters.weights[0:7])) + "_o" + str(design_parameters.temp_offset) + "_i" + str(iter_count) + '.fastq')
 
     if parallel_pool != None:
         parallel_pool.close()

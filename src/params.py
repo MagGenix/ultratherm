@@ -1,3 +1,4 @@
+import os
 from blist import blacklist
 import yaml
 
@@ -13,7 +14,7 @@ class design_parameters():
             blacklist: blacklist = blacklist(''), num_mutants: int = 16, program: str = 'VIENNA', parallel:bool = True,
             weights:list = [16, 16, 16, 16, 16, 16, 16], weight_factor: int = 1, max_reps:int = 32,
             free_energy_max_score:float=1.0, accessibility_max_score:float=1.0, parasitic_complex_max_score:float=1.0, num_hairpins_max_score:float=1.0,
-            optimization_rate:float = 5.0
+            optimization_rate:float = 5.0, result_save_path:str = 'RESULTS'
         ):
         """Create a new design_parameters object. THIS IS THE ONLY FUNCTION WITH DEFAULTS!
 
@@ -36,8 +37,10 @@ class design_parameters():
             parasitic_complex_max_score (float, optional): The maximum score penalty for dimer formation. Defaults to 1.0.
             num_hairpins_max_score (float, optional): the maximum score penalty for having more hairpins in the ensemble centroid than the desired max.
             optimization_rate (float, optional): A representation of how quickly to remove suboptimal structures from the pool, 1 meaning slowest and >10 meaning very fast. Minimum 0.0. Maximum 14.0. Defaults to 5.0.
+            results_save_path (str, optional): The path to save results. Defaults to 'RESULTS/'.
 
         Raises:
+            ValueError: _description_
             ValueError: _description_
             ValueError: _description_
             ValueError: _description_
@@ -47,7 +50,18 @@ class design_parameters():
             TypeError: _description_
             TypeError: _description_
         """
+
+        try:
+            result_save_path = os.path.normpath(result_save_path)
+            if not os.path.exists(result_save_path):
+                os.makedirs(result_save_path)
+            result_save_path += os.sep
+        except OSError:
+            print("results_save_path not writable!")
+            raise ValueError
         
+        self.result_save_path = result_save_path
+
         self.target_energy = target_energy
         self.target_temp = target_temp
         self.temp_offset = temp_offset
@@ -151,7 +165,8 @@ class design_parameters():
             'parasitic_complex_max_score':  self.parasitic_complex_max_score,
             'num_hairpins_max_score':       self.num_hairpins_max_score,
             
-            'optimization_rate':            self.optimization_rate
+            'optimization_rate':            self.optimization_rate,
+            'result_save_path':             self.result_save_path
         }
 
         stream = open(path, 'w')
