@@ -41,9 +41,9 @@ As of NUPACK 4.0 and ViennaRNA 2.6.4 Python >=3.8 is required (a standard instal
 ## Development
 pdoc is used to generate documentation.
 
-Install pdoc to the *same* conda environment, make sure main() and test() are commented out in main.py, and run:
+Install pdoc to the *same* conda environment and run:
 ```
-pdoc --docformat google -o docs *.py
+pdoc --docformat google -o docs src/Ultratherm/
 ```
 
 ## Contributors
