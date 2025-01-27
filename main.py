@@ -1,11 +1,8 @@
-import sys
-sys.path.append('src')
-
-from nucl import nucl_acid, nucl_set, nucl_hybrid
-from blist import blacklist
+from Ultratherm.nucl import nucl_acid, nucl_set, nucl_hybrid
+from Ultratherm.blist import blacklist
 from Bio.Seq import Seq
-from params import design_parameters, read_parameters
-from des import design
+from Ultratherm.params import design_parameters, read_parameters
+from Ultratherm.des import design
 
 # NOTE Customize these!
 def rna_thermometer_prok():

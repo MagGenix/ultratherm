@@ -46,3 +46,4 @@ Sreenivas Eadara developed this software while at MagGenix, Inc. from 2023 to Fe
 Thanks to "ViennaRNA Package 2.0" authors Ronny Lorenz, Stephan H Bernhart, Christian Höner zu Siederdissen, Hakim Tafer, Christoph Flamm, Peter F Stadler & Ivo L Hofacker.<br>
 Source: (https://github.com/ViennaRNA/ViennaRNA)<br>
 License: (https://github.com/ViennaRNA/ViennaRNA/blob/master/license.txt)
+ViennaRNA is not distributed with Ultratherm but is required for its usage. I greatly appreciate their contribution!
