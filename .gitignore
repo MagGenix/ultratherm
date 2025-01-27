@@ -2,6 +2,7 @@ nupack-*
 ViennaRNA-*
 .DS_STORE
 __pycache*
+src/__pycache*
 .vscode
 START_*
 END_*
