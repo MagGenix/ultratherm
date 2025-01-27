@@ -19,6 +19,9 @@ With the "ultratherm" environment active and with your active directory as the d
 pip3 install .
 ```
 
+You have now installed the Ultratherm package!
+Take a look at main.py for usage examples and run to test your installation.
+
 ### Adding NUPACK to your Ultratherm environment (optional)
 As a reminder, NUPACK is not included by the default installation above.
 If you intend to use NUPACK for scoring, you must supply your own files for NUPACK as follows:
@@ -50,5 +53,5 @@ Sreenivas Eadara developed this software while at MagGenix, Inc. from 2023 to Fe
 
 Thanks to "ViennaRNA Package 2.0" authors Ronny Lorenz, Stephan H Bernhart, Christian Höner zu Siederdissen, Hakim Tafer, Christoph Flamm, Peter F Stadler & Ivo L Hofacker.<br>
 Source: (https://github.com/ViennaRNA/ViennaRNA)<br>
-License: (https://github.com/ViennaRNA/ViennaRNA/blob/master/license.txt)
+License: (https://github.com/ViennaRNA/ViennaRNA/blob/master/license.txt)<br>
 ViennaRNA is not distributed with Ultratherm but is required for its usage. I greatly appreciate their contribution!
