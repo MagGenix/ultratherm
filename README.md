@@ -14,6 +14,11 @@ mamba env create -f environment.yml
 conda activate ultratherm
 ```
 
+With the "ultratherm" environment active and with your active directory as the directory of the Ultratherm source code, run the following to install Ultratherm from source:
+```
+pip3 install .
+```
+
 ### Adding NUPACK to your Ultratherm environment (optional)
 As a reminder, NUPACK is not included by the default installation above.
 If you intend to use NUPACK for scoring, you must supply your own files for NUPACK as follows:
