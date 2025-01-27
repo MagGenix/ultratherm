@@ -1,5 +1,5 @@
-from nucl import nucl_set, mutate, nucl_acid, nucl_hybrid
-from params import design_parameters
+from Ultratherm.nucl import nucl_set, mutate, nucl_acid, nucl_hybrid
+from Ultratherm.params import design_parameters
 import time
 import multiprocessing
 from typing import Union

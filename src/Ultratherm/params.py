@@ -1,5 +1,5 @@
 import os
-from blist import blacklist
+from Ultratherm.blist import blacklist
 import yaml
 
 #NOTE design_parameters() is the ONLY function that should have default values!!
