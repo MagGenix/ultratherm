@@ -57,7 +57,7 @@ class design_parameters():
                 os.makedirs(result_save_path)
             result_save_path += os.sep
         except OSError:
-            print("results_save_path not writable!")
+            print("results_save_path could not be created!")
             raise ValueError
         
         self.result_save_path = result_save_path
