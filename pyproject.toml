@@ -15,8 +15,8 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-#license = "LicenseRef-MagGenix-NC-Academic"
-#license-files = ["LICEN[CS]E*"]
+license = "LicenseRef-MagGenix-NC-Academic"
+license-files = ["LICEN[CS]E*"]
 dependencies = [
     "numpy",
     "scipy",
