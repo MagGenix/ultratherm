@@ -1,6 +1,6 @@
 from nupack import Tube, Complex, complex_analysis, complex_concentrations, Strand, SetSpec, Model
 from math import log10
-from params import design_parameters
+from Ultratherm.params import design_parameters
 import numpy
 
 def nupack_score_hybrid(sequence_1:str, score_region_1:list, is_rna_1:bool, score_strand_1:bool, concentration_1:float,

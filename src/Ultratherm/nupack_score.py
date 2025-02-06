@@ -1,7 +1,7 @@
 from nupack import Tube, Complex, complex_analysis, complex_concentrations, Strand, SetSpec, Model
 from math import log10
 
-from params import design_parameters
+from Ultratherm.params import design_parameters
 
 def nupack_score(sequence:str, score_region:list, is_rna: bool, concentration: float, design_parameters:design_parameters) -> float:
     """Scores a sequence (using NUPACK) on score region accessibility, free energy, hairpin count(using mfe structure) and dimer formation.

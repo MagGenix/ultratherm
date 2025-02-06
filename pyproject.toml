@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "Ultratherm"
+version = "0.0.1"
+authors = [
+  { name="Sreenivas Eadara", email="" },
+]
+description = "A package for design of DNA/RNA temperature sensitive structures."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "LicenseRef-MagGenix-NC-Academic"
+license-files = ["LICEN[CS]E*"]
+dependencies = [
+    "numpy",
+    "scipy",
+    "pandas",
+    "biopython",
+    "pyyaml",
+    "viennarna>=2.6.4"
+]
+
+[project.urls]
+Homepage = "https://github.com/SreeniEadara/ultratherm"
+Issues = "https://github.com/SreeniEadara/ultratherm/issues"

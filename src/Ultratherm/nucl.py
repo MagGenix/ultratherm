@@ -5,11 +5,11 @@ import random
 import copy
 from typing import Union
 
-from params import design_parameters
-from blist import blacklist
+from Ultratherm.params import design_parameters
+from Ultratherm.blist import blacklist
 
-from vienna_score import vienna_score
-from vienna_score_hybrid import vienna_score_hybrid
+from Ultratherm.vienna_score import vienna_score
+from Ultratherm.vienna_score_hybrid import vienna_score_hybrid
 
 class nucl_acid():
     """nucleic acid. Stores its sequence, score, no_mod, no_no_indel, score_region, and whether it is RNA or DNA.
@@ -97,7 +97,7 @@ class nucl_acid():
         if self.is_blacklisted(blacklist=design_parameters.blacklist):
             self.score = 6.0
         elif design_parameters.program == "NUPACK":
-            from nupack_score import nupack_score
+            from Ultratherm.nupack_score import nupack_score
             self.score = nupack_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters, concentration=self.concentration)
         elif design_parameters.program == "VIENNA":
             self.score = vienna_score(sequence=str(self.sequence), score_region=self.score_region, is_rna=self.is_rna, design_parameters=design_parameters, concentration=self.concentration)
@@ -152,7 +152,7 @@ class nucl_hybrid():
             self.score = 6.0
         
         elif design_parameters.program == "NUPACK":  
-            from nupack_score_hybrid import nupack_score_hybrid
+            from Ultratherm.nupack_score_hybrid import nupack_score_hybrid
             self.score = nupack_score_hybrid(sequence_1=str(self.nucl_1.sequence),
                                              score_region_1=self.nucl_1.score_region,
                                              is_rna_1=self.nucl_1.is_rna,
@@ -297,7 +297,7 @@ class nucl_set():
         del self.scores[index]
 
     def save(self, path:str) -> None:
-        """Write the nucl_set to an SPSS formatted .fastq file.
+        """Write the nucl_set to a formatted (see DATA_FORMAT.md).fastq file.
 
         Args:
             path (str): Path to save the file. If no directory specified will save to source directory.
@@ -354,13 +354,13 @@ class nucl_set():
                         continue
                     bitString = str(score_this[j]) + str(is_rna[j]) + str(score_region[j]) + str(no_indel[j]) + str(no_mod[j])
                     bitsAsInt = int(bitString, 2)
-                    quals.append(bitsAsInt + 31) # 31 is the offset between PHRED qual scores and the first SPSS character
+                    quals.append(bitsAsInt + 31) # 31 is the offset between PHRED qual scores and the first character used in storage format (see DATA_FORMAT.md)
                 record = SeqRecord(seq=sequence, id=str(i), description=str(score))
                 record.letter_annotations["phred_quality"] = quals
                 SeqIO.write(record, handle=handle, format='fastq')
 
     def read(self, path:str, design_parameters:design_parameters) -> None:
-        """Reads an SPSS formatted .fastq file and appends its nucl_acid's to the nucl_set.
+        """Reads a formatted (see DATA_FORMAT.md) .fastq file and appends its nucl_acid's to the nucl_set.
 
         Args:
             path (str): Path to read the file. If no directory specified will assume source directory.
@@ -384,7 +384,7 @@ class nucl_set():
                 if sequence.count("&") > 1:
                     raise ValueError("MORE THAN 2 STRANDS DETECTED")
                 if quals.count(5) != sequence.count("&"):
-                    raise ValueError("NOT SPSS")
+                    raise ValueError("BAD FORMAT")
                 
                 split_point = quals.index(5)
 
@@ -398,8 +398,8 @@ class nucl_set():
                 strand_seq =    strand[0]
                 strand_quals =  strand[1]
 
-                if max(strand_quals) >= 63 or min(strand_quals) < 31: # 31 is the offset between PHRED qual scores and the first SPSS character
-                    raise ValueError("NOT SPSS")
+                if max(strand_quals) >= 63 or min(strand_quals) < 31: # 31 is the offset between PHRED qual scores and the first character used in storage format (see DATA_FORMAT.md)
+                    raise ValueError("BAD FORMAT")
                 no_mod = list()
                 no_indel = list()
                 score_region = list()
@@ -407,7 +407,7 @@ class nucl_set():
                 score_this = list()
                 for qual in strand_quals:
                     #Convert qual score to int. Backfill 0s to make 5 bit int
-                    bits_string = str(bin(qual - 31))[2:].zfill(5) # 31 is the offset between PHRED qual scores and the first SPSS character
+                    bits_string = str(bin(qual - 31))[2:].zfill(5) # 31 is the offset between PHRED qual scores and the first character used in storage format (see DATA_FORMAT.md)
                     no_mod.append(int(bits_string[4] == '1'))
                     no_indel.append(int(bits_string[3] == '1'))
                     score_region.append(int(bits_string[2] == '1'))
